@@ -2,7 +2,8 @@
 {
   imports = [
     ./common.nix
-    ./shell.nix
+    ./motd.nix
     ./netbird.nix
+    ./shell.nix
   ];
 }
