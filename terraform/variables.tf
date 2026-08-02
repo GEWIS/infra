@@ -3,3 +3,9 @@ variable "host_age_key" {
   type        = string
   sensitive   = true
 }
+
+variable "state_passphrase" {
+  description = "Passphrase the state encryption key is derived from (PBKDF2, minimum 16 characters). Exported from secrets/tofu.yaml by .envrc; never set it by hand."
+  type        = string
+  sensitive   = true
+}

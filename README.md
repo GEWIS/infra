@@ -64,16 +64,19 @@ is plainly on disk.
 
 ## Secrets
 
-One sops file per host in `secrets/`, with recipients declared in `.sops.yaml`.
-Each host points at its own file:
+One sops file per host in `secrets/`, plus `secrets/tofu.yaml` for the state
+encryption passphrase. Recipients are declared in `.sops.yaml`, where the
+`admins` group is the one to extend when someone else needs access.
 
 ```sh
 sops secrets/s3-01.yaml
 sops secrets/pcgewisinfo.yaml
+sops secrets/tofu.yaml
 ```
 
 Private age keys are never committed — `.gitignore` covers `*-age.key` and
-`key.txt`. **This repository is public.**
+`key.txt`. **This repository is public**, so everything in `secrets/` is
+published as ciphertext.
 
 ## Deploying
 
@@ -85,3 +88,10 @@ Every push rebuilds it, including commits that only touch `s3-01`.
 ```sh
 cd terraform && tofu apply
 ```
+
+OpenTofu state is remote, in Scaleway Object Storage, locked with native S3
+conditional writes and encrypted client-side. Every operator uses their own
+Scaleway API key in a gitignored `.envrc.local`; access is granted by IAM on a
+dedicated Project, so offboarding is revoking one key and nothing shared gets
+rotated. The encryption passphrase comes from `secrets/tofu.yaml` via `.envrc`
+and is not an access credential.
