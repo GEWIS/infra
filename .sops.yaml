@@ -1,6 +1,6 @@
 keys:
   admins: &admins
-    - &admin_luuk age14aaw06ykpmrzgp56gyfhu2c0eh4w0k4aavq594tpym7j978hl5cs7qvccc
+    - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
   hosts:
     - &pcgewisinfo age1hde6y6ee9g0pnvgdluxjj6xq4plrsdq8f7mf4yv6xn465ucpw3hq47heg0
     - &s3_01 age1r9nz065avdtvrx2rqyq5lztf53dw8ds0uvkxkuw2zgvkqqx5e9js347zqu

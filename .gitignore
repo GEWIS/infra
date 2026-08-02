@@ -1,28 +1,20 @@
-# OpenTofu / Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
 crash.log
 crash.*.log
 
-# Environment-specific var files (keep only the example)
 *.tfvars
 *.tfvars.json
 !*.tfvars.example
 
-# direnv
 .direnv/
 .envrc.local
 
-# Nix
 result
 result-*
 
-# Host age PRIVATE keys — never commit (they decrypt every secret)
 *-age.key
 *.age.key
 key.txt
 keys.txt
-
-# NOTE: .terraform.lock.hcl is intentionally NOT ignored — commit it to pin
-# provider versions across machines.

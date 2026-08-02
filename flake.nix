@@ -41,6 +41,9 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
       pkgsFor = system: nixpkgs.legacyPackages.${system};
+      inherit (nixpkgs) lib;
+      sopsConfig = import ./nix/sops-config.nix { inherit lib; };
+      sopsFor = system: sopsConfig.outputsFor (pkgsFor system);
 
       host =
         name: extraModules:
@@ -66,6 +69,18 @@
           impermanence.nixosModules.impermanence
         ];
       };
+
+      packages = forAllSystems (system: {
+        sops-config = (sopsFor system).package;
+      });
+
+      apps = forAllSystems (system: {
+        sops-config = (sopsFor system).app;
+      });
+
+      checks = forAllSystems (system: {
+        sops-config = (sopsFor system).check;
+      });
 
       devShells = forAllSystems (
         system:
