@@ -2,7 +2,7 @@
   description = "GEWIS CBC infrastructure";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     comin = {
       url = "github:nlewo/comin";
