@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   kioskLauncher = pkgs.writeShellScript "kiosk-launch" ''
@@ -14,7 +19,6 @@ let
 in
 {
   users = {
-    mutableUsers = false;
     allowNoPasswordLogin = true;
 
     groups.gewis.gid = 1000;
@@ -69,7 +73,11 @@ in
   environment.systemPackages = [ pkgs.firefox ];
 
   nixpkgs.config.allowUnfreePredicate =
-    pkg: builtins.elem (lib.getName pkg) [ "corefonts" "vista-fonts" ];
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "corefonts"
+      "vista-fonts"
+    ];
 
   fonts = {
     enableDefaultPackages = true;
@@ -88,9 +96,18 @@ in
     fontconfig = {
       enable = true;
       defaultFonts = {
-        serif = [ "Noto Serif" "Liberation Serif" ];
-        sansSerif = [ "Noto Sans" "Liberation Sans" ];
-        monospace = [ "Noto Sans Mono" "Liberation Mono" ];
+        serif = [
+          "Noto Serif"
+          "Liberation Serif"
+        ];
+        sansSerif = [
+          "Noto Sans"
+          "Liberation Sans"
+        ];
+        monospace = [
+          "Noto Sans Mono"
+          "Liberation Mono"
+        ];
         emoji = [ "Noto Color Emoji" ];
       };
     };

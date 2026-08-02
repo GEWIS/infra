@@ -1,4 +1,12 @@
-{ pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+let
+  meshInterface = config.services.netbird.clients.${config.gewis.netbird.client}.interface;
+in
 {
   services.printing = {
     enable = true;
@@ -39,5 +47,5 @@
     openFirewall = false;
   };
 
-  networking.firewall.interfaces."nb-netbird".allowedTCPPorts = [ 8080 ];
+  networking.firewall.interfaces.${meshInterface}.allowedTCPPorts = [ 8080 ];
 }

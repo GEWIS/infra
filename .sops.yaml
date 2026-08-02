@@ -1,7 +1,15 @@
 keys:
+  - &admin_luuk age14aaw06ykpmrzgp56gyfhu2c0eh4w0k4aavq594tpym7j978hl5cs7qvccc
   - &pcgewisinfo age1hde6y6ee9g0pnvgdluxjj6xq4plrsdq8f7mf4yv6xn465ucpw3hq47heg0
+  - &s3_01 age1r9nz065avdtvrx2rqyq5lztf53dw8ds0uvkxkuw2zgvkqqx5e9js347zqu
+
 creation_rules:
-  - path_regex: hosts/pcgewisinfo/secrets/[^/]+\.yaml$
+  - path_regex: secrets/pcgewisinfo\.yaml$
     key_groups:
       - age:
           - *pcgewisinfo
+  - path_regex: secrets/s3-01\.yaml$
+    key_groups:
+      - age:
+          - *admin_luuk
+          - *s3_01
