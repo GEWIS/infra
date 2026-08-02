@@ -3,6 +3,7 @@
   imports = [
     ../../modules/xcpng.nix
     ./disko.nix
+    ./garage.nix
   ];
 
   networking.hostName = "s3-01";

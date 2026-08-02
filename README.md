@@ -7,7 +7,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | Installed by hand | comin, polling `main` |
-| `s3-01` | S3 server VM on XCP-ng (Garage not enabled yet) | OpenTofu + nixos-anywhere | `tofu apply` |
+| `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 
 Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md) and
 [`docs/s3-01.md`](docs/s3-01.md).
