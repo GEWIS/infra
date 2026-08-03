@@ -9,6 +9,9 @@ creation_rules:
   - path_regex: secrets/tofu\.yaml$
     key_groups:
       - age: *admins
+  - path_regex: secrets/talos\.yaml$
+    key_groups:
+      - age: *admins
   - path_regex: secrets/pcgewisinfo\.yaml$
     key_groups:
       - age:

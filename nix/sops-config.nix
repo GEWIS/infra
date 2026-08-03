@@ -46,7 +46,7 @@ let
         ""
         "creation_rules:"
       ]
-      ++ rule "secrets/tofu\\.yaml$" adminAnchors
+      ++ lib.concatMap (name: rule "secrets/${name}\\.yaml$" adminAnchors) recipients.adminOnly
       ++ lib.concatMap hostRule hostNames
     )
     + "\n";

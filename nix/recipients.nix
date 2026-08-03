@@ -1,4 +1,9 @@
 {
+  adminOnly = [
+    "tofu"
+    "talos"
+  ];
+
   admins = {
     luuk = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x";
   };

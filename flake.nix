@@ -93,11 +93,13 @@
             packages = with pkgs; [
               age
               jq
+              kubectl
               nixfmt
               nixos-anywhere
               opentofu
               sops
               ssh-to-age
+              talosctl
             ];
           };
         }
