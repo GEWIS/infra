@@ -4,7 +4,7 @@ variable "pool_name_label" {
 }
 
 variable "template_name_label" {
-  description = "name_label of the VM template to clone (bootstrap OS; replaced by nixos-anywhere)."
+  description = "name_label of the VM template to clone."
   type        = string
 }
 
@@ -14,12 +14,12 @@ variable "network_name_label" {
 }
 
 variable "sr_name_label" {
-  description = "name_label of the Storage Repository for the disks."
+  description = "name_label of the Storage Repository for the disks. For a host-local SR this also pins the VM to that host."
   type        = string
 }
 
 variable "expected_ip_cidr" {
-  description = "CIDR the VM's first NIC must report an address from before create finishes. This is how the address is discovered: the guest agent reports it, the provider blocks until it lands in this range, and vm_ipv4 then carries it to nixos-anywhere. Requires a working guest agent in the bootstrap OS. Empty disables the wait and leaves vm_ipv4 null."
+  description = "CIDR the VM's first NIC must report an address from before create finishes. This is how the address is discovered: the guest agent reports it, the provider blocks until it lands in this range, and vm_ipv4 then carries it onward. Requires a working guest agent in the booted OS. Empty disables the wait and leaves vm_ipv4 null."
   type        = string
   default     = ""
 }
@@ -53,10 +53,16 @@ variable "data_disk_gib" {
   default     = 100
 }
 
-variable "ssh_authorized_key" {
-  description = "SSH public key injected via cloud-init so nixos-anywhere can reach the bootstrap OS."
+variable "cloud_config" {
+  description = "cloud-init user-data written to the VM's config drive. Null attaches no config drive, which is what a Talos nocloud node wants (it boots into maintenance mode and is configured over the API instead)."
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "affinity_host" {
+  description = "Host id the VM prefers to run on. A soft preference in Xen Orchestra; for a host-local SR the storage pins placement regardless. Applied at create; drift is ignored afterwards."
+  type        = string
+  default     = null
 }
 
 variable "mac_address" {
@@ -78,7 +84,7 @@ variable "auto_poweron" {
 }
 
 variable "hvm_boot_firmware" {
-  description = "\"uefi\" or \"bios\". Ubuntu cloud images need uefi."
+  description = "\"uefi\" or \"bios\"."
   type        = string
   default     = "uefi"
 }

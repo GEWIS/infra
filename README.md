@@ -8,9 +8,10 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | --- | --- | --- | --- |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | Installed by hand | comin, polling `main` |
 | `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
+| `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
 
-Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md) and
-[`docs/s3-01.md`](docs/s3-01.md).
+Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md),
+[`docs/s3-01.md`](docs/s3-01.md) and [`docs/talos.md`](docs/talos.md).
 
 ## Layout
 
@@ -19,7 +20,9 @@ flake.nix              nixosConfigurations + devShell
 nix/modules/           shared NixOS modules
 nix/hosts/<host>/      per-host configuration
 secrets/<host>.yaml    sops-encrypted secrets, one file per host
-terraform/             OpenTofu: XCP-ng VM + nixos-anywhere (s3-01 only)
+terraform/modules/     shared modules (xcpng-vm, nixos-host)
+terraform/s3-01/       OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
+terraform/talos/       OpenTofu root: 3-node Talos cluster
 docs/                  per-host operational detail
 ```
 
@@ -56,7 +59,8 @@ direnv allow      # or: nix develop
 ```
 
 That provides `opentofu`, `nixos-anywhere`, `sops`, `age`, `ssh-to-age`,
-`nixfmt` and `jq`. Format with `nix fmt` before committing.
+`talosctl`, `kubectl`, `nixfmt` and `jq`. Format with `nix fmt` before
+committing.
 
 Flakes only see git-tracked files, so `git add` new files before building or
 running `tofu plan`; an untracked file is invisible to the build even though it
@@ -72,6 +76,7 @@ encryption passphrase. Recipients are declared in `.sops.yaml`, where the
 sops secrets/s3-01.yaml
 sops secrets/pcgewisinfo.yaml
 sops secrets/tofu.yaml
+sops secrets/talos.yaml
 ```
 
 Private age keys are never committed — `.gitignore` covers `*-age.key` and
@@ -83,10 +88,18 @@ published as ciphertext.
 `pcgewisinfo` — push to `main`; comin polls the repo and switches the host.
 Every push rebuilds it, including commits that only touch `s3-01`.
 
-`s3-01` — see [`docs/s3-01.md`](docs/s3-01.md):
+Both live under `terraform/`, each its own root with its own state, so an apply
+to one cannot touch the other. `s3-01` — see [`docs/s3-01.md`](docs/s3-01.md):
 
 ```sh
-cd terraform && tofu apply
+cd terraform/s3-01 && tofu apply
+```
+
+`talos-*` — see [`docs/talos.md`](docs/talos.md); a Talos template must be
+imported into Xen Orchestra once first, then:
+
+```sh
+cd terraform/talos && tofu apply
 ```
 
 OpenTofu state is remote, in Scaleway Object Storage, locked with native S3

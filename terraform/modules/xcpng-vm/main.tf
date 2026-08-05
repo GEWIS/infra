@@ -1,29 +1,5 @@
 locals {
   gib = 1024 * 1024 * 1024
-
-  bootstrap_cloud_config = <<-EOT
-#cloud-config
-hostname: ${var.vm_name}
-disable_root: false
-package_update: true
-packages:
-  - openssh-server
-  - xe-guest-utilities
-write_files:
-  - path: /etc/default/grub.d/99-net-ifnames.cfg
-    content: |
-      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT net.ifnames=0"
-runcmd:
-  - install -d -m 700 /root/.ssh
-  - printf '%s\n' '${var.ssh_authorized_key}' > /root/.ssh/authorized_keys
-  - chmod 600 /root/.ssh/authorized_keys
-  - systemctl enable --now ssh
-  - update-grub
-  - systemctl enable xe-daemon
-power_state:
-  mode: reboot
-  condition: true
-EOT
 }
 
 data "xenorchestra_pool" "pool" {
@@ -54,7 +30,8 @@ resource "xenorchestra_vm" "this" {
   hvm_boot_firmware = var.hvm_boot_firmware
   clone_type        = var.clone_type
   auto_poweron      = var.auto_poweron
-  cloud_config      = local.bootstrap_cloud_config
+  affinity_host     = var.affinity_host
+  cloud_config      = var.cloud_config
 
   network {
     network_id       = data.xenorchestra_network.net.id

@@ -22,7 +22,7 @@ locals {
 
 module "vm" {
   for_each = local.hosts
-  source   = "./modules/xcpng-vm"
+  source   = "../modules/xcpng-vm"
 
   vm_name             = each.key
   pool_name_label     = local.placement.pool_name_label
@@ -37,18 +37,40 @@ module "vm" {
   data_disk_gib = each.value.data_disk_gib
   mac_address   = each.value.mac_address
 
-  ssh_authorized_key = local.ssh_authorized_key
+  cloud_config = <<-EOT
+#cloud-config
+hostname: ${each.key}
+disable_root: false
+package_update: true
+packages:
+  - openssh-server
+  - xe-guest-utilities
+write_files:
+  - path: /etc/default/grub.d/99-net-ifnames.cfg
+    content: |
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT net.ifnames=0"
+runcmd:
+  - install -d -m 700 /root/.ssh
+  - printf '%s\n' '${local.ssh_authorized_key}' > /root/.ssh/authorized_keys
+  - chmod 600 /root/.ssh/authorized_keys
+  - systemctl enable --now ssh
+  - update-grub
+  - systemctl enable xe-daemon
+power_state:
+  mode: reboot
+  condition: true
+EOT
 }
 
 module "nixos" {
   for_each = local.hosts
-  source   = "./modules/nixos-host"
+  source   = "../modules/nixos-host"
 
   target_host = module.vm[each.key].vm_ipv4
   instance_id = module.vm[each.key].vm_id
 
-  nixos_system_attr      = "${path.module}/..#nixosConfigurations.${each.key}.config.system.build.toplevel"
-  nixos_partitioner_attr = "${path.module}/..#nixosConfigurations.${each.key}.config.system.build.diskoScript"
+  nixos_system_attr      = "${path.module}/../..#nixosConfigurations.${each.key}.config.system.build.toplevel"
+  nixos_partitioner_attr = "${path.module}/../..#nixosConfigurations.${each.key}.config.system.build.diskoScript"
 
   extra_files_script = "${path.module}/extra-files.sh"
   extra_environment  = { HOST_AGE_KEY = var.host_age_key }
