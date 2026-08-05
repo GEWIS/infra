@@ -43,19 +43,19 @@ hash of exactly those four, verified against the Factory. It is pinned in
 To create the template:
 
 ```sh
-curl -LO "https://factory.talos.dev/image/544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788/v1.13.7/nocloud-amd64.raw.xz"
+curl -LO "https://factory.talos.dev/image/544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788/v1.13.8/nocloud-amd64.raw.xz"
 unxz nocloud-amd64.raw.xz
-nix shell nixpkgs#qemu -c qemu-img convert -f raw -O vpc nocloud-amd64.raw talos-1.13.7-nocloud.vhd
+nix shell nixpkgs#qemu -c qemu-img convert -f raw -O vpc nocloud-amd64.raw talos-1.13.8-nocloud.vhd
 ```
 
 Xen Orchestra imports VHD/VMDK, not raw, hence the `qemu-img` step. Then in XO:
 **Import → Disk** onto an SR; **New VM** with **Boot firmware = UEFI** (no Secure
 Boot) and no meaningful disk/CPU (tofu overrides those per clone); attach the
 imported VDI as position 0 and drop the wizard's throwaway disk; **Convert to
-template** without booting it, named exactly `talos-1.13.7-nocloud`. Rename the
+template** without booting it, named exactly `talos-1.13.8-nocloud`. Rename the
 `template_name_label` local if you name it something else.
 
-The VHD is ~1.3 GiB virtual; a full clone resizes the system disk to 20 GiB and
+The VHD is ~4 GiB virtual; a full clone resizes the system disk to 20 GiB and
 Talos grows its EPHEMERAL partition into the space on first boot.
 
 ## Other prerequisites

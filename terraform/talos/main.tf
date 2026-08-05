@@ -1,13 +1,13 @@
 locals {
   cluster_name     = "cbc"
   cluster_endpoint = "https://kube.gewis.nl:6443"
-  talos_version    = "v1.13.7"
+  talos_version    = "v1.13.8"
   schematic_id     = "544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788"
   install_image    = "factory.talos.dev/installer/${local.schematic_id}:${local.talos_version}"
 
   pool_name_label     = "GEWISVHOST-Intel"
   network_name_label  = "External"
-  template_name_label = "talos-1.13.7-nocloud"
+  template_name_label = "talos-1.13.8-nocloud"
 
   pod_subnets     = ["10.244.0.0/16", "fd00:cbc:0::/56"]
   service_subnets = ["10.96.0.0/12", "fd00:cbc:1::/108"]
