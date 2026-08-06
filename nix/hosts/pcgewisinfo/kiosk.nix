@@ -63,6 +63,8 @@ in
     };
   };
 
+  systemd.services."autovt@tty1".enable = false;
+
   systemd.targets = {
     sleep.enable = false;
     suspend.enable = false;
