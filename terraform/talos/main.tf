@@ -51,6 +51,7 @@ locals {
     machine = {
       install = { disk = "/dev/xvda", image = local.install_image }
       kubelet = { nodeIP = { validSubnets = ["10.82.50.0/24"] } }
+      time    = { servers = ["time.gewis.nl"] }
     }
   })
 
