@@ -16,7 +16,10 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x luuk-blankenstijn@luuk-laptop"
   ];
 
-  gewis.netbird.enable = true;
+  gewis.netbird = {
+    enable = true;
+    dnsLabel = "s3";
+  };
 
   sops = {
     age.keyFile = "/var/lib/sops-nix/key.txt";
