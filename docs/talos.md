@@ -17,13 +17,18 @@ skips `s3-01`'s three-minute closure build.
 under the same passphrase from `secrets/tofu.yaml`. Each root is a separate
 `tofu init`.
 
-## The image is a manual prerequisite
+## The template is a manual prerequisite
 
 The provider can clone a template but cannot build one — `template` is
 `Required` and forces replacement, and there is no way to attach an uploaded
 disk as a VM's boot disk. So the Talos image becomes a template **by hand,
 once**. Talos upgrades afterwards go through `talosctl upgrade`, never a
 re-import.
+
+The template is the **nocloud** disk image: Talos baked onto the disk, so a
+clone boots straight from its own disk with no ISO and no runtime dependency on
+any ISO SR. Given no config source it lands in maintenance mode on its reserved
+address, waiting for tofu to push the machine configuration over the API.
 
 The image is built at [Image Factory](https://factory.talos.dev) with a
 schematic carrying four extensions:
@@ -40,23 +45,91 @@ The schematic id is
 hash of exactly those four, verified against the Factory. It is pinned in
 `main.tf` as both the template name and `machine.install.image`.
 
-To create the template:
+### The disk-scramble bug, and why the template carries an empty CD drive
 
-```sh
-curl -LO "https://factory.talos.dev/image/544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788/v1.13.8/nocloud-amd64.raw.xz"
-unxz nocloud-amd64.raw.xz
-nix shell nixpkgs#qemu -c qemu-img convert -f raw -O vpc nocloud-amd64.raw talos-1.13.8-nocloud.vhd
-```
+The template ships with **one bootable disk plus an empty CD drive**, mirroring
+the shape of the working `s3-01` Ubuntu template. The empty CD is not cosmetic —
+it is the fix for a provider bug.
 
-Xen Orchestra imports VHD/VMDK, not raw, hence the `qemu-img` step. Then in XO:
-**Import → Disk** onto an SR; **New VM** with **Boot firmware = UEFI** (no Secure
-Boot) and no meaningful disk/CPU (tofu overrides those per clone); attach the
-imported VDI as position 0 and drop the wizard's throwaway disk; **Convert to
-template** without booting it, named exactly `talos-1.13.8-nocloud`. Rename the
-`template_name_label` local if you name it something else.
+`terra-farm/xenorchestra` v0.40.0 **scrambles the two `disk` blocks when cloning
+a template that has no CD drive**: both disks come out at the second block's size
+(10/10 GiB), silently losing the 20 GiB system disk, sometimes with
+non-deterministic device names too. A CD drive present on the template makes disk
+sizing correct. Proven again this session — the nocloud template with an empty CD
+cloned to a correct 20 GiB root + 10 GiB data on all three nodes, across hosts.
+`s3-01`, which has always sized correctly, happens to carry exactly this shape:
+OS on the disk plus an empty CD drive.
 
-The VHD is ~4 GiB virtual; a full clone resizes the system disk to 20 GiB and
-Talos grows its EPHEMERAL partition into the space on first boot.
+An **empty** CD is chosen deliberately because it needs no ISO and no ISO SR at
+runtime: its boot order is irrelevant, because an empty drive has nothing to
+boot, so UEFI/OVMF falls through to the disk. (`s3-01` boots CD-first, `dcn`, and
+still comes up off its disk for exactly this reason.)
+
+This is why the earlier **diskless template + bootable metal-ISO** approach was
+abandoned. The provider has no boot-order attribute (confirmed for every released
+version) and no CD-eject. With a blank disk and a bootable Talos metal ISO in a
+CD-first VM, OVMF boots the ISO on every reboot: the node installs to `/dev/xvda`,
+reboots, and lands straight back in the ISO — a maintenance-mode loop where
+bootstrap never completes. Escaping it would need a manual, out-of-band
+`vm.setBootOrder` / `ejectCd` per node, only reachable through xo-cli's JSON-RPC
+(not the REST API, not the provider). nocloud + empty CD avoids all of it, needs
+zero boot-order management, and has no runtime coupling to the flaky SMB ISO SR.
+
+### Building the template
+
+Named `talos-1.13.8-nocloud`, UEFI (no Secure Boot). The provider cannot do any
+of this, so it is done once by hand with the XO REST API and `xo-cli`.
+
+1. Download the nocloud disk image from Image Factory and decompress it:
+
+   ```sh
+   curl -LO "https://factory.talos.dev/image/544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788/v1.13.8/nocloud-amd64.raw.xz"
+   unxz nocloud-amd64.raw.xz
+   ```
+
+2. Convert the raw image to a **dynamic** VHD, which shrinks the upload from
+   ~4.45 GiB raw to ~280 MiB:
+
+   ```sh
+   qemu-img convert -O vpc -o subformat=dynamic nocloud-amd64.raw talos-1.13.8-nocloud.vhd
+   ```
+
+3. Import the VHD as a VDI into a disk SR over the XO REST API (default upload
+   format is VHD; pass `raw=true` only for a raw image):
+
+   ```sh
+   curl -b "authenticationToken=$XOA_TOKEN" \
+     -H "Content-Type: application/octet-stream" \
+     --data-binary @talos-1.13.8-nocloud.vhd \
+     "https://xoa.gewis.nl/rest/v0/srs/<sr-uuid>/vdis?name_label=talos-1.13.8-nocloud-disk"
+   ```
+
+4. Build the template VM with `xo-cli` (JSON-RPC — the empty-CD trick is not
+   expressible over REST). Authenticate once, then create the VM from a
+   UEFI-capable base template, attach the imported disk as the boot disk, add an
+   empty CD drive, and convert to a template. Note that pool templates are
+   addressed by a **composite** id, `<pool-uuid>-<template-uuid>`:
+
+   ```sh
+   npx --yes xo-cli register --token "$XOA_TOKEN" https://xoa.gewis.nl
+   npx --yes xo-cli vm.create name_label=talos-1.13.8-nocloud \
+     template=<pool-uuid>-<GenericLinuxUEFI-uuid> hvmBootFirmware=uefi bootAfterCreate=false
+   npx --yes xo-cli vm.attachDisk vm=<vm-uuid> vdi=<imported-vdi-uuid> bootable=true position=0
+   # insert any ISO then eject it — leaves an empty CD drive attached (the disk-scramble fix)
+   npx --yes xo-cli vm.insertCd id=<vm-uuid> cd_id=<any-iso-vdi-uuid> force=true
+   npx --yes xo-cli vm.ejectCd id=<vm-uuid>
+   npx --yes xo-cli vm.convertToTemplate id=<vm-uuid>
+   ```
+
+The result is a template with one bootable disk (the nocloud image) at position 0
+plus one empty CD drive, UEFI — the same shape as the `s3-01` template. A full
+clone resizes the system disk to 20 GiB and Talos grows its EPHEMERAL partition
+into the space on first boot. Rename the `template_name_label` local in `main.tf`
+if you name the template something other than `talos-1.13.8-nocloud`.
+
+This session imported the VHD into `vhost1-ssd2`
+(`bfd38322-f414-da7c-e97e-68d5c8d7fa44`); the resulting template is XO
+`86690565-d9a7-2655-ca7c-58f10246a93a`, boot order `cdn`.
 
 ## Other prerequisites
 
@@ -82,21 +155,44 @@ Talos grows its EPHEMERAL partition into the space on first boot.
 
 ## Applying
 
+`config-apply` and `bootstrap` connect **directly to node IPs** on
+`10.82.50.0/24:50000`, so they must run from a host with a real route to that
+subnet — the on-site LAN or the VPN. VM create and destroy go through the public
+`xoa.gewis.nl` API and work from anywhere. Before an apply that includes the node
+steps, confirm the route with a single probe that actually returns:
+
+```sh
+talosctl -n 10.82.50.101 get disks --insecure
+```
+
+Then apply in two stages, so a disk-sizing check can sit between them:
+
 ```sh
 cd terraform/talos
 tofu init
-tofu plan
-tofu apply
+tofu apply -target=module.vm     # create the 3 VMs
+# confirm each node's xvda = 20 GiB and xvdb = 10 GiB (talosctl ... get disks --insecure, or XO)
+tofu apply                       # config-apply + etcd bootstrap
 ```
 
-Each node boots the nocloud image with no config source and sits in maintenance
-mode on its reserved address. tofu then pushes the machine configuration over
-the API; the node writes it and reboots into the configured system;
+Each node boots the nocloud image with **no config source** (`cloud_config =
+null`, so it has no config drive) and sits in maintenance mode on its reserved
+address. `tofu apply` then pushes the machine configuration over the API; the
+node writes it, installs to `/dev/xvda`, and reboots into the configured system;
 `talos_machine_bootstrap` runs etcd genesis on `talos-01` only.
 
-A first apply can race a node reaching maintenance mode — a config-apply that
-errors with a connection failure just means the node was not up yet. Re-run;
-every step is idempotent.
+A first apply can race a node reaching maintenance mode or rebooting — a
+config-apply that errors with a connection failure just means the node was not up
+yet. Re-run; every step is idempotent.
+
+The module wires the `talos-1.13.8-nocloud` template, 20 GiB root / 10 GiB data
+disks, `cloud_config = null`, and `machine.time.servers = ["time.gewis.nl"]` (the
+nodes cannot reach the default Cloudflare NTP pool). The Longhorn
+`UserVolumeConfig` rides along as a config patch. The old metal-ISO wiring is
+gone — `iso_name`, the `data "xenorchestra_vdi" "iso"` block, and the module's
+`cdrom_id` argument were all removed; the module keeps an optional `cdrom` block
+that is a no-op while `cdrom_id` is null, since the empty CD now lives on the
+template itself.
 
 ## Secrets never reach the state
 
@@ -125,6 +221,11 @@ talosctl gen config cbc https://kube.gewis.nl:6443 \
 talosctl --talosconfig talosconfig --nodes 10.82.50.101 kubeconfig
 rm /tmp/talos-secrets.yaml
 ```
+
+`kube.gewis.nl` is the Kubernetes API endpoint only — A records to all three
+nodes on `:6443` — and belongs in the kubeconfig. For `talosctl`, use the
+**node IPs** as endpoints: the Talos apid certificate (from `certs.os`) does not
+carry `kube.gewis.nl` in its SANs unless it is added to `machine.certSANs`.
 
 ## The cluster has no CNI until you install one
 
@@ -204,12 +305,25 @@ attach order cannot misroute it.
 
 ## Known follow-ups
 
-- **Node hostnames are Talos stable auto-names, not `talos-01/02/03`.** Talos
-  1.13 seeds a `HostnameConfig` with `auto: stable` that a config patch cannot
-  cleanly override, and the v1alpha1 `machine.network.hostname` field is refused
-  while that document exists. Pinning friendly names needs the provider's
-  rendered config inspected at first apply; it is cosmetic and does not block the
-  cluster.
-- **The Longhorn `UserVolumeConfig` is validated by `talosctl` but not yet on a
-  live node.** Confirm with `talosctl get volumestatus u-longhorn` after first
-  boot.
+The infrastructure is proven — the template sizes disks correctly and all three
+VMs cloned to 20/10 GiB across hosts — and `config-apply` + `bootstrap` were run,
+but the cluster has **not** been independently verified healthy from here: the
+build host has no route into `10.82.50.0/24`. Everything below is outstanding.
+
+- **Cilium is not installed yet.** The nodes stay `NotReady` until it is installed
+  via Helm/Flux (see "The cluster has no CNI until you install one"); that install
+  and confirming the nodes reach `Ready` are still to do.
+- **LoadBalancer is not set up.** No `CiliumLoadBalancerIPPool` exists yet and no
+  static route points a pool prefix at the nodes; LB-IPAM stays dormant until the
+  first pool is created.
+- **The Longhorn `UserVolumeConfig` is validated by `talosctl` but not yet seen on
+  a live node.** Confirm with `talosctl get volumestatus u-longhorn` after first
+  boot; the Longhorn namespace also needs
+  `pod-security.kubernetes.io/enforce=privileged`.
+- **Node hostnames are Talos stable auto-names, not `talos-01/02/03`.** Talos 1.13
+  seeds a `HostnameConfig` with `auto: stable` that a config patch cannot cleanly
+  override, and the v1alpha1 `machine.network.hostname` field is refused while that
+  document exists. Pinning friendly names needs the provider's rendered config
+  inspected at first apply; cosmetic, does not block the cluster.
+- **The imported VDI is labelled `talos-1.13.8-nocloud-disk`.** Purely cosmetic;
+  rename it in XO if the generic label bothers you.
