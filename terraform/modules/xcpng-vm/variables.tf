@@ -65,6 +65,12 @@ variable "affinity_host" {
   default     = null
 }
 
+variable "cdrom_id" {
+  description = "VDI id of an ISO to attach as a CD drive. Required to boot a diskless template; null attaches no CD."
+  type        = string
+  default     = null
+}
+
 variable "mac_address" {
   description = "Fixed MAC for the NIC, so the VM keeps one stable L2 identity across rebuilds and the DHCP lease is predictable."
   type        = string

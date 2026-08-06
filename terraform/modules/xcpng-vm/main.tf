@@ -39,6 +39,13 @@ resource "xenorchestra_vm" "this" {
     expected_ip_cidr = var.expected_ip_cidr
   }
 
+  dynamic "cdrom" {
+    for_each = var.cdrom_id != null ? [var.cdrom_id] : []
+    content {
+      id = cdrom.value
+    }
+  }
+
   disk {
     sr_id      = data.xenorchestra_sr.disks.id
     name_label = "${var.vm_name}-root"
