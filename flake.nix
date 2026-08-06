@@ -88,20 +88,7 @@
           pkgs = pkgsFor system;
         in
         {
-          default = pkgs.mkShellNoCC {
-            name = "cbc-infra";
-            packages = with pkgs; [
-              age
-              jq
-              kubectl
-              nixfmt
-              nixos-anywhere
-              opentofu
-              sops
-              ssh-to-age
-              talosctl
-            ];
-          };
+          default = import ./nix/devshell.nix { inherit pkgs; };
         }
       );
 

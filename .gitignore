@@ -11,6 +11,11 @@ crash.*.log
 .direnv/
 .envrc.local
 
+talosconfig
+kubeconfig
+.talos/
+.kube/
+
 result
 result-*
 
