@@ -5,6 +5,7 @@ pkgs.mkShellNoCC {
     age
     jq
     kubectl
+    k9s
     nixfmt
     nixos-anywhere
     opentofu

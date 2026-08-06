@@ -20,9 +20,10 @@ flake.nix              nixosConfigurations + devShell
 nix/modules/           shared NixOS modules
 nix/hosts/<host>/      per-host configuration
 secrets/<host>.yaml    sops-encrypted secrets, one file per host
-terraform/modules/     shared modules (xcpng-vm, nixos-host)
-terraform/s3-01/       OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
-terraform/talos/       OpenTofu root: 3-node Talos cluster
+terraform/modules/          shared modules (xcpng-vm, nixos-host)
+terraform/s3-01/            OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
+terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
+terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium CNI)
 docs/                  per-host operational detail
 ```
 
@@ -99,7 +100,7 @@ cd terraform/s3-01 && tofu apply
 imported into Xen Orchestra once first, then:
 
 ```sh
-cd terraform/talos && tofu apply
+cd terraform/talos-hosts && tofu apply
 ```
 
 OpenTofu state is remote, in Scaleway Object Storage, locked with native S3

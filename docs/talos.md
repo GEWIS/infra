@@ -6,7 +6,7 @@ the Talos API; there is no SSH and no nixos-anywhere here.
 
 ## How it fits together
 
-Talos lives in its own OpenTofu root, `terraform/talos/`, with its own state
+Talos lives in its own OpenTofu root, `terraform/talos-hosts/`, with its own state
 (`talos/terraform.tfstate`) and its own secret. It shares only the `xcpng-vm`
 module with `s3-01`. The two roots reference nothing of each other's: the
 cluster reaches Garage as an ordinary S3 client over the network, never through
@@ -168,7 +168,7 @@ talosctl -n 10.82.50.101 get disks --insecure
 Then apply in two stages, so a disk-sizing check can sit between them:
 
 ```sh
-cd terraform/talos
+cd terraform/talos-hosts
 tofu init
 tofu apply -target=module.vm     # create the 3 VMs
 # confirm each node's xvda = 20 GiB and xvdb = 10 GiB (talosctl ... get disks --insecure, or XO)
