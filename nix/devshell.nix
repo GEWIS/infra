@@ -5,6 +5,8 @@ pkgs.mkShellNoCC {
     age
     jq
     kubectl
+    kubeseal
+    fluxcd
     k9s
     nixfmt
     nixos-anywhere
