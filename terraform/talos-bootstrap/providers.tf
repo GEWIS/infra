@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/external"
       version = "~> 2.3"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 3.2"
+    }
   }
 }
 
@@ -21,4 +25,8 @@ provider "helm" {
   kubernetes {
     config_path = local.kubeconfig_path
   }
+}
+
+provider "kubernetes" {
+  config_path = local.kubeconfig_path
 }
