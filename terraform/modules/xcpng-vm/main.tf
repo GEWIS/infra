@@ -25,6 +25,7 @@ resource "xenorchestra_vm" "this" {
   template   = data.xenorchestra_template.base.id
 
   cpus       = var.cpus
+  memory_min = var.memory_gib * local.gib
   memory_max = var.memory_gib * local.gib
 
   hvm_boot_firmware = var.hvm_boot_firmware

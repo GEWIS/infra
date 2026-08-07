@@ -9,6 +9,7 @@ pkgs.mkShellNoCC {
     fluxcd
     k9s
     nixfmt
+    cilium-cli
     nixos-anywhere
     opentofu
     sops

@@ -14,7 +14,7 @@ locals {
 
   nodes = {
     talos-01 = { ip = "10.82.50.101", mac = "00:16:3e:5e:b8:01", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2" }
-    talos-02 = { ip = "10.82.50.102", mac = "00:16:3e:5e:b8:02", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2" }
+    talos-02 = { ip = "10.82.50.102", mac = "00:16:3e:5e:b8:02", host = "gewisvhost3.win.tue.nl", sr = "vhost3-ssd" }
     talos-03 = { ip = "10.82.50.103", mac = "00:16:3e:5e:b8:03", host = "gewisvhost3.win.tue.nl", sr = "vhost3-ssd" }
   }
 
@@ -50,8 +50,16 @@ locals {
     }
     machine = {
       install = { disk = "/dev/xvda", image = local.install_image }
-      kubelet = { nodeIP = { validSubnets = ["10.82.50.0/24"] } }
-      time    = { servers = ["time.gewis.nl"] }
+      kubelet = {
+        nodeIP = { validSubnets = ["10.82.50.0/24"] }
+        extraMounts = [{
+          destination = "/var/mnt/longhorn"
+          type        = "bind"
+          source      = "/var/mnt/longhorn"
+          options     = ["bind", "rshared", "rw"]
+        }]
+      }
+      time = { servers = ["time.gewis.nl"] }
     }
   })
 
@@ -130,6 +138,15 @@ resource "talos_machine_configuration_apply" "this" {
   endpoint                       = each.value.ip
   client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
   machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane.machine_configuration
+
+  config_patches = [
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.key
+      auto       = "off"
+    })
+  ]
 
   timeouts = {
     create = "10m"

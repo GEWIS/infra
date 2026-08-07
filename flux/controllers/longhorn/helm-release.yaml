@@ -22,6 +22,7 @@ spec:
   values:
     defaultSettings:
       defaultDataPath: "/var/mnt/longhorn"
+      storageReservedPercentageForDefaultDisk: 0
       nodeDownPodDeletionPolicy: "delete-both-statefulset-and-deployment-pod"
       concurrentAutomaticEngineUpgradePerNodeLimit: 3
       orphanAutoDeletion: false

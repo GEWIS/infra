@@ -8,6 +8,11 @@ locals {
     ipv4 = { enabled = true }
     ipv6 = { enabled = true }
 
+    encryption = {
+      enabled = true
+      type    = "wireguard"
+    }
+
     cgroup = {
       autoMount = { enabled = false }
       hostRoot  = "/sys/fs/cgroup"
