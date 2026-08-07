@@ -6,9 +6,9 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.17"
     }
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14"
+    external = {
+      source  = "hashicorp/external"
+      version = "~> 2.3"
     }
   }
 }
@@ -21,9 +21,4 @@ provider "helm" {
   kubernetes {
     config_path = local.kubeconfig_path
   }
-}
-
-provider "kubectl" {
-  config_path      = local.kubeconfig_path
-  load_config_file = true
 }

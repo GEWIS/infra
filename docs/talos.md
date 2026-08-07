@@ -31,19 +31,19 @@ any ISO SR. Given no config source it lands in maintenance mode on its reserved
 address, waiting for tofu to push the machine configuration over the API.
 
 The image is built at [Image Factory](https://factory.talos.dev) with a
-schematic carrying four extensions:
+schematic carrying three extensions:
 
 | Extension | Why |
 | --- | --- |
 | `siderolabs/xen-guest-agent` | reports guest IPs to Xen Orchestra |
 | `siderolabs/iscsi-tools` | Longhorn needs `iscsiadm`, or volumes never attach |
 | `siderolabs/util-linux-tools` | Longhorn needs `fstrim` |
-| `siderolabs/netbird` | baked in but dormant; activated by an `ExtensionServiceConfig`, never a re-image |
 
 The schematic id is
-`544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788` — a content
-hash of exactly those four, verified against the Factory. It is pinned in
-`main.tf` as both the template name and `machine.install.image`.
+`58eedd04d458e2c900727f5a3af74a3ef6453b9902b23decb590c0007388187a` — a content
+hash of exactly those three, verified against the Factory. It is pinned in
+`main.tf` as the `schematic_id` local, which drives both the nocloud template
+image and the `installer` reference in `machine.install.image`.
 
 ### The disk-scramble bug, and why the template carries an empty CD drive
 
@@ -83,7 +83,7 @@ of this, so it is done once by hand with the XO REST API and `xo-cli`.
 1. Download the nocloud disk image from Image Factory and decompress it:
 
    ```sh
-   curl -LO "https://factory.talos.dev/image/544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788/v1.13.8/nocloud-amd64.raw.xz"
+   curl -LO "https://factory.talos.dev/image/58eedd04d458e2c900727f5a3af74a3ef6453b9902b23decb590c0007388187a/v1.13.8/nocloud-amd64.raw.xz"
    unxz nocloud-amd64.raw.xz
    ```
 
@@ -127,10 +127,6 @@ clone resizes the system disk to 20 GiB and Talos grows its EPHEMERAL partition
 into the space on first boot. Rename the `template_name_label` local in `main.tf`
 if you name the template something other than `talos-1.13.8-nocloud`.
 
-This session imported the VHD into `vhost1-ssd2`
-(`bfd38322-f414-da7c-e97e-68d5c8d7fa44`); the resulting template is XO
-`86690565-d9a7-2655-ca7c-58f10246a93a`, boot order `cdn`.
-
 ## Other prerequisites
 
 - **Three DHCP reservations** on the `10.82.50.0/24` server, pinning the pinned
@@ -165,15 +161,21 @@ steps, confirm the route with a single probe that actually returns:
 talosctl -n 10.82.50.101 get disks --insecure
 ```
 
-Then apply in two stages, so a disk-sizing check can sit between them:
+Then apply:
 
 ```sh
 cd terraform/talos-hosts
 tofu init
-tofu apply -target=module.vm     # create the 3 VMs
-# confirm each node's xvda = 20 GiB and xvdb = 10 GiB (talosctl ... get disks --insecure, or XO)
-tofu apply                       # config-apply + etcd bootstrap
+tofu apply
 ```
+
+A single `tofu apply` creates the three VMs and, in the same run, pushes each
+machine configuration and bootstraps etcd. The config-apply and bootstrap steps
+each carry a `timeouts.create` long enough to ride through a node's cold boot
+into maintenance mode, so they no longer need a separate `-target=module.vm`
+stage ahead of them. Confirm disk sizing after the apply (`talosctl -n <ip> get
+disks --insecure`, or XO); the empty-CD template fixes the disk-scramble bug
+that the old pre-check guarded against.
 
 Each node boots the nocloud image with **no config source** (`cloud_config =
 null`, so it has no config drive) and sits in maintenance mode on its reserved
@@ -216,7 +218,7 @@ credential lands in state either:
 
 ```sh
 sops -d secrets/talos.yaml > /tmp/talos-secrets.yaml
-talosctl gen config cbc https://kube.gewis.nl:6443 \
+talosctl gen config gewis https://kube.gewis.nl:6443 \
   --with-secrets /tmp/talos-secrets.yaml --output-types talosconfig -o talosconfig
 talosctl --talosconfig talosconfig --nodes 10.82.50.101 kubeconfig
 rm /tmp/talos-secrets.yaml
@@ -305,21 +307,13 @@ attach order cannot misroute it.
 
 ## Known follow-ups
 
-The infrastructure is proven — the template sizes disks correctly and all three
-VMs cloned to 20/10 GiB across hosts — and `config-apply` + `bootstrap` were run,
-but the cluster has **not** been independently verified healthy from here: the
-build host has no route into `10.82.50.0/24`. Everything below is outstanding.
+The cluster is bootstrapped and healthy: three control-plane nodes `Ready`,
+etcd/apid/kubelet green, and `talosctl health` passes. Cilium, Flux and Longhorn
+are installed and running. What remains is additive:
 
-- **Cilium is not installed yet.** The nodes stay `NotReady` until it is installed
-  via Helm/Flux (see "The cluster has no CNI until you install one"); that install
-  and confirming the nodes reach `Ready` are still to do.
 - **LoadBalancer is not set up.** No `CiliumLoadBalancerIPPool` exists yet and no
   static route points a pool prefix at the nodes; LB-IPAM stays dormant until the
   first pool is created.
-- **The Longhorn `UserVolumeConfig` is validated by `talosctl` but not yet seen on
-  a live node.** Confirm with `talosctl get volumestatus u-longhorn` after first
-  boot; the Longhorn namespace also needs
-  `pod-security.kubernetes.io/enforce=privileged`.
 - **Node hostnames are Talos stable auto-names, not `talos-01/02/03`.** Talos 1.13
   seeds a `HostnameConfig` with `auto: stable` that a config patch cannot cleanly
   override, and the v1alpha1 `machine.network.hostname` field is refused while that

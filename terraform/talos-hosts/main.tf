@@ -1,8 +1,8 @@
 locals {
-  cluster_name     = "cbc"
+  cluster_name     = "gewis"
   cluster_endpoint = "https://kube.gewis.nl:6443"
   talos_version    = "v1.13.8"
-  schematic_id     = "544579955b64479597e31a593d522bfa8c9ce21939264e852e54c55e11b4d788"
+  schematic_id     = "58eedd04d458e2c900727f5a3af74a3ef6453b9902b23decb590c0007388187a"
   install_image    = "factory.talos.dev/installer/${local.schematic_id}:${local.talos_version}"
 
   pool_name_label     = "GEWISVHOST-Intel"
@@ -131,6 +131,10 @@ resource "talos_machine_configuration_apply" "this" {
   client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
   machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane.machine_configuration
 
+  timeouts = {
+    create = "10m"
+  }
+
   depends_on = [module.vm]
 }
 
@@ -138,6 +142,10 @@ resource "talos_machine_bootstrap" "this" {
   node                    = local.nodes[local.bootstrap_node].ip
   endpoint                = local.nodes[local.bootstrap_node].ip
   client_configuration_wo = ephemeral.talos_client_configuration.this.client_configuration
+
+  timeouts = {
+    create = "10m"
+  }
 
   depends_on = [talos_machine_configuration_apply.this]
 }
