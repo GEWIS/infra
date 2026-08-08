@@ -1,0 +1,34 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  releaseName: external-dns
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.21.1"
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+  interval: 1h
+  values:
+    provider:
+      name: cloudflare
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare
+            key: api-token
+    sources:
+      - gateway-httproute
+    domainFilters:
+      - gewis.nl
+    policy: sync
+    txtOwnerId: cbc-test
+    txtPrefix: edns-
+    extraArgs:
+      - "--cloudflare-record-comment=Managed by external-dns (k8s)"

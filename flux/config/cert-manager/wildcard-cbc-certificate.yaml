@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-cbc-gewis-nl
+  namespace: traefik
+spec:
+  secretName: wildcard-cbc-gewis-nl-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.cbc.gewis.nl"
