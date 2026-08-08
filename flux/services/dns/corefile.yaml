@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns
+  namespace: dns
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+            lameduck 5s
+        }
+        ready
+        prometheus :9153
+
+        hosts {
+            10.82.50.100 s3.gewis.nl
+            fallthrough
+        }
+
+        cache {
+            serve_stale 1h verify
+        }
+        forward . https://86.54.11.13 https://86.54.11.213 {
+            tls_servername noads.joindns4.eu
+            policy sequential
+            next SERVFAIL REFUSED
+            health_check 10s
+            max_idle_conns 32
+            max_concurrent 1000
+        }
+        forward . https://9.9.9.9 https://149.112.112.112 {
+            policy sequential
+            health_check 10s
+            max_idle_conns 32
+            max_concurrent 1000
+        }
+        loop
+        reload
+    }
