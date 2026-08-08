@@ -240,13 +240,50 @@ Cilium replaces kube-proxy and reaches the API through KubePrism on
 `SYS_MODULE` capability, and `kubeProxyReplacement=true` with
 `k8sServiceHost=localhost`, `k8sServicePort=7445`.
 
-LoadBalancer addresses come from a `CiliumLoadBalancerIPPool` (LB-IPAM assigns
-them; it is dormant until the first pool exists). Reachability is a **static
-route** on the router pointing the pool prefix at the nodes — BGP was considered
-and deferred as overkill for a handful of services and rare node changes, and it
-is purely additive to switch on later. Keep `externalTrafficPolicy: Cluster`
-unless the ingress runs as a DaemonSet, or a static route to one node plus
-`Local` gives an intermittently dead service.
+Pod-to-pod traffic is encrypted with **WireGuard** (`encryption.enabled=true`,
+`encryption.type=wireguard`). Talos ships WireGuard in-kernel and the agent
+already holds `NET_ADMIN`, so this needs no extra capability or kernel module.
+
+## Ingress arrives on hostPort, not a LoadBalancer
+
+There is no LoadBalancer and no VIP. A `CiliumLoadBalancerIPPool` plus a static
+route was the original plan; it was dropped because Traefik runs as a
+**DaemonSet binding hostPort 80 and 443** on every node, and the router simply
+dst-nats `:8443` to a node's `:443`. No LB-IPAM, no BGP, nothing to announce.
+
+On the MikroTik side, **`To Ports` must be set to 443**. Leave it empty and
+`dst-nat` preserves the original port, forwarding to `:8443` where nothing is
+listening — the connection is refused in milliseconds, which looks exactly like
+a firewall block but is not one.
+
+`hostPort` costs two things:
+
+- **Pod Security Admission baseline forbids hostPort.** Talos enforces baseline
+  on every namespace except `kube-system`, so `traefik` must be labelled
+  `pod-security.kubernetes.io/enforce: privileged`.
+- **The chart's default rollout deadlocks.** `maxSurge: 1, maxUnavailable: 0`
+  wants the replacement pod `Ready` before the old one goes, but it cannot bind a
+  port the old pod still holds. Invert to `maxUnavailable: 1, maxSurge: 0`.
+
+## Hostnames are set with a HostnameConfig document
+
+Talos 1.13 seeds every machine with a `HostnameConfig` document set to
+`auto: stable`, which produces names like `talos-d1w-560`. The v1alpha1
+`machine.network.hostname` field is **refused** while that document exists
+(`static hostname is already set in v1alpha1 config`), so the fix is to patch the
+document rather than the legacy field:
+
+```yaml
+apiVersion: v1alpha1
+kind: HostnameConfig
+hostname: talos-01
+auto: off
+```
+
+`auto: off` is required: `auto` and `hostname` are mutually exclusive, and the
+default `stable` collides with a static name. The Kubernetes node name follows
+the hostname and is immutable — renaming a live node registers a brand-new
+`Node` and orphans the old one, so the names are pinned before bootstrap.
 
 ## Networking is dual-stack, and that is permanent
 
@@ -303,21 +340,53 @@ before the VM is created.
 Longhorn's data disk is mounted by a `UserVolumeConfig` named `longhorn`, which
 forces the mount to `/var/mnt/longhorn`; Longhorn's Helm `defaultDataPath` must
 match. The disk is selected by `!system_disk` rather than a device path, so Xen
-attach order cannot misroute it.
+attach order cannot misroute it. `machine.disks` is deprecated from Talos 1.10
+on and `UserVolumeConfig` is its replacement.
+
+The kubelet needs a bind mount for that path as well, or Longhorn cannot publish
+volumes into workload pods:
+
+```yaml
+machine:
+  kubelet:
+    extraMounts:
+      - destination: /var/mnt/longhorn
+        type: bind
+        source: /var/mnt/longhorn
+        options: [bind, rshared, rw]
+```
+
+Size the data disk above the largest volume it must hold: Longhorn schedules a
+replica only when the disk fits the whole volume, and a 10 GiB PVC does not fit
+a 10 GiB disk once filesystem overhead is taken. `storageReservedPercentageForDefaultDisk: 0`
+is safe here only because the disk is dedicated to Longhorn.
+
+## VM memory must be static, not ballooned
+
+`xcpng-vm` sets `memory_min = memory_max`. Leave `memory_min` unset and the
+provider writes `dynamic = [0, memory_max]`, which switches on XCP-ng Dynamic
+Memory Control: when the host is overcommitted, its scheduler squeezes every
+guest toward its dynamic minimum and the balloon driver returns the pages from
+inside the guest. `MemTotal` drops and Kubernetes just sees a smaller node.
+
+That is backwards for a cluster node. Ballooning reacts to *host* pressure and
+is blind to in-guest demand, so a node that is OOM-killing pods gets nothing
+back. One node sat at 2 GiB of its nominal 8 GiB this way: kubelet missed
+heartbeats, the node flapped `NotReady`, containerd tore down sandboxes, and the
+visible symptom was Longhorn pods crash-looping — the storage layer was fine.
+Static memory reserves the full amount on the host and cannot be squeezed.
 
 ## Known follow-ups
 
 The cluster is bootstrapped and healthy: three control-plane nodes `Ready`,
-etcd/apid/kubelet green, and `talosctl health` passes. Cilium, Flux and Longhorn
-are installed and running. What remains is additive:
+etcd/apid/kubelet green, and `talosctl health` passes. Cilium, Flux, Longhorn,
+cert-manager, Traefik, external-dns and OpenBao are installed and running, and
+`https://openbao.cbc.gewis.nl:8443` serves a trusted certificate. What remains:
 
-- **LoadBalancer is not set up.** No `CiliumLoadBalancerIPPool` exists yet and no
-  static route points a pool prefix at the nodes; LB-IPAM stays dormant until the
-  first pool is created.
-- **Node hostnames are Talos stable auto-names, not `talos-01/02/03`.** Talos 1.13
-  seeds a `HostnameConfig` with `auto: stable` that a config patch cannot cleanly
-  override, and the v1alpha1 `machine.network.hostname` field is refused while that
-  document exists. Pinning friendly names needs the provider's rendered config
-  inspected at first apply; cosmetic, does not block the cluster.
+- **Ingress depends on a single node.** The router dst-nats to `10.82.50.101`
+  only, so that node is a single point of failure even though Traefik runs on
+  all three.
+- **Disks are testing-sized.** 20 GiB system and 10 GiB Longhorn per node; the
+  system disk cannot be grown in place.
 - **The imported VDI is labelled `talos-1.13.8-nocloud-disk`.** Purely cosmetic;
   rename it in XO if the generic label bothers you.

@@ -21,7 +21,7 @@
       };
 
       admin = {
-        api_bind_addr = "[::1]:3903";
+        api_bind_addr = "[::]:3903";
         admin_token_file = config.sops.secrets.garage-admin-token.path;
       };
     };
@@ -53,5 +53,8 @@
     };
   };
 
-  networking.firewall.allowedTCPPorts = [ 3900 ];
+  networking.firewall.allowedTCPPorts = [
+    3900
+    3903
+  ];
 }

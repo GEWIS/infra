@@ -11,7 +11,11 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
 
 Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md),
-[`docs/s3-01.md`](docs/s3-01.md) and [`docs/talos.md`](docs/talos.md).
+[`docs/s3-01.md`](docs/s3-01.md) and [`docs/talos.md`](docs/talos.md). What runs
+*inside* the Kubernetes cluster — Flux layering, ingress, certificates, DNS,
+OpenBao — is [`docs/cluster.md`](docs/cluster.md). S3 buckets and the
+credentials the cluster reads for them are
+[`docs/garage-buckets.md`](docs/garage-buckets.md).
 
 ## Layout
 
@@ -23,8 +27,11 @@ secrets/<host>.yaml    sops-encrypted secrets, one file per host
 terraform/modules/          shared modules (xcpng-vm, nixos-host)
 terraform/s3-01/            OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
 terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
-terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium CNI)
-docs/                  per-host operational detail
+terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux)
+terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
+terraform/garage-buckets/   OpenTofu root: Garage buckets + their credentials in OpenBao
+flux/                  Flux GitOps tree, reconciled into the cluster
+docs/                  per-host and cluster operational detail
 ```
 
 ## Shared modules
