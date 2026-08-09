@@ -118,6 +118,7 @@ nav:
       - Overview: authentik/index.md
       - Deployment: authentik/deployment.md
       - Media: authentik/media.md
+      - Configuration: authentik/configuration.md
       - Applying: authentik/applying.md
   - Observability:
       - Overview: observability/index.md

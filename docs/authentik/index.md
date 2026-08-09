@@ -9,5 +9,5 @@ LDAP, which is also what sits underneath Keycloak, so authentik is a policy and
 protocol layer rather than a second directory.
 
 Nothing here configures authentik itself. Providers, applications, groups and
-the LDAP source belong to `terraform/authentik-config`, which authenticates with
-the bootstrap token this deployment seals.
+the LDAP source belong to [`terraform/authentik-config`](configuration.md),
+which authenticates with the bootstrap token this deployment seals.
