@@ -15,14 +15,16 @@ spec:
     parameters:
       max_wal_size: 256MB
 
+  bootstrap:
+    initdb:
+      database: provisioner
+      owner: provisioner
+
   managed:
     roles:
       - name: provisioner
-        login: true
         createdb: true
         createrole: true
-        passwordSecret:
-          name: provisioner-role
 
   inheritedMetadata:
     annotations:

@@ -33,3 +33,9 @@ variable "postgres_port" {
   type        = number
   default     = 30432
 }
+
+variable "kubeconfig_path" {
+  description = "Kubeconfig used to read the provisioner credentials from the cluster. Defaults to the repository's .kube/config, which .envrc mints."
+  type        = string
+  default     = null
+}

@@ -43,54 +43,57 @@ of the resolver's private names.
 ## Tofu connects as `provisioner`, not as a superuser
 
 `CREATE ROLE` and `CREATE DATABASE` need `CREATEROLE` and `CREATEDB` — not
-superuser, so `enableSuperuserAccess` stays `false`. There is exactly one managed
-role on the `Cluster`:
+superuser, so `enableSuperuserAccess` stays `false`. `provisioner` is the role
+`initdb` creates, elevated by the one managed-role entry on the `Cluster`:
 
 ```yaml
+bootstrap:
+  initdb:
+    database: provisioner
+    owner: provisioner
+
 managed:
   roles:
     - name: provisioner
-      login: true
       createdb: true
       createrole: true
-      passwordSecret:
-        name: provisioner-role
 ```
 
-Its password takes the same route as everyone else's — tofu writes it to OpenBao,
-an `ExternalSecret` in the `postgres` namespace turns it into the
-`kubernetes.io/basic-auth` Secret CNPG expects. From Postgres 16 onward the
-creator of a role holds `ADMIN OPTION` on it, so `provisioner` can hand each
-database to the role it just made.
+**No `passwordSecret`, deliberately.** The CRD is explicit that a null
+`passwordSecret` means "the password will be ignored", so the entry adds the two
+attributes and leaves the credential alone — and the credential is the one
+CloudNativePG generated at bootstrap, sitting in `postgres-app`. Tofu reads it
+out of the cluster with the `kubernetes` provider, the same shape as
+`grafana-config` reading `grafana-auth`.
 
-A superuser would have been a standing field on the shared cluster manifest,
-carried into production, to save two lines. Not worth it.
+Nobody types this password, and it never appears in git. That is the point, and
+the two alternatives are worse:
 
-## The first apply is two-phase
+- **Minting it in tofu** puts the credential in the root that then wants to log
+  in with it. The password cannot reach Postgres until External Secrets and
+  CloudNativePG have both acted, which no single apply can wait for, so every
+  fresh cluster needs a `-target` incantation to break the cycle.
+- **A superuser** would be a standing field on a shared manifest bound for
+  production, and needlessly broad, to save two lines.
 
-`provisioner` cannot exist until its password does, and its password comes from
-the root that wants to log in as it. On a fresh cluster, break the cycle
-explicitly:
+The cost is one vestigial `provisioner` database that nothing uses — `initdb`
+insists on creating one.
 
-```sh
-tofu apply -target=vault_kv_secret_v2.provisioner \
-           -target=vault_policy.provisioner_read \
-           -target=vault_kubernetes_auth_backend_role.cluster
-# wait for External Secrets to sync and CNPG to create the role
-tofu apply
-```
+From Postgres 16 onward the creator of a role holds `ADMIN OPTION` on it, so
+`provisioner` can hand each database to the role it just made.
 
-Only the first apply against empty OpenBao needs this. Afterwards the role exists
-and a plain `tofu apply` is enough.
+## Roles that predate this root
 
-Databases that predate this root — anything the `Database` and `DatabaseRole`
-CRDs created — are adopted rather than recreated, because both reclaim policies
-default to `retain` and the objects outlive the CRs:
+`Database` and `DatabaseRole` both default to `retain`, so anything those CRDs
+created outlives them. Either adopt it:
 
 ```sh
 tofu import 'postgresql_role.app["authentik"]' authentik
 tofu import 'postgresql_database.app["authentik"]' authentik
 ```
+
+or delete the `Cluster` and let it rebootstrap empty, which is the cheaper move
+while the databases hold nothing worth keeping.
 
 ## Two settings the disk forces
 

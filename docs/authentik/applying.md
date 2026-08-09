@@ -16,8 +16,8 @@ until it exists the pods sit in `CreateContainerConfigError` because their
 `envFrom` Secret is absent. It recovers on its own the moment the path appears;
 it just looks like a failed deploy in the meantime.
 
-On a cluster where the `provisioner` role does not exist yet, that apply is
-two-phase — see [Postgres](../databases/postgres.md).
+That apply is a single command; the provisioner credential it logs in with is a
+credential CloudNativePG generated at bootstrap — see [Postgres](../databases/postgres.md).
 
 Once Flux has reconciled:
 
