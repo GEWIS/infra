@@ -1,77 +1,98 @@
 { pkgs, ... }:
 {
-  programs.fish = {
+  programs.zsh = {
     enable = true;
+    enableCompletion = true;
+    autosuggestions.enable = true;
+    syntaxHighlighting.enable = true;
+    histSize = 50000;
 
     interactiveShellInit = ''
-      set -g fish_greeting
+      setopt prompt_subst hist_ignore_dups hist_ignore_space share_history extended_glob
 
-      set -g fish_color_command 87afff
-      set -g fish_color_param d7d7af
-      set -g fish_color_quote afd787
-      set -g fish_color_redirection ffafd7
-      set -g fish_color_end ff8700
-      set -g fish_color_error ff5f5f
-      set -g fish_color_comment 6c6c6c
-      set -g fish_color_autosuggestion 585858
-      set -g fish_pager_color_prefix 87afff
-      set -g fish_pager_color_description 6c6c6c
-
-      set -g __fish_git_prompt_showdirtystate 1
-      set -g __fish_git_prompt_showstashstate 1
-      set -g __fish_git_prompt_showuntrackedfiles 1
-      set -g __fish_git_prompt_showupstream informative
-      set -g __fish_git_prompt_char_dirtystate '*'
-      set -g __fish_git_prompt_char_stagedstate '+'
-      set -g __fish_git_prompt_char_untrackedfiles '?'
-      set -g __fish_git_prompt_char_stashstate '$'
-      set -g __fish_git_prompt_char_upstream_ahead '>'
-      set -g __fish_git_prompt_char_upstream_behind '<'
-      set -g __fish_git_prompt_char_upstream_prefix ' '
-      set -g __fish_git_prompt_color_branch d7afff
-      set -g __fish_git_prompt_color_dirtystate ffaf5f
-      set -g __fish_git_prompt_color_stagedstate afd787
-      set -g __fish_git_prompt_color_untrackedfiles 6c6c6c
+      zstyle ':completion:*' menu select
+      zstyle ':completion:*' matcher-list "" 'm:{a-zA-Z}={A-Za-z}'
+      zstyle ':completion:*:descriptions' format '%F{#6c6c6c}%d%f'
     '';
 
     promptInit = ''
-      function fish_prompt
-          set -l last_status $status
-          set -l dim (set_color 585858)
-          set -l reset (set_color normal)
+      autoload -Uz vcs_info add-zsh-hook
+      zmodload zsh/datetime
 
-          set -l marker_color 5fd75f
-          if fish_is_root_user
-              set marker_color ff5f5f
-          end
+      ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#585858'
+      ZSH_HIGHLIGHT_STYLES[command]='fg=#87afff'
+      ZSH_HIGHLIGHT_STYLES[builtin]='fg=#87afff'
+      ZSH_HIGHLIGHT_STYLES[function]='fg=#87afff'
+      ZSH_HIGHLIGHT_STYLES[alias]='fg=#87afff'
+      ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#afd787'
+      ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#afd787'
+      ZSH_HIGHLIGHT_STYLES[redirection]='fg=#ffafd7'
+      ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#ff5f5f'
+      ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c6c6c'
+      ZSH_HIGHLIGHT_STYLES[default]='fg=#d7d7af'
 
-          set -l failure
-          if test $last_status -ne 0
-              set failure (set_color ff5f5f) "[$last_status] "
-          end
+      zstyle ':vcs_info:*' enable git
+      zstyle ':vcs_info:git:*' check-for-changes true
+      zstyle ':vcs_info:git:*' unstagedstr '%F{#ffaf5f}*%f'
+      zstyle ':vcs_info:git:*' stagedstr '%F{#afd787}+%f'
+      zstyle ':vcs_info:git:*' formats ' (%F{#d7afff}%b%f%u%c%m)'
+      zstyle ':vcs_info:git:*' actionformats ' (%F{#d7afff}%b%f|%a%u%c%m)'
+      zstyle ':vcs_info:git+set-message:*' hooks untracked stash upstream
 
-          set -l shell
-          if set -q IN_NIX_SHELL
-              set shell " " (set_color 5fd7d7) "nix"
-          end
+      +vi-untracked() {
+          if [[ -n $(git ls-files --others --exclude-standard --directory --no-empty-directory 2>/dev/null | head -n 1) ]]; then
+              hook_com[misc]+='%F{#6c6c6c}?%f'
+          fi
+      }
 
-          echo -s $dim "┌ " (set_color 87afff) $USER $dim "@" (set_color 5fafd7) (prompt_hostname) \
-              " " (set_color d7d7af) (prompt_pwd --full-length-dirs=2) \
-              (fish_git_prompt " %s") $shell $reset
-          echo -s $dim "└ " $failure (set_color $marker_color) "» " $reset
-      end
+      +vi-stash() {
+          if git rev-parse --verify --quiet refs/stash >/dev/null 2>&1; then
+              hook_com[misc]+='$'
+          fi
+      }
 
-      function fish_right_prompt
-          if test $CMD_DURATION -gt 1000
-              echo -s (set_color 6c6c6c) (printf '%.1fs' (math "$CMD_DURATION / 1000")) (set_color normal)
-          end
-      end
+      +vi-upstream() {
+          local -a counts
+          counts=(''${(s: :)$(git rev-list --left-right --count HEAD...@{upstream} 2>/dev/null)})
+          (( counts[1] )) && hook_com[misc]+=" >''${counts[1]}"
+          (( counts[2] )) && hook_com[misc]+=" <''${counts[2]}"
+      }
+
+      _prompt_preexec() {
+          _prompt_start=$EPOCHREALTIME
+      }
+
+      _prompt_precmd() {
+          local elapsed=0
+          if (( ''${_prompt_start:-0} )); then
+              elapsed=$(( EPOCHREALTIME - _prompt_start ))
+              unset _prompt_start
+          fi
+          if (( elapsed > 1 )); then
+              RPROMPT="%F{#6c6c6c}$(printf '%.1fs' $elapsed)%f"
+          else
+              RPROMPT=""
+          fi
+
+          vcs_info
+
+          _prompt_nix=""
+          if [[ -n ''${IN_NIX_SHELL-} ]]; then
+              _prompt_nix=" %F{#5fd7d7}nix%f"
+          fi
+      }
+
+      add-zsh-hook preexec _prompt_preexec
+      add-zsh-hook precmd _prompt_precmd
+
+      PROMPT='%F{#585858}┌ %F{#87afff}%n%F{#585858}@%F{#5fafd7}%m %F{#d7d7af}%(4~:…/%3~:%~)%f''${vcs_info_msg_0_}''${_prompt_nix}
+%F{#585858}└ %(?..%F{#ff5f5f}[%?] )%(!.%F{#ff5f5f}.%F{#5fd75f})» %f'
     '';
   };
 
-  users.defaultUserShell = pkgs.fish;
+  users.defaultUserShell = pkgs.zsh;
   users.users.root.shell = pkgs.bashInteractive;
-  environment.shells = [ pkgs.fish ];
+  environment.shells = [ pkgs.zsh ];
 
   environment.systemPackages = with pkgs; [
     bat
