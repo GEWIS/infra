@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: databases
+spec:
+  instances: 3
+  enableSuperuserAccess: false
+
+  storage:
+    storageClass: longhorn-single
+    size: 1Gi
+
+  postgresql:
+    parameters:
+      max_wal_size: 256MB
+
+  inheritedMetadata:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9187"

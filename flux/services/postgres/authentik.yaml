@@ -1,0 +1,47 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: authentik
+  namespace: databases
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: openbao
+    kind: SecretStore
+  target:
+    name: authentik-role
+    template:
+      type: kubernetes.io/basic-auth
+  data:
+    - secretKey: username
+      remoteRef:
+        key: authentik/authentik
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: authentik/authentik
+        property: password
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: authentik
+  namespace: databases
+spec:
+  cluster:
+    name: postgres
+  name: authentik
+  login: true
+  passwordSecret:
+    name: authentik-role
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: authentik
+  namespace: databases
+spec:
+  cluster:
+    name: postgres
+  name: authentik
+  owner: authentik
