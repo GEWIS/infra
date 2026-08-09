@@ -2,6 +2,7 @@
   adminOnly = [
     "tofu"
     "talos"
+    "sealed-secrets"
   ];
 
   admins = {
