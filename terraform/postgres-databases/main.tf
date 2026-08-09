@@ -40,7 +40,7 @@ resource "vault_kv_secret_v2" "credentials" {
     password = random_password.role[each.key].result
     dbname   = each.key
     host     = local.cluster_host
-    port     = 5432
+    port     = "5432"
   })
 }
 

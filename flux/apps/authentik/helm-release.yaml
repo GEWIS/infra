@@ -1,0 +1,64 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  releaseName: authentik
+  interval: 1h
+  chart:
+    spec:
+      chart: authentik
+      version: "2026.5.6"
+      sourceRef:
+        kind: HelmRepository
+        name: authentik
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    authentik:
+      log_level: info
+      disable_update_check: true
+      disable_startup_analytics: true
+      error_reporting:
+        enabled: false
+      storage:
+        media:
+          backend: file
+          file:
+            path: /media
+
+    global:
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9300"
+      envFrom:
+        - secretRef:
+            name: authentik-db
+        - secretRef:
+            name: authentik-auth
+      volumes:
+        - name: media
+          emptyDir: {}
+      volumeMounts:
+        - name: media
+          mountPath: /media
+
+    server:
+      replicas: 1
+      containerSecurityContext: &containerSecurityContext
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          drop:
+            - ALL
+
+    worker:
+      replicas: 1
+      containerSecurityContext: *containerSecurityContext
