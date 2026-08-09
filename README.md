@@ -10,15 +10,17 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
 
-Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md),
-[`docs/s3-01.md`](docs/s3-01.md) and [`docs/talos.md`](docs/talos.md). What runs
+The docs are published as a browsable site at
+<https://gewis.github.io/infra/>, built from `docs/` on every push to
+`main`. Operational detail lives in [`docs/pcgewisinfo/`](docs/pcgewisinfo/index.md),
+[`docs/s3-01/`](docs/s3-01/index.md) and [`docs/talos/`](docs/talos/index.md). What runs
 *inside* the Kubernetes cluster — Flux layering, ingress, certificates, DNS,
-OpenBao — is [`docs/cluster.md`](docs/cluster.md). S3 buckets and the
+OpenBao — is [`docs/cluster/`](docs/cluster/index.md). S3 buckets and the
 credentials the cluster reads for them are
-[`docs/garage-buckets.md`](docs/garage-buckets.md); the LGTM stack and its
-tenancy model are [`docs/observability.md`](docs/observability.md). HA Postgres
+[`docs/garage-buckets/`](docs/garage-buckets/index.md); the LGTM stack and its
+tenancy model are [`docs/observability/`](docs/observability/index.md). HA Postgres
 and MariaDB placement and their backup model are
-[`docs/databases.md`](docs/databases.md).
+[`docs/databases/`](docs/databases/index.md).
 
 ## Layout
 

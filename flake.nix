@@ -72,6 +72,7 @@
 
       packages = forAllSystems (system: {
         sops-config = (sopsFor system).package;
+        docs = import ./nix/packages/docs.nix { pkgs = pkgsFor system; };
       });
 
       apps = forAllSystems (system: {

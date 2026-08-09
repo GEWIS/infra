@@ -1,7 +1,7 @@
 { ... }:
 
 let
-  gitUrl = "https://github.com/GEWIS/nixos-config.git";
+  gitUrl = "https://github.com/GEWIS/infra.git";
 in
 {
   services.comin = {

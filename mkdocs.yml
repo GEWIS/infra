@@ -1,0 +1,137 @@
+site_name: CBC infra
+site_description: Operational documentation for the GEWIS CBC infrastructure
+site_url: https://gewis.github.io/infra/
+repo_url: https://github.com/GEWIS/infra
+repo_name: GEWIS/infra
+edit_uri: edit/main/docs/
+docs_dir: docs
+strict: true
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: red
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: red
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Hosts:
+      - pcgewisinfo:
+          - Overview: pcgewisinfo/index.md
+          - Updates: pcgewisinfo/updates.md
+          - Kiosk: pcgewisinfo/kiosk.md
+          - Accounts: pcgewisinfo/accounts.md
+          - Network: pcgewisinfo/network.md
+          - Printing: pcgewisinfo/printing.md
+          - NetBird: pcgewisinfo/netbird.md
+          - Disk and persistence: pcgewisinfo/disk.md
+          - Secrets: pcgewisinfo/secrets.md
+          - Fonts: pcgewisinfo/fonts.md
+      - s3-01:
+          - Overview: s3-01/index.md
+          - Architecture: s3-01/architecture.md
+          - Prerequisites: s3-01/prerequisites.md
+          - Credentials: s3-01/credentials.md
+          - First-time setup: s3-01/setup.md
+          - Applying: s3-01/applying.md
+          - State: s3-01/state.md
+          - Disks: s3-01/disks.md
+          - Garage: s3-01/garage.md
+          - Gotchas: s3-01/gotchas.md
+      - talos:
+          - Overview: talos/index.md
+          - Architecture: talos/architecture.md
+          - Template: talos/template.md
+          - Prerequisites: talos/prerequisites.md
+          - Applying: talos/applying.md
+          - Secrets: talos/secrets.md
+          - CNI: talos/cni.md
+          - Ingress: talos/ingress.md
+          - Hostnames: talos/hostnames.md
+          - Networking: talos/networking.md
+          - Placement: talos/placement.md
+          - Memory: talos/memory.md
+          - Follow-ups: talos/follow-ups.md
+  - Cluster:
+      - Overview: cluster/index.md
+      - Flux layers: cluster/layers.md
+      - Gateway API: cluster/gateway-api.md
+      - Routing: cluster/routing.md
+      - Certificates: cluster/certificates.md
+      - DNS: cluster/dns.md
+      - Internal resolver: cluster/resolver.md
+      - kube-system Corefile: cluster/kube-system-corefile.md
+      - OpenBao: cluster/openbao.md
+      - Failure notes: cluster/failures.md
+  - Databases:
+      - Overview: databases/index.md
+      - Replication model: databases/replication.md
+      - The stack: databases/stack.md
+      - Backups: databases/backups.md
+      - Tradeoff: databases/tradeoff.md
+      - Longhorn: databases/longhorn.md
+      - Test versus production: databases/test-vs-prod.md
+  - Observability:
+      - Overview: observability/index.md
+      - Tenancy: observability/tenancy.md
+      - Grafana orgs: observability/grafana-orgs.md
+      - Server administrator: observability/server-admin.md
+      - Mimir: observability/mimir.md
+      - Storage: observability/storage.md
+      - Collection: observability/collection.md
+      - Unfinished work: observability/unfinished.md
+      - Pod Security: observability/pod-security.md
+      - The one secret: observability/secret.md
+      - Applying: observability/applying.md
+      - Verifying: observability/verifying.md
+  - Garage buckets:
+      - Overview: garage-buckets/index.md
+      - The declaration: garage-buckets/declaration.md
+      - Which mount: garage-buckets/mount.md
+      - Credentials: garage-buckets/credentials.md
+      - Applying: garage-buckets/applying.md
+      - Reading from the cluster: garage-buckets/reading.md
+      - Verifying: garage-buckets/verifying.md
+      - Notes: garage-buckets/notes.md
