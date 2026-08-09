@@ -120,6 +120,41 @@ The real headroom is elsewhere: Loki, Mimir, Tempo and Grafana sit on
 three-replica Longhorn while their data lives in Garage. Moving those four to
 `longhorn-single` frees roughly 4.7 GiB per node.
 
+## A killed pod can deadlock the next one's migrations
+
+Applications that migrate on startup — authentik does — take a Postgres advisory
+lock first, so two replicas cannot migrate at once. That lock belongs to the
+*session*, and a session outlives the pod that opened it.
+
+When a pod is killed abruptly, the TCP connection is never torn down. Postgres
+keeps the backend, the transaction, and the advisory lock, and by default will
+not notice the peer is gone for hours, because `tcp_keepalives_idle` defaults to
+`0` (meaning the system default, typically two hours). Every replacement pod then
+queues behind a process that no longer exists:
+
+```
+ pid  | granted |        state
+------+---------+---------------------
+ 1900 | t       | idle in transaction     <- pod is long gone
+ 2045 | f       | active                  <- waiting forever
+```
+
+The application looks like it is hanging on migrations. It is not: it is waiting
+on a corpse, and no restart can fix it, because each restart adds another corpse.
+`pg_terminate_backend` on the holder releases it instantly.
+
+Four parameters stop it happening again:
+
+| Parameter | Value | Why |
+| --- | --- | --- |
+| `tcp_keepalives_idle` | `60` | start probing a silent peer after a minute |
+| `tcp_keepalives_interval` | `10` | retry every ten seconds |
+| `tcp_keepalives_count` | `3` | give up after three, so a dead peer is reaped in ~90s |
+| `idle_in_transaction_session_timeout` | `60000` | backstop for a live client that opens a transaction and stops |
+
+Migrations hold *active* transactions, not idle ones, so the timeout does not
+interrupt them.
+
 ## Database volumes opt out of the recurring jobs
 
 Every `RecurringJob` in `flux/config/longhorn/recurring-jobs.yaml` lists `default`
