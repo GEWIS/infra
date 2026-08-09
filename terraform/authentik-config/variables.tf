@@ -39,8 +39,3 @@ variable "ad_bind_password" {
   type        = string
   sensitive   = true
 }
-
-variable "ad_user_filter" {
-  description = "LDAP filter selecting the users authentik may sync, verbatim from the Active Directory side. Restricts the source to holders of the logon privilege rather than the whole directory."
-  type        = string
-}

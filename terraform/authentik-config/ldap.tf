@@ -25,7 +25,7 @@ resource "authentik_source_ldap" "gewiswg" {
   bind_password = var.ad_bind_password
 
   base_dn                 = "DC=GEWISWG,DC=GEWIS,DC=nl"
-  user_object_filter      = var.ad_user_filter
+  user_object_filter      = "(&(objectClass=user)(memberOf:1.2.840.113556.1.4.1941:=CN=PRIV - Logon Keycloak GEWISWG,OU=Privileges,OU=Groups,DC=gewiswg,DC=gewis,DC=nl))"
   group_object_filter     = "(objectClass=group)"
   object_uniqueness_field = "objectSid"
 
