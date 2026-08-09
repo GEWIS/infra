@@ -10,8 +10,8 @@ layer in `flux/clusters/gewis-prod/`.
 
 ```
 crds ───────────┐
-                ├─→ controllers ─→ config ─→ services
-sealed-secrets ─┘               └─→ openbao
+                ├─→ controllers ─→ config ─────→ services
+sealed-secrets ─┘               └─→ openbao ───────┘
 ```
 
 | Layer | Path | Holds |
@@ -20,16 +20,21 @@ sealed-secrets ─┘               └─→ openbao
 | `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
 | `controllers` | `flux/controllers/` | cert-manager, traefik, external-dns, longhorn, external-secrets |
 | `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, Longhorn jobs, the kube-system Corefile |
-| `services` | `flux/services/` | the resolver |
+| `services` | `flux/services/` | the resolver, the LGTM stack, the node exporter |
 | `openbao` | `flux/openbao/` | OpenBao, its HTTPRoute, its seal secret |
 
-Two dependencies carry real weight and neither is cosmetic:
+Three dependencies carry real weight and none is cosmetic:
 
 - **`controllers` depends on `crds`** because Traefik's Helm chart renders a
   `Gateway` and `GatewayClass`. Those are custom resources; without the CRDs the
   *whole release* fails to install, not just the Gateway.
 - **`controllers` depends on `sealed-secrets`** because it now applies
   `SealedSecret` objects, so the CRD and its decryptor must already exist.
+- **`services` depends on `openbao`** because the observability stack reads its S3
+  credentials through an `ExternalSecret`. External Secrets retries until OpenBao
+  answers, so this is not a correctness requirement — but with `wait: true` the
+  layer would otherwise sit un-`Ready` through the whole of OpenBao's first boot,
+  which reads as a broken deploy rather than an ordered one.
 
 SealedSecrets live next to the chart that consumes them rather than in a central
 secrets directory. That works only because the decryptor is hoisted into its own
@@ -168,6 +173,40 @@ contend with Talos's own host DNS resolver.
 The namespace is labelled `pod-security.kubernetes.io/enforce: privileged` for
 the same reason Traefik's is: baseline forbids hostPort. A DaemonSet does not
 surge on rollout, so unlike Traefik it needs no `maxSurge` correction.
+
+### Adding a record by hand
+
+Static records go in the `hosts` block of `flux/services/dns/corefile.yaml`, one
+per line, address first:
+
+```
+hosts {
+    10.82.50.100 s3.gewis.nl
+    fallthrough
+}
+```
+
+**`fallthrough` is not optional.** Without it the plugin answers authoritatively
+for *everything* it is asked and NXDOMAINs every name not listed — the entire
+internet included. With it, only listed names are answered here and the rest
+continue to the forwarders.
+
+Reverse lookups come for free: `dig -x 10.82.50.100` returns `s3.gewis.nl`.
+A listed name is also answered for LAN clients, not just pods, since they hit the
+same resolver. `reload` picks up a new entry without a restart, though allow ~60s
+for the ConfigMap to reach every node.
+
+`s3.gewis.nl` is a name that exists nowhere else — the public `gewis.nl` zone has
+no address for it — so this creates a name rather than shadowing one. Overriding a
+*public* name is equally possible and considerably easier to regret: it applies to
+every pod and every LAN client pointed here, and nothing upstream will hint that
+the answer is local.
+
+One caveat specific to this entry: **s3-01's address is not reserved.** It comes
+from DHCP, which is why `docs/s3-01.md` leaves Garage's `root_domain` unset and
+addresses buckets path-style. `10.82.50.100` is hardcoded here and in
+`terraform/garage-buckets`, so both rot together if the lease moves. A DHCP
+reservation, as the Talos nodes already have, is what makes this safe.
 
 ### DNS4EU first, Quad9 behind it
 

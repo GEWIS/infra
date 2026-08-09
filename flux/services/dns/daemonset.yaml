@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: dns
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9153"
     spec:
       dnsPolicy: None
       dnsConfig:

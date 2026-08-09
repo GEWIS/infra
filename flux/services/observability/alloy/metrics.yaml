@@ -1,0 +1,562 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-metrics
+  namespace: observability
+spec:
+  releaseName: alloy-metrics
+  interval: 1h
+  chart:
+    spec:
+      chart: alloy
+      version: "1.11.1"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controller:
+      type: deployment
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "12345"
+      replicas: 1
+
+    rbac:
+      clusterRules:
+        - apiGroups: [""]
+          resources: ["nodes", "nodes/metrics"]
+          verbs: ["get", "list", "watch"]
+        - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+          verbs: ["get"]
+
+    alloy:
+      configReloader:
+        enabled: true
+      extraPorts:
+        - name: otlp-grpc
+          port: 4317
+          targetPort: 4317
+          protocol: TCP
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+          protocol: TCP
+      configMap:
+        content: |
+          discovery.kubernetes "nodes" {
+            role = "node"
+          }
+
+          discovery.kubernetes "node_exporter" {
+            role = "pod"
+
+            namespaces {
+              names = ["node-exporter"]
+            }
+          }
+
+          discovery.kubernetes "services" {
+            role = "service"
+
+            namespaces {
+              names = ["observability"]
+            }
+          }
+
+          discovery.kubernetes "annotated_pods" {
+            role = "pod"
+          }
+
+          discovery.relabel "kube_state_metrics" {
+            targets = discovery.kubernetes.services.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_service_name"]
+              regex         = "kube-state-metrics"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_service_port_name"]
+              regex         = "http"
+              action        = "keep"
+            }
+          }
+
+          discovery.relabel "annotated_pods" {
+            targets = discovery.kubernetes.annotated_pods.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+              regex         = "true"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_port_number"]
+              target_label  = "__meta_kubernetes_pod_annotation_prometheus_io_port"
+              action        = "keepequal"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+              regex         = "(.+)"
+              target_label  = "__metrics_path__"
+            }
+
+            rule {
+              source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+              regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+              replacement   = "$1:$2"
+              target_label  = "__address__"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              target_label  = "namespace"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label  = "pod"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_name"]
+              target_label  = "container"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+              separator     = "/"
+              target_label  = "job"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+              separator     = "/"
+              regex         = "(.+)/(.+)"
+              replacement   = "$1/$2"
+              target_label  = "job"
+            }
+          }
+
+          discovery.relabel "node_exporter" {
+            targets = discovery.kubernetes.node_exporter.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_port_number"]
+              regex         = "9100"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              target_label  = "node"
+            }
+          }
+
+          discovery.kubernetes "apiserver" {
+            role = "endpoints"
+
+            namespaces {
+              names = ["default"]
+            }
+          }
+
+          discovery.relabel "apiserver" {
+            targets = discovery.kubernetes.apiserver.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_endpoints_name"]
+              regex         = "kubernetes"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_endpoint_port_name"]
+              regex         = "https"
+              action        = "keep"
+            }
+          }
+
+          prometheus.scrape "apiserver" {
+            job_name          = "apiserver"
+            targets           = discovery.relabel.apiserver.output
+            scheme            = "https"
+            bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+            scrape_interval   = "60s"
+
+            tls_config {
+              ca_file     = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+              server_name = "kubernetes.default.svc"
+            }
+
+            forward_to = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
+          discovery.kubernetes "longhorn" {
+            role = "endpoints"
+
+            namespaces {
+              names = ["longhorn-system"]
+            }
+          }
+
+          discovery.kubernetes "openbao" {
+            role = "service"
+
+            namespaces {
+              names = ["openbao"]
+            }
+          }
+
+          discovery.relabel "longhorn" {
+            targets = discovery.kubernetes.longhorn.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_endpoints_name"]
+              regex         = "longhorn-backend"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_endpoint_port_name"]
+              regex         = "manager"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              target_label  = "node"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label  = "pod"
+            }
+          }
+
+          discovery.relabel "openbao" {
+            targets = discovery.kubernetes.openbao.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_service_name"]
+              regex         = "openbao-active"
+              action        = "keep"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_service_port_name"]
+              regex         = "http"
+              action        = "keep"
+            }
+          }
+
+          prometheus.scrape "longhorn" {
+            job_name        = "longhorn"
+            targets         = discovery.relabel.longhorn.output
+            scrape_interval = "60s"
+            forward_to      = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
+          prometheus.scrape "openbao" {
+            job_name        = "openbao-internal"
+            targets         = discovery.relabel.openbao.output
+            metrics_path    = "/v1/sys/metrics"
+            params          = { format = ["prometheus"] }
+            scrape_interval = "60s"
+            forward_to      = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
+          prometheus.scrape "kubelet" {
+            job_name        = "kubelet"
+            targets           = discovery.kubernetes.nodes.targets
+            scheme            = "https"
+            metrics_path      = "/metrics"
+            bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+            scrape_interval   = "60s"
+
+            tls_config {
+              insecure_skip_verify = true
+            }
+
+            forward_to = [
+              prometheus.relabel.tenant_cbc.receiver,
+              prometheus.relabel.tenant_abc_crm.receiver,
+              prometheus.relabel.tenant_abc_eou.receiver,
+              prometheus.relabel.tenant_abc_db.receiver,
+              prometheus.relabel.tenant_abc_web.receiver,
+              prometheus.relabel.tenant_abc_nc.receiver,
+              prometheus.relabel.tenant_abc_pos.receiver,
+            ]
+          }
+
+          prometheus.scrape "cadvisor" {
+            job_name        = "cadvisor"
+            targets           = discovery.kubernetes.nodes.targets
+            scheme            = "https"
+            metrics_path      = "/metrics/cadvisor"
+            bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+            scrape_interval   = "60s"
+
+            tls_config {
+              insecure_skip_verify = true
+            }
+
+            forward_to = [
+              prometheus.relabel.tenant_cbc.receiver,
+              prometheus.relabel.tenant_abc_crm.receiver,
+              prometheus.relabel.tenant_abc_eou.receiver,
+              prometheus.relabel.tenant_abc_db.receiver,
+              prometheus.relabel.tenant_abc_web.receiver,
+              prometheus.relabel.tenant_abc_nc.receiver,
+              prometheus.relabel.tenant_abc_pos.receiver,
+            ]
+          }
+
+          prometheus.scrape "node_exporter" {
+            job_name        = "node-exporter"
+            targets         = discovery.relabel.node_exporter.output
+            scrape_interval = "60s"
+            forward_to      = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
+          prometheus.scrape "kube_state_metrics" {
+            job_name        = "kube-state-metrics"
+            targets         = discovery.relabel.kube_state_metrics.output
+            scrape_interval = "60s"
+
+            forward_to = [
+              prometheus.relabel.tenant_cbc.receiver,
+              prometheus.relabel.tenant_abc_crm.receiver,
+              prometheus.relabel.tenant_abc_eou.receiver,
+              prometheus.relabel.tenant_abc_db.receiver,
+              prometheus.relabel.tenant_abc_web.receiver,
+              prometheus.relabel.tenant_abc_nc.receiver,
+              prometheus.relabel.tenant_abc_pos.receiver,
+            ]
+          }
+
+          prometheus.scrape "annotated_pods" {
+            targets         = discovery.relabel.annotated_pods.output
+            scrape_interval = "60s"
+
+            forward_to = [
+              prometheus.relabel.tenant_cbc.receiver,
+              prometheus.relabel.tenant_abc_crm.receiver,
+              prometheus.relabel.tenant_abc_eou.receiver,
+              prometheus.relabel.tenant_abc_db.receiver,
+              prometheus.relabel.tenant_abc_web.receiver,
+              prometheus.relabel.tenant_abc_nc.receiver,
+              prometheus.relabel.tenant_abc_pos.receiver,
+            ]
+          }
+
+          prometheus.relabel "tenant_cbc" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-crm|abc-eou|abc-db|abc-web|abc-nc|abc-pos"
+              action        = "drop"
+            }
+
+            forward_to = [prometheus.remote_write.cbc.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_crm" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-crm"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_crm.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_eou" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-eou"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_eou.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_db" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-db"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_db.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_web" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-web"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_web.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_nc" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-nc"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_nc.receiver]
+          }
+
+          prometheus.relabel "tenant_abc_pos" {
+            rule {
+              source_labels = ["namespace"]
+              regex         = "abc-pos"
+              action        = "keep"
+            }
+
+            forward_to = [prometheus.remote_write.abc_pos.receiver]
+          }
+
+          prometheus.remote_write "cbc" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "CBC",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_crm" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-CRM",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_eou" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-EOU",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_db" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-DB",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_web" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-WEB",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_nc" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-NC",
+              }
+            }
+          }
+
+          prometheus.remote_write "abc_pos" {
+            external_labels = {
+              cluster = "gewis-prod",
+            }
+
+            endpoint {
+              url = "http://mimir.observability.svc.cluster.local:8080/api/v1/push"
+
+              headers = {
+                "X-Scope-OrgID" = "ABC-POS",
+              }
+            }
+          }
+
+          otelcol.receiver.otlp "default" {
+            grpc {
+              endpoint = "0.0.0.0:4317"
+            }
+
+            http {
+              endpoint = "0.0.0.0:4318"
+            }
+
+            output {
+              traces = [otelcol.processor.batch.default.input]
+            }
+          }
+
+          otelcol.processor.batch "default" {
+            output {
+              traces = [otelcol.exporter.otlp.tempo.input]
+            }
+          }
+
+          otelcol.exporter.otlp "tempo" {
+            client {
+              endpoint = "tempo.observability.svc.cluster.local:4317"
+
+              headers = {
+                "X-Scope-OrgID" = "CBC",
+              }
+
+              tls {
+                insecure = true
+              }
+            }
+          }

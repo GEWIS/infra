@@ -15,6 +15,9 @@ spec:
         name: external-dns
   interval: 1h
   values:
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "7979"
     provider:
       name: cloudflare
     env:

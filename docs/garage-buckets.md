@@ -10,9 +10,9 @@ Everything is driven by one map in `main.tf`:
 
 ```hcl
 buckets = {
-  loki  = { size_gib = 20, namespace = "monitoring" }
-  mimir = { size_gib = 20, namespace = "monitoring" }
-  tempo = { size_gib = 10, namespace = "monitoring" }
+  loki  = { size_gib = 20, namespace = "observability" }
+  mimir = { size_gib = 20, namespace = "observability" }
+  tempo = { size_gib = 10, namespace = "observability" }
 }
 ```
 
@@ -112,13 +112,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: garage
-  namespace: monitoring
+  namespace: observability
 ---
 apiVersion: external-secrets.io/v1
 kind: SecretStore
 metadata:
   name: openbao
-  namespace: monitoring
+  namespace: observability
 spec:
   provider:
     vault:
@@ -128,7 +128,7 @@ spec:
       auth:
         kubernetes:
           mountPath: kubernetes
-          role: garage-monitoring
+          role: garage-observability
           serviceAccountRef:
             name: garage
 ---
@@ -136,7 +136,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: loki-s3
-  namespace: monitoring
+  namespace: observability
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -146,7 +146,7 @@ spec:
     name: loki-s3
   dataFrom:
     - extract:
-        key: monitoring/loki
+        key: observability/loki
 ```
 
 `dataFrom.extract` copies every field of the KV entry into the Secret, so the
@@ -158,22 +158,29 @@ Buckets are addressed **path-style** — `endpoint` carries no bucket, and clien
 must set `force_path_style` (boto3: `addressing_style = "path"`) with region
 `garage`.
 
+The `endpoint` stored in KV is `http://s3.gewis.nl:3900`, a name the cluster
+resolver answers from the `hosts` block in `flux/services/dns/corefile.yaml`. It
+is deliberately not the raw address: s3-01 holds a DHCP lease, and every
+consumer reading this KV entry runs inside the cluster. The Garage **Admin** API
+default stays an address, because `tofu` runs on a workstation that resolves
+through campus DNS, which knows nothing about that name.
+
 ## Verifying
 
 The interesting test is the negative one; the happy path proves very little.
 
 ```sh
-bao kv get garage/monitoring/loki
+bao kv get garage/observability/loki
 
-kubectl -n monitoring create token garage \
-  | bao write auth/kubernetes/login role=garage-monitoring jwt=-
+kubectl -n observability create token garage \
+  | bao write auth/kubernetes/login role=garage-observability jwt=-
 
 kubectl -n default create token default \
-  | bao write auth/kubernetes/login role=garage-monitoring jwt=-   # must fail
+  | bao write auth/kubernetes/login role=garage-observability jwt=-   # must fail
 ```
 
 The second login must be refused: the role binds one namespace, and a token from
-anywhere else has no way in. With a valid `garage-monitoring` token, reading
+anywhere else has no way in. With a valid `garage-observability` token, reading
 `garage/data/<other-namespace>/…` must return 403.
 
 End to end, from a pod holding the synced Secret:

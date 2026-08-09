@@ -1,11 +1,11 @@
 locals {
-  s3_endpoint = "http://10.82.50.100:3900"
+  s3_endpoint = "http://s3.gewis.nl:3900"
   s3_region   = "garage"
 
   buckets = {
-    loki  = { size_gib = 20, namespace = "monitoring" }
-    mimir = { size_gib = 20, namespace = "monitoring" }
-    tempo = { size_gib = 10, namespace = "monitoring" }
+    loki  = { size_gib = 20, namespace = "observability" }
+    mimir = { size_gib = 20, namespace = "observability" }
+    tempo = { size_gib = 10, namespace = "observability" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])

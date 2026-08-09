@@ -20,4 +20,7 @@ spec:
     remediation:
       retries: 3
   values:
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"
     installCRDs: true

@@ -15,7 +15,10 @@ Operational detail lives in [`docs/pcgewisinfo.md`](docs/pcgewisinfo.md),
 *inside* the Kubernetes cluster — Flux layering, ingress, certificates, DNS,
 OpenBao — is [`docs/cluster.md`](docs/cluster.md). S3 buckets and the
 credentials the cluster reads for them are
-[`docs/garage-buckets.md`](docs/garage-buckets.md).
+[`docs/garage-buckets.md`](docs/garage-buckets.md); the LGTM stack and its
+tenancy model are [`docs/observability.md`](docs/observability.md). HA Postgres
+and MariaDB placement and their backup model are
+[`docs/databases.md`](docs/databases.md).
 
 ## Layout
 
@@ -30,6 +33,7 @@ terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
 terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux)
 terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
 terraform/garage-buckets/   OpenTofu root: Garage buckets + their credentials in OpenBao
+terraform/grafana-config/   OpenTofu root: Grafana organizations and datasources
 flux/                  Flux GitOps tree, reconciled into the cluster
 docs/                  per-host and cluster operational detail
 ```

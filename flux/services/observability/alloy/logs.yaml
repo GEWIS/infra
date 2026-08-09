@@ -1,0 +1,145 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-logs
+  namespace: observability
+spec:
+  releaseName: alloy-logs
+  interval: 1h
+  chart:
+    spec:
+      chart: alloy
+      version: "1.11.1"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controller:
+      type: daemonset
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "12345"
+
+    alloy:
+      configReloader:
+        enabled: true
+      extraEnv:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      configMap:
+        content: |
+          discovery.kubernetes "pods" {
+            role = "pod"
+
+            selectors {
+              role  = "pod"
+              field = "spec.nodeName=" + sys.env("NODE_NAME")
+            }
+          }
+
+          discovery.relabel "pods" {
+            targets = discovery.kubernetes.pods.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              target_label  = "namespace"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label  = "pod"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_name"]
+              target_label  = "container"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+              target_label  = "app"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              target_label  = "node"
+            }
+
+            rule {
+              target_label = "tenant"
+              replacement  = "CBC"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-crm"
+              target_label  = "tenant"
+              replacement   = "ABC-CRM"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-eou"
+              target_label  = "tenant"
+              replacement   = "ABC-EOU"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-db"
+              target_label  = "tenant"
+              replacement   = "ABC-DB"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-web"
+              target_label  = "tenant"
+              replacement   = "ABC-WEB"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-nc"
+              target_label  = "tenant"
+              replacement   = "ABC-NC"
+            }
+
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              regex         = "abc-pos"
+              target_label  = "tenant"
+              replacement   = "ABC-POS"
+            }
+          }
+
+          loki.source.kubernetes "pods" {
+            targets    = discovery.relabel.pods.output
+            forward_to = [loki.process.tenant.receiver]
+          }
+
+          loki.process "tenant" {
+            stage.tenant {
+              label = "tenant"
+            }
+
+            stage.label_drop {
+              values = ["tenant"]
+            }
+
+            forward_to = [loki.write.loki.receiver]
+          }
+
+          loki.write "loki" {
+            endpoint {
+              url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+            }
+          }
