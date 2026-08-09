@@ -23,6 +23,7 @@ spec:
   managed:
     roles:
       - name: provisioner
+        login: true
         createdb: true
         createrole: true
 

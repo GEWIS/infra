@@ -55,16 +55,26 @@ bootstrap:
 managed:
   roles:
     - name: provisioner
+      login: true
       createdb: true
       createrole: true
 ```
 
 **No `passwordSecret`, deliberately.** The CRD is explicit that a null
-`passwordSecret` means "the password will be ignored", so the entry adds the two
+`passwordSecret` means "the password will be ignored", so the entry adds the
 attributes and leaves the credential alone — and the credential is the one
 CloudNativePG generated at bootstrap, sitting in `postgres-app`. Tofu reads it
 out of the cluster with the `kubernetes` provider, the same shape as
 `grafana-config` reading `grafana-auth`.
+
+**`login: true` is not redundant, even though `initdb` already created the role
+with it.** A managed role is reconciled to its declared state, and `Login` is a
+plain `bool` with `omitempty` documented as defaulting to `false` — so omitting
+it makes CloudNativePG issue `ALTER ROLE provisioner NOLOGIN` and every
+connection afterwards fails with *"role is not permitted to log in"*. The
+neighbouring fields are safe to omit: `inherit` is a `*bool` defaulting true,
+`connectionLimit` defaults to `-1`, and `superuser`, `replication` and
+`bypassrls` all default false, which is what we want.
 
 Nobody types this password, and it never appears in git. That is the point, and
 the two alternatives are worse:
