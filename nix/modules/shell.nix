@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   programs.zsh = {
     enable = true;
@@ -94,6 +99,10 @@
   users.users.root.shell = pkgs.bashInteractive;
   environment.shells = [ pkgs.zsh ];
 
+  systemd.tmpfiles.rules = lib.mapAttrsToList (
+    name: user: "f ${user.home}/.zshrc 0644 ${name} ${user.group} -"
+  ) (lib.filterAttrs (_: user: user.isNormalUser) config.users.users);
+
   environment.systemPackages = with pkgs; [
     bat
     btop
@@ -119,4 +128,6 @@
     usbutils
     wget
   ];
+
+  environment.enableAllTerminfo = true;
 }
