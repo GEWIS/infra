@@ -107,3 +107,52 @@ authentik's built-in `profile` scope already emits it:
 So an OIDC relying party can key its authorisation off `groups` with the stock
 scopes. Guides that add a bespoke scope mapping for this are working around
 something that is not true here.
+
+## OIDC clients are a map
+
+Each relying party is one entry in `oidc_clients`:
+
+```hcl
+grafana = {
+  display_name  = "Grafana"
+  namespace     = "observability"
+  launch_url    = "https://grafana.cbc.gewis.nl:8443/"
+  redirect_uris = ["https://grafana.cbc.gewis.nl:8443/login/generic_oauth"]
+}
+```
+
+That renders an `authentik_provider_oauth2` and an `authentik_application`,
+generates the client secret, and writes `client_id` and `client_secret` to
+OpenBao at `authentik/<namespace>/<client>` with a read policy and a Kubernetes
+auth role for that namespace. The consuming namespace pulls them in with an
+`ExternalSecret`, exactly as it does for Garage credentials — so the secret is
+generated, stored and consumed without anyone reading it.
+
+**Redirect URIs carry `:8443`.** The gateway is published on that port, it is
+part of the issuer, and `matching_mode = "strict"` means a missing port is a
+failed login with no useful error.
+
+## Grafana authenticates against the directory through authentik
+
+The endpoints are the shared per-provider ones, not per-application:
+
+```ini
+auth_url  = https://authentik.cbc.gewis.nl:8443/application/o/authorize/
+token_url = https://authentik.cbc.gewis.nl:8443/application/o/token/
+api_url   = https://authentik.cbc.gewis.nl:8443/application/o/userinfo/
+```
+
+Grafana reaches those from inside the cluster over the public name, which
+hairpins back through the gateway — verified from the pod, and it costs the
+documented few-second TLS tax on the first connection. Using the in-cluster
+Service instead would work for the token exchange but would make the issuer
+disagree with what the browser sees.
+
+**The org mapping did not have to change.** Grafana keyed off Keycloak's `roles`
+claim; authentik emits the same names in `groups`, because `GRAFANA-CBC-RO`,
+`GRAFANA-ABC_CRM-RW` and the rest are Active Directory groups that Keycloak was
+surfacing too. So `org_attribute_path` moves from `roles` to `groups` and the
+`org_mapping` string is untouched.
+
+Two attribute paths do change, because the claim names differ: `username` becomes
+`preferred_username` and `full_name` becomes `name`.

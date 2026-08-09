@@ -52,5 +52,5 @@ shared `loki`, `mimir` and `tempo` buckets, so the bucket layout never changes.
 The namespaces the ABC tenants map to **do not exist yet**. That is harmless: a
 relabel rule that never matches produces no data, and querying an empty tenant
 returns an empty result rather than an error. The tenant names are the real ones
-from `fleet-infra` so the Keycloak roles (`GRAFANA-ABC_CRM-RO`, …) already
+from `fleet-infra` so the directory groups (`GRAFANA-ABC_CRM-RO`, …) already
 resolve, which makes the isolation testable before any workload lands.

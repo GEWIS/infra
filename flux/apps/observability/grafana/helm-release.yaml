@@ -47,6 +47,10 @@ spec:
         secretName: grafana-auth
         mountPath: /etc/secrets/auth
         readOnly: true
+      - name: oidc
+        secretName: grafana-oidc
+        mountPath: /etc/secrets/oidc
+        readOnly: true
 
     ingress:
       enabled: false
@@ -67,26 +71,27 @@ spec:
 
       auth:
         disable_login_form: true
+        signout_redirect_url: "https://authentik.cbc.gewis.nl:8443/application/o/grafana/end-session/"
 
       auth.generic_oauth:
         enabled: true
         name: GEWISWG
         allow_sign_up: true
-        client_id: "$__file{/etc/secrets/auth/keycloak-client-id}"
-        client_secret: "$__file{/etc/secrets/auth/keycloak-client-secret}"
-        scopes: "openid,email,profile,roles,offline_access"
-        auth_url: "https://auth.gewis.nl/realms/GEWISWG/protocol/openid-connect/auth"
-        token_url: "https://auth.gewis.nl/realms/GEWISWG/protocol/openid-connect/token"
-        api_url: "https://auth.gewis.nl/realms/GEWISWG/protocol/openid-connect/userinfo"
+        client_id: "$__file{/etc/secrets/oidc/client_id}"
+        client_secret: "$__file{/etc/secrets/oidc/client_secret}"
+        scopes: "openid,email,profile,offline_access"
+        auth_url: "https://authentik.cbc.gewis.nl:8443/application/o/authorize/"
+        token_url: "https://authentik.cbc.gewis.nl:8443/application/o/token/"
+        api_url: "https://authentik.cbc.gewis.nl:8443/application/o/userinfo/"
         use_refresh_token: true
 
         email_attribute_path: "email"
-        login_attribute_path: "username"
-        name_attribute_path: "full_name"
+        login_attribute_path: "preferred_username"
+        name_attribute_path: "name"
 
         role_attribute_strict: true
 
-        org_attribute_path: "roles"
+        org_attribute_path: "groups"
         org_mapping: "GRAFANA-CBC-RO:CBC:Viewer GRAFANA-CBC-RW:CBC:Editor GRAFANA-ABC_CRM-RO:ABC-CRM:Viewer GRAFANA-ABC_CRM-RW:ABC-CRM:Editor GRAFANA-ABC_EOU-RO:ABC-EOU:Viewer GRAFANA-ABC_EOU-RW:ABC-EOU:Editor GRAFANA-ABC_DB-RO:ABC-DB:Viewer GRAFANA-ABC_DB-RW:ABC-DB:Editor GRAFANA-ABC_WEB-RO:ABC-WEB:Viewer GRAFANA-ABC_WEB-RW:ABC-WEB:Editor GRAFANA-ABC_NC-RO:ABC-NC:Viewer GRAFANA-ABC_NC-RW:ABC-NC:Editor GRAFANA-ABC_POS-RO:ABC-POS:Viewer GRAFANA-ABC_POS-RW:ABC-POS:Editor"
 
     livenessProbe:
