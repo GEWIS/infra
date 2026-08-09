@@ -1,6 +1,5 @@
 locals {
   cluster_namespace = "postgres"
-  cluster_host      = "postgres-rw.postgres.svc.cluster.local"
 
   databases = {
     authentik = { namespace = "authentik" }
@@ -16,6 +15,11 @@ locals {
   }
 }
 
+resource "random_password" "provisioner" {
+  length  = 32
+  special = false
+}
+
 resource "random_password" "role" {
   for_each = local.databases
 
@@ -29,6 +33,16 @@ resource "vault_mount" "postgres" {
   description = "Postgres role credentials, one path per consuming namespace."
 }
 
+resource "vault_kv_secret_v2" "provisioner" {
+  mount = vault_mount.postgres.path
+  name  = "provisioner"
+
+  data_json = jsonencode({
+    username = "provisioner"
+    password = random_password.provisioner.result
+  })
+}
+
 resource "vault_kv_secret_v2" "credentials" {
   for_each = local.databases
 
@@ -39,9 +53,38 @@ resource "vault_kv_secret_v2" "credentials" {
     username = each.key
     password = random_password.role[each.key].result
     dbname   = each.key
-    host     = local.cluster_host
+    host     = "postgres-rw.${local.cluster_namespace}.svc.cluster.local"
     port     = "5432"
   })
+}
+
+resource "postgresql_role" "app" {
+  for_each = local.databases
+
+  name     = each.key
+  login    = true
+  password = random_password.role[each.key].result
+}
+
+resource "postgresql_database" "app" {
+  for_each = local.databases
+
+  name  = each.key
+  owner = postgresql_role.app[each.key].name
+}
+
+resource "vault_policy" "provisioner_read" {
+  name = "postgres-provisioner"
+
+  policy = <<-EOT
+    path "${vault_mount.postgres.path}/data/provisioner" {
+      capabilities = ["read"]
+    }
+
+    path "${vault_mount.postgres.path}/metadata/provisioner" {
+      capabilities = ["read"]
+    }
+  EOT
 }
 
 resource "vault_policy" "database_read" {
@@ -80,6 +123,6 @@ resource "vault_kubernetes_auth_backend_role" "cluster" {
   bound_service_account_names      = ["*"]
   bound_service_account_namespaces = [local.cluster_namespace]
 
-  token_policies = [for policy in vault_policy.database_read : policy.name]
+  token_policies = [vault_policy.provisioner_read.name]
   token_ttl      = 3600
 }

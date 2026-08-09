@@ -15,6 +15,15 @@ spec:
     parameters:
       max_wal_size: 256MB
 
+  managed:
+    roles:
+      - name: provisioner
+        login: true
+        createdb: true
+        createrole: true
+        passwordSecret:
+          name: provisioner-role
+
   inheritedMetadata:
     annotations:
       prometheus.io/scrape: "true"

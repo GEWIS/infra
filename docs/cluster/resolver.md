@@ -49,6 +49,32 @@ addresses buckets path-style. `10.82.50.100` is hardcoded here and in
 `terraform/garage-buckets`, so both rot together if the lease moves. A DHCP
 reservation, as the Talos nodes already have, is what makes this safe.
 
+## Aliasing one name onto another
+
+`hosts` only maps names to addresses. To point a name at another *name* — where
+the target already resolves and may move — use `rewrite` instead:
+
+```
+rewrite stop {
+    name exact postgres.cbc.gewis.nl kube.gewis.nl
+    answer auto
+}
+```
+
+`postgres.cbc.gewis.nl` is how in-cluster clients reach the Postgres NodePort.
+`kube.gewis.nl` is a public record carrying all three node addresses, so the
+alias tracks the nodes instead of pinning one, and the resolver can follow it
+through its normal upstreams.
+
+**`answer auto` is not optional.** Without it the reply carries `kube.gewis.nl`
+as the owner name of the A records while the client asked for
+`postgres.cbc.gewis.nl`, and stub resolvers are entitled to discard the mismatch.
+`answer auto` rewrites the owner names back on the way out.
+
+This is resolver-only, exactly like `s3.gewis.nl`: a workstation resolving
+through campus DNS gets NXDOMAIN. Anything running off-cluster — `tofu`, for one
+— has to use `kube.gewis.nl` directly.
+
 ## DNS4EU first, Quad9 behind it
 
 ```

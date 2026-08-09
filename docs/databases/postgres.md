@@ -8,10 +8,10 @@ Applications do not get a cluster each. A three-instance cluster per app would
 multiply pods and volumes for no isolation this cluster needs, so consumers share
 one and are separated by role and database instead.
 
-## Adding a database is two files and an apply
+## Adding a database is one map entry
 
-The role password is minted by `terraform/postgres-databases` — one entry in the
-`databases` map — and lands in OpenBao at `postgres/<namespace>/<database>`:
+`terraform/postgres-databases` owns every credential *and* the DDL. One entry is
+the whole change:
 
 ```hcl
 databases = {
@@ -19,39 +19,78 @@ databases = {
 }
 ```
 
-From there it is read twice, by two `ExternalSecret`s in two namespaces:
+That mints a password, writes it to OpenBao at `postgres/<namespace>/<database>`,
+and issues the `CREATE ROLE` and `CREATE DATABASE` itself through the
+`cyrilgdn/postgresql` provider. Nothing per-application exists in the `postgres`
+namespace; the consuming namespace reads its own credential with an
+`ExternalSecret`, and that is the only Kubernetes object involved.
 
-| Namespace | Secret | Consumed by |
-| --- | --- | --- |
-| `postgres` | `<app>-role`, `kubernetes.io/basic-auth` | `DatabaseRole.spec.passwordSecret` |
-| the app's | whatever shape the app wants | the app |
+## How tofu reaches a cluster with no public address
 
-One credential, two readers, no copy of the password anywhere else. This is the
-same route the Garage bucket credentials take, and it exists for the same reason:
-a `SecretStore` is namespaced, so each side authenticates as itself.
+A `NodePort` Service publishes the primary on **30432**, selecting
+`cnpg.io/instanceRole: primary`. Cilium forwards from any node to wherever that
+pod currently is, and CNPG relabels on failover, so the address survives a
+primary change. `hostPort` — how Traefik and the resolver are exposed — is not an
+option here: the `Cluster` CRD has no field for it, and it would bind on all
+three nodes with only one of them writable.
 
-The role and the database are declared with CRDs rather than fields on the
-`Cluster`:
+The endpoint is `kube.gewis.nl:30432`, which round-robins the node addresses.
+`postgres.cbc.gewis.nl` is the same thing through the cluster resolver, which
+rewrites it onto `kube.gewis.nl`; use it from inside the cluster, and the node
+name from a workstation, which resolves through campus DNS and has never heard
+of the resolver's private names.
+
+## Tofu connects as `provisioner`, not as a superuser
+
+`CREATE ROLE` and `CREATE DATABASE` need `CREATEROLE` and `CREATEDB` — not
+superuser, so `enableSuperuserAccess` stays `false`. There is exactly one managed
+role on the `Cluster`:
 
 ```yaml
-kind: DatabaseRole            kind: Database
-spec:                         spec:
-  cluster: {name: postgres}     cluster: {name: postgres}
-  name: authentik               name: authentik
-  login: true                   owner: authentik
-  passwordSecret:
-    name: authentik-role
+managed:
+  roles:
+    - name: provisioner
+      login: true
+      createdb: true
+      createrole: true
+      passwordSecret:
+        name: provisioner-role
 ```
 
-`Cluster.spec.managed.roles` would work equally well and is the older way, but it
-puts every consumer inside one shared object — adding an app would mean editing
-the cluster every other app depends on. With the CRDs, adding a consumer only
-ever adds files.
+Its password takes the same route as everyone else's — tofu writes it to OpenBao,
+an `ExternalSecret` in the `postgres` namespace turns it into the
+`kubernetes.io/basic-auth` Secret CNPG expects. From Postgres 16 onward the
+creator of a role holds `ADMIN OPTION` on it, so `provisioner` can hand each
+database to the role it just made.
 
-**Apply the tofu root before pushing the manifests.** The `ExternalSecret` reads
-a path that does not exist until then, so `DatabaseRole` has no password to use
-and `services` sits un-`Ready` for its whole timeout. It heals as soon as the KV
-entry appears, but it looks broken until it does.
+A superuser would have been a standing field on the shared cluster manifest,
+carried into production, to save two lines. Not worth it.
+
+## The first apply is two-phase
+
+`provisioner` cannot exist until its password does, and its password comes from
+the root that wants to log in as it. On a fresh cluster, break the cycle
+explicitly:
+
+```sh
+tofu apply -target=vault_kv_secret_v2.provisioner \
+           -target=vault_policy.provisioner_read \
+           -target=vault_kubernetes_auth_backend_role.cluster
+# wait for External Secrets to sync and CNPG to create the role
+tofu apply
+```
+
+Only the first apply against empty OpenBao needs this. Afterwards the role exists
+and a plain `tofu apply` is enough.
+
+Databases that predate this root — anything the `Database` and `DatabaseRole`
+CRDs created — are adopted rather than recreated, because both reclaim policies
+default to `retain` and the objects outlive the CRs:
+
+```sh
+tofu import 'postgresql_role.app["authentik"]' authentik
+tofu import 'postgresql_database.app["authentik"]' authentik
+```
 
 ## Two settings the disk forces
 

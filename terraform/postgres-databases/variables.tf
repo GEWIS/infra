@@ -21,3 +21,15 @@ variable "bao_jwt" {
   type        = string
   sensitive   = true
 }
+
+variable "postgres_host" {
+  description = "Postgres endpoint reachable from where tofu runs. Defaults to the round-robin node name; postgres.cbc.gewis.nl is the same address through the cluster resolver."
+  type        = string
+  default     = "kube.gewis.nl"
+}
+
+variable "postgres_port" {
+  description = "NodePort the Postgres primary is published on."
+  type        = number
+  default     = 30432
+}

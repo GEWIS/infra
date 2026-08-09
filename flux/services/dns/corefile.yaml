@@ -18,6 +18,11 @@ data:
             fallthrough
         }
 
+        rewrite stop {
+            name exact postgres.cbc.gewis.nl kube.gewis.nl
+            answer auto
+        }
+
         cache {
             serve_stale 1h verify
         }

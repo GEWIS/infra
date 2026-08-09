@@ -1,7 +1,7 @@
 # Applying
 
-Order matters once, on the first install, because the database credential is
-minted outside the cluster.
+Order matters once, on the first install, because the database and its
+credential are both made outside the cluster.
 
 ```sh
 cd terraform/postgres-databases
@@ -9,13 +9,15 @@ tofu init
 tofu apply
 ```
 
-That writes `postgres/authentik/authentik` into OpenBao. Only then push the
-manifests: both External Secrets — the one CloudNativePG reads to create the
-role, and the one authentik reads to connect — resolve against that path, and
-until it exists they produce nothing, `DatabaseRole` has no password, and the
-pods sit in `CreateContainerConfigError` because their `envFrom` Secret is
-absent. It recovers on its own the moment the path appears; it just looks like a
-failed deploy in the meantime.
+That creates the `authentik` role and database, and writes
+`postgres/authentik/authentik` into OpenBao. Only then push the manifests: the
+`ExternalSecret` in the `authentik` namespace resolves against that path, and
+until it exists the pods sit in `CreateContainerConfigError` because their
+`envFrom` Secret is absent. It recovers on its own the moment the path appears;
+it just looks like a failed deploy in the meantime.
+
+On a cluster where the `provisioner` role does not exist yet, that apply is
+two-phase — see [Postgres](../databases/postgres.md).
 
 Once Flux has reconciled:
 
