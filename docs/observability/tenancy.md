@@ -42,7 +42,7 @@ tenant inside a single query: `{app="foo", __tenant_id__=~"ABC-.+"}`.
 
 1. `terraform/grafana-config` — one entry in `local.tenants`, then `tofu apply`.
    That creates the org, its three datasources, and widens CBC's federated header.
-2. `flux/services/observability/alloy/` — one relabel rule in `logs.yaml` mapping the
+2. `flux/apps/observability/alloy/` — one relabel rule in `logs.yaml` mapping the
    namespace to the tenant, and one `prometheus.relabel` + `prometheus.remote_write`
    pair in `metrics.yaml`.
 

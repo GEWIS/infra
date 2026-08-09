@@ -107,12 +107,18 @@ nav:
       - Failure notes: cluster/failures.md
   - Databases:
       - Overview: databases/index.md
+      - Postgres: databases/postgres.md
       - Replication model: databases/replication.md
       - The stack: databases/stack.md
       - Backups: databases/backups.md
       - Tradeoff: databases/tradeoff.md
       - Longhorn: databases/longhorn.md
       - Test versus production: databases/test-vs-prod.md
+  - Authentik:
+      - Overview: authentik/index.md
+      - Deployment: authentik/deployment.md
+      - Media: authentik/media.md
+      - Applying: authentik/applying.md
   - Observability:
       - Overview: observability/index.md
       - Tenancy: observability/tenancy.md

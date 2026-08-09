@@ -1,10 +1,8 @@
-# Longhorn interactions to handle before rollout
+# Longhorn interactions
 
-- **Exclude database volumes from the `default` recurring-job group.** The jobs in
-  `flux/config/longhorn/recurring-jobs.yaml` snapshot and back up every default
-  volume. Replica-1 database volumes would collect crash-consistent block backups
-  that are redundant with the logical dumps and waste disk — put them on a storage
-  class or recurring-job group that opts out.
+- **Database volumes are excluded from the `default` recurring-job group**, via
+  the `recurringJobSelector` on `longhorn-single`. How that works, and why
+  removing the label instead does not, is in [Postgres](postgres.md).
 - **The Longhorn `backupTarget` is unset.** The existing `weekly-backup` job has
   nowhere to write. Independent of the database design, but worth resolving while
   backup targets are being thought about.

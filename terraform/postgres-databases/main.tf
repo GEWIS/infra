@@ -1,6 +1,6 @@
 locals {
-  cluster_namespace = "databases"
-  cluster_host      = "postgres-rw.databases.svc.cluster.local"
+  cluster_namespace = "postgres"
+  cluster_host      = "postgres-rw.postgres.svc.cluster.local"
 
   databases = {
     authentik = { namespace = "authentik" }

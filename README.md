@@ -36,6 +36,7 @@ terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-
 terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
 terraform/garage-buckets/   OpenTofu root: Garage buckets + their credentials in OpenBao
 terraform/grafana-config/   OpenTofu root: Grafana organizations and datasources
+terraform/postgres-databases/ OpenTofu root: Postgres roles + their credentials in OpenBao
 flux/                  Flux GitOps tree, reconciled into the cluster
 docs/                  per-host and cluster operational detail
 ```

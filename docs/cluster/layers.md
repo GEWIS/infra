@@ -2,20 +2,21 @@
 
 ```
 crds ───────────┐
-                ├─→ controllers ─→ config ─────→ services
-sealed-secrets ─┘               └─→ openbao ───────┘
+                ├─→ controllers ─→ config ─┬─→ services ─→ apps
+sealed-secrets ─┘                └→ openbao ┘
 ```
 
 | Layer | Path | Holds |
 | --- | --- | --- |
 | `crds` | upstream `gateway-api` | Gateway API CRDs |
 | `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/controllers/` | cert-manager, traefik, external-dns, longhorn, external-secrets |
-| `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, Longhorn jobs, the kube-system Corefile |
-| `services` | `flux/services/` | the resolver, the LGTM stack, the node exporter |
+| `controllers` | `flux/controllers/` | cert-manager, traefik, external-dns, longhorn, external-secrets, cloudnative-pg |
+| `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile |
 | `openbao` | `flux/openbao/` | OpenBao, its HTTPRoute, its seal secret |
+| `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
+| `apps` | `flux/apps/` | authentik, the LGTM stack |
 
-Three dependencies carry real weight and none is cosmetic:
+Four dependencies carry real weight and none is cosmetic:
 
 - **`controllers` depends on `crds`** because Traefik's Helm chart renders a
   `Gateway` and `GatewayClass`. Those are custom resources; without the CRDs the
@@ -27,6 +28,17 @@ Three dependencies carry real weight and none is cosmetic:
   answers, so this is not a correctness requirement — but with `wait: true` the
   layer would otherwise sit un-`Ready` through the whole of OpenBao's first boot,
   which reads as a broken deploy rather than an ordered one.
+- **`apps` depends on `services`** for the same reason, one level up. A database
+  consumer starts, fails to connect and backs off until its database exists, so
+  this is a soft dependency too — but keeping the consumers in the leaf layer
+  means their flapping never holds up the substrate below them.
+
+The split between the last two layers is worth stating plainly, because it is
+not about ordering. What a layer buys, once CRDs and secrets are accounted for,
+is the blast radius of `wait: true`: a Kustomization is un-`Ready` until every
+object in it is healthy. `services` holds what other things consume, `apps`
+holds the consumers, and nothing depends on `apps` — so an app waiting on its
+database is a fact about that app rather than a stalled cluster.
 
 SealedSecrets live next to the chart that consumes them rather than in a central
 secrets directory. That works only because the decryptor is hoisted into its own

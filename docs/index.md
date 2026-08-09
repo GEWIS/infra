@@ -18,6 +18,7 @@ Kubernetes cluster.
 | --- | --- |
 | [cluster](cluster/index.md) | Flux layering, ingress, certificates, DNS, OpenBao |
 | [databases](databases/index.md) | HA Postgres and MariaDB placement and their backup model |
+| [authentik](authentik/index.md) | The identity provider and how it is wired up |
 | [observability](observability/index.md) | The LGTM stack and its tenancy model |
 | [garage-buckets](garage-buckets/index.md) | S3 buckets and the credentials the cluster reads for them |
 

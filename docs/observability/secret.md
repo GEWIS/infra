@@ -11,7 +11,7 @@ so no cluster access is needed to produce the ciphertext:
 ```sh
 sops -d --extract '["tls_crt"]' secrets/sealed-secrets.yaml > /tmp/sealing.crt
 kubeseal --cert /tmp/sealing.crt --format yaml < /tmp/grafana-auth.yaml \
-  > flux/services/observability/grafana/auth-sealed-secret.yaml
+  > flux/apps/observability/grafana/auth-sealed-secret.yaml
 ```
 
 Write the plaintext input under `/tmp`, never in the working tree — nothing in

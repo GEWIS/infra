@@ -19,7 +19,7 @@ metadata:
 apiVersion: external-secrets.io/v1
 kind: SecretStore
 metadata:
-  name: openbao
+  name: garage
   namespace: observability
 spec:
   provider:
@@ -42,7 +42,7 @@ metadata:
 spec:
   refreshInterval: 1h
   secretStoreRef:
-    name: openbao
+    name: garage
     kind: SecretStore
   target:
     name: loki-s3

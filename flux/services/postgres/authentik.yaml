@@ -2,7 +2,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: authentik
-  namespace: databases
+  namespace: postgres
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -26,7 +26,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: DatabaseRole
 metadata:
   name: authentik
-  namespace: databases
+  namespace: postgres
 spec:
   cluster:
     name: postgres
@@ -39,7 +39,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: authentik
-  namespace: databases
+  namespace: postgres
 spec:
   cluster:
     name: postgres
