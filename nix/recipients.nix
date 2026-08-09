@@ -3,6 +3,7 @@
     "tofu"
     "talos"
     "sealed-secrets"
+    "authentik"
   ];
 
   admins = {
