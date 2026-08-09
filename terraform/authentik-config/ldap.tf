@@ -21,7 +21,7 @@ resource "authentik_source_ldap" "gewiswg" {
   server_uri = "ldaps://ldaps.gewis.nl"
   start_tls  = false
 
-  bind_cn       = "svc-auth@gewiswg.gewis.nl"
+  bind_cn       = "svc-authentik@gewiswg.gewis.nl"
   bind_password = var.ad_bind_password
 
   base_dn                 = "DC=GEWISWG,DC=GEWIS,DC=nl"
