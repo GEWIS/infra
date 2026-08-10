@@ -3,8 +3,7 @@
 Talos enforces the baseline standard, which forbids hostPath volumes. Exactly one
 workload here needs them — the node exporter, reading `/proc` and `/sys` — so it
 gets its own namespace, `node-exporter`, labelled
-`pod-security.kubernetes.io/enforce: privileged`, in the same spirit as `dns` and
-`traefik`.
+`pod-security.kubernetes.io/enforce: privileged`, in the same spirit as `dns`.
 
 `observability` itself carries **no PSA label** and stays baseline. Labelling the
 whole stack privileged to satisfy one DaemonSet would drop enforcement for Loki,

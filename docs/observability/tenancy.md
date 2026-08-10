@@ -15,9 +15,10 @@ use Explore but cannot touch the `X-Scope-OrgID` header their queries carry. The
 boundary does not depend on withholding `-RW`.
 
 `Viewer` is the weaker seat in a way that matters here: viewers can query
-datasources through a dashboard, but cannot access Explore. With no dashboards
-provisioned yet, a `-RO` account therefore sees an empty Grafana. Until dashboards
-exist, `-RW` is the only role that gives a tenant anything to look at.
+datasources through a dashboard, but cannot access Explore. A `-RO` account
+therefore sees only what is provisioned for its org, and dashboards are
+provisioned for CBC alone — so for every other tenant, `-RW` is still the only
+role that gives anything to look at.
 
 `CBC` is not a special case in the backends. It is an ordinary tenant whose
 datasources send every tenant ID pipe-separated, which all three engines accept

@@ -16,10 +16,11 @@ The filter is `gewis.nl`; scoping comes from ownership instead:
 
 The DNS target is the `external-dns.alpha.kubernetes.io/target` annotation on the
 **Gateway**, not on each route — external-dns reads that override from the
-Gateway only, and ignores it on an HTTPRoute. It is set once in the Traefik chart
-values, so every route inherits it. The target is a hostname, so records are
-CNAMEs; with hostPort there is no LoadBalancer address for external-dns to
-discover on its own.
+Gateway only, and ignores it on an HTTPRoute. It is set once in
+`flux/config/gateway/gateway.yaml`, so every route inherits it. The target is a
+hostname, so records are CNAMEs. Without it external-dns would publish the
+`Gateway`'s own addresses, which in host network mode are the node addresses
+rather than one stable LoadBalancer address.
 
 `--cloudflare-record-comment` tags every managed record; ownership itself is
 still the TXT, not the comment.

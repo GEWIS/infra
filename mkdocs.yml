@@ -124,6 +124,7 @@ nav:
       - Overview: observability/index.md
       - Tenancy: observability/tenancy.md
       - Grafana orgs: observability/grafana-orgs.md
+      - Dashboards: observability/dashboards.md
       - Server administrator: observability/server-admin.md
       - Mimir: observability/mimir.md
       - Storage: observability/storage.md

@@ -12,3 +12,7 @@ Cilium replaces kube-proxy and reaches the API through KubePrism on
 Pod-to-pod traffic is encrypted with **WireGuard** (`encryption.enabled=true`,
 `encryption.type=wireguard`). Talos ships WireGuard in-kernel and the agent
 already holds `NET_ADMIN`, so this needs no extra capability or kernel module.
+
+The same release also carries the Gateway API implementation
+(`gatewayAPI.enabled=true`) and the values that expose it on the host network —
+see [Ingress](ingress.md).

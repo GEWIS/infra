@@ -5,8 +5,8 @@ metadata:
   namespace: authentik
 spec:
   parentRefs:
-    - name: traefik-gateway
-      namespace: traefik
+    - name: gateway
+      namespace: gateway
   hostnames:
     - authentik.cbc.gewis.nl
   rules:

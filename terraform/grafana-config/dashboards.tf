@@ -3,7 +3,6 @@ locals {
   cbc_mimir_ds = grafana_data_source.mimir["CBC"].uid
 
   dashboards = {
-    traefik            = { id = 17347, revision = 9 }
     coredns            = { id = 15762, revision = 22 }
     kubernetes_global  = { id = 15757, revision = 43 }
     kubernetes_nodes   = { id = 15759, revision = 40 }
@@ -14,9 +13,10 @@ locals {
   }
 
   dashboards_pinned_datasource = {
-    longhorn     = { id = 17626, revision = 1, placeholder = "DS_PROMETHEUS-LONGHORN" }
-    cert_manager = { id = 22184, revision = 3, placeholder = "DS_PROMETHEUS" }
-    openbao      = { id = 23725, revision = 1, placeholder = "DS_PROMXY" }
+    longhorn     = { url = "https://grafana.com/api/dashboards/17626/revisions/1/download", placeholder = "DS_PROMETHEUS-LONGHORN" }
+    cert_manager = { url = "https://grafana.com/api/dashboards/22184/revisions/3/download", placeholder = "DS_PROMETHEUS" }
+    openbao      = { url = "https://grafana.com/api/dashboards/23725/revisions/1/download", placeholder = "DS_PROMXY" }
+    cilium       = { url = "https://raw.githubusercontent.com/cilium/cilium/v1.20.0/install/kubernetes/cilium/files/cilium-agent/dashboards/cilium-dashboard.json", placeholder = "DS_PROMETHEUS" }
   }
 
   sealed_secrets_dashboard_url = "https://raw.githubusercontent.com/bitnami-labs/sealed-secrets/5d360fd400f0d93ac42d123eb81336a2d64d1772/contrib/prometheus-mixin/dashboards/sealed-secrets-controller.json"
@@ -31,7 +31,7 @@ data "http" "dashboard" {
 data "http" "dashboard_pinned_datasource" {
   for_each = local.dashboards_pinned_datasource
 
-  url = "https://grafana.com/api/dashboards/${each.value.id}/revisions/${each.value.revision}/download"
+  url = each.value.url
 }
 
 data "http" "dashboard_sealed_secrets" {

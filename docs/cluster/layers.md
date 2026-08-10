@@ -10,17 +10,21 @@ sealed-secrets ─┘                └→ openbao ┘
 | --- | --- | --- |
 | `crds` | upstream `gateway-api` | Gateway API CRDs |
 | `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/controllers/` | cert-manager, traefik, external-dns, longhorn, external-secrets, cloudnative-pg |
-| `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile |
+| `controllers` | `flux/controllers/` | cert-manager, external-dns, longhorn, external-secrets, cloudnative-pg |
+| `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, the Gateway, Longhorn jobs and storage classes, the kube-system Corefile |
 | `openbao` | `flux/openbao/` | OpenBao, its HTTPRoute, its seal secret |
 | `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
 | `apps` | `flux/apps/` | authentik, the LGTM stack |
 
 Four dependencies carry real weight and none is cosmetic:
 
-- **`controllers` depends on `crds`** because Traefik's Helm chart renders a
-  `Gateway` and `GatewayClass`. Those are custom resources; without the CRDs the
-  *whole release* fails to install, not just the Gateway.
+- **`controllers` depends on `crds`** so that the Gateway API CRDs land ahead of
+  `config`, which holds the `Gateway`. Nothing in `controllers` itself needs them
+  any more — the edge stays because every later layer inherits it, and a `Gateway`
+  applied without its CRD is not a degraded object but a rejected one. The
+  matching `GatewayClass` comes from Cilium, which OpenTofu installs, so the layer
+  graph does not order it at all: Cilium disables Gateway API support for each CRD
+  it cannot find.
 - **`controllers` depends on `sealed-secrets`** because it now applies
   `SealedSecret` objects, so the CRD and its decryptor must already exist.
 - **`services` depends on `openbao`** because the observability stack reads its S3

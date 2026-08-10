@@ -7,6 +7,14 @@
   "kubernetes": {
     "managerFilePatterns": ["/^flux/.+\\.yaml$/"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^terraform/grafana-config/dashboards\\.tf$/"],
+      "matchStrings": ["raw\\.githubusercontent\\.com/(?<depName>cilium/cilium)/(?<currentValue>v[^/]+)/"],
+      "datasourceTemplate": "github-releases"
+    }
+  ],
   "platformAutomerge": true,
   "packageRules": [
     {

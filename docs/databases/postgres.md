@@ -30,7 +30,7 @@ namespace; the consuming namespace reads its own credential with an
 A `NodePort` Service publishes the primary on **30432**, selecting
 `cnpg.io/instanceRole: primary`. Cilium forwards from any node to wherever that
 pod currently is, and CNPG relabels on failover, so the address survives a
-primary change. `hostPort` — how Traefik and the resolver are exposed — is not an
+primary change. `hostPort` — how the resolver is exposed — is not an
 option here: the `Cluster` CRD has no field for it, and it would bind on all
 three nodes with only one of them writable.
 

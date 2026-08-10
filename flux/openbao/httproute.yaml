@@ -5,8 +5,8 @@ metadata:
   namespace: openbao
 spec:
   parentRefs:
-    - name: traefik-gateway
-      namespace: traefik
+    - name: gateway
+      namespace: gateway
   hostnames:
     - openbao.cbc.gewis.nl
   rules:

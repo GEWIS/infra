@@ -5,7 +5,7 @@ Both endpoints are reachable directly, no tunnels:
 | Endpoint | Default | Notes |
 | --- | --- | --- |
 | Garage Admin API | `http://10.82.50.100:3903` | Campus LAN only; the host has no WAN leg |
-| OpenBao | `https://openbao.cbc.gewis.nl:8443` | Through the Traefik gateway |
+| OpenBao | `https://openbao.cbc.gewis.nl:8443` | Through the cluster gateway |
 
 `.envrc` exports both credentials, so there is nothing to pass by hand:
 

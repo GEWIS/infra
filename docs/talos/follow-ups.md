@@ -2,12 +2,12 @@
 
 The cluster is bootstrapped and healthy: three control-plane nodes `Ready`,
 etcd/apid/kubelet green, and `talosctl health` passes. Cilium, Flux, Longhorn,
-cert-manager, Traefik, external-dns and OpenBao are installed and running, and
+cert-manager, external-dns and OpenBao are installed and running, and
 `https://openbao.cbc.gewis.nl:8443` serves a trusted certificate. What remains:
 
 - **Ingress depends on a single node.** The router dst-nats to `10.82.50.101`
-  only, so that node is a single point of failure even though Traefik runs on
-  all three.
+  only, so that node is a single point of failure even though every node listens
+  on 443.
 - **Disks are testing-sized.** 20 GiB system and 10 GiB Longhorn per node; the
   system disk cannot be grown in place.
 - **The imported VDI is labelled `talos-1.13.8-nocloud-disk`.** Purely cosmetic;

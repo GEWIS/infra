@@ -18,6 +18,27 @@ locals {
       hostRoot  = "/sys/fs/cgroup"
     }
 
+    gatewayAPI = {
+      enabled     = true
+      hostNetwork = { enabled = true }
+    }
+
+    envoy = {
+      enabled = true
+      securityContext = {
+        capabilities = {
+          keepCapNetBindService = true
+          envoy = [
+            "NET_ADMIN",
+            "SYS_ADMIN",
+            "NET_BIND_SERVICE",
+          ]
+        }
+      }
+    }
+
+    prometheus = { enabled = true }
+
     securityContext = {
       capabilities = {
         ciliumAgent = [
@@ -47,7 +68,7 @@ resource "helm_release" "cilium" {
   name       = "cilium"
   repository = "https://helm.cilium.io/"
   chart      = "cilium"
-  version    = "1.19.6"
+  version    = "1.20.0"
   namespace  = "kube-system"
 
   values = [yamlencode(local.cilium_values)]

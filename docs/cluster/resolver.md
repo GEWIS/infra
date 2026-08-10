@@ -1,9 +1,8 @@
 # The cluster runs its own resolver
 
 A second CoreDNS lives in the `dns` namespace as a DaemonSet on **hostPort 53**,
-udp and tcp, exactly like Traefik: every node answers on `10.82.50.10x:53`, so
-LAN hosts can use it directly. In-cluster it is also a Service pinned to
-`10.96.0.53`.
+udp and tcp: every node answers on `10.82.50.10x:53`, so LAN hosts can use it
+directly. In-cluster it is also a Service pinned to `10.96.0.53`.
 
 **hostPort, not hostNetwork.** The pod keeps its own network namespace, so
 `dnsPolicy: None` with `nameserver 127.0.0.1` makes it resolve through itself and
@@ -11,9 +10,9 @@ never through the node — the loop the campus resolver would otherwise close. A
 `hostNetwork` pod would instead bind `0.0.0.0:53` in the host namespace and
 contend with Talos's own host DNS resolver.
 
-The namespace is labelled `pod-security.kubernetes.io/enforce: privileged` for
-the same reason Traefik's is: baseline forbids hostPort. A DaemonSet does not
-surge on rollout, so unlike Traefik it needs no `maxSurge` correction.
+The namespace is labelled `pod-security.kubernetes.io/enforce: privileged`
+because baseline forbids hostPort. Ingress needs no such label — its Envoy is
+part of Cilium and runs in `kube-system`, which Talos leaves unenforced.
 
 ## Adding a record by hand
 

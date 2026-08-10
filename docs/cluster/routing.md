@@ -1,22 +1,45 @@
-# Routing is Gateway API, auth would be Traefik
+# Routing is Gateway API on Cilium
 
-Traefik is the Gateway API implementation (`gatewayClassName: traefik`) and the
-chart creates a Gateway named `traefik-gateway` in the `traefik` namespace. That
-name is hardcoded in the chart, not derived from the release name, so an
-`HTTPRoute` can rely on it:
+Cilium is the Gateway API implementation (`gatewayClassName: cilium`). It is not a
+Flux controller: Gateway API is part of the CNI and is switched on with
+`gatewayAPI.enabled` in the Cilium Helm values in
+`terraform/talos-bootstrap/main.tf`. Every node then runs an Envoy that eBPF
+transparently forwards matching traffic into.
+
+The `Gateway` itself is ours, in `flux/config/gateway/` — named `gateway` in the
+`gateway` namespace, so an `HTTPRoute` reads:
 
 ```yaml
 parentRefs:
-  - name: traefik-gateway
-    namespace: traefik
+  - name: gateway
+    namespace: gateway
 ```
 
-Routing lives in portable `HTTPRoute` objects so the implementation can be
-swapped later. Authentication cannot be portable: Gateway API has no auth filter,
-and Cilium's Gateway API has no OIDC at all — the open request is cilium#31604.
-The workarounds (hand-written `CiliumEnvoyConfig` with `ext_authz`, or a separate
-`oauth2-proxy`) are fragile, so OIDC stays on Traefik `Middleware` attached via
-`ExtensionRef`. That seam is the one deliberately non-portable part.
+There is **one listener**, HTTPS on 443. No plaintext listener exists, because
+the router forwards nothing to port 80 — see
+[Ingress](../talos/ingress.md). A single listener also means a route needs no
+`sectionName`: with a `:80` listener present, a route naming a hostname would
+attach to it as well and win over any redirect on specificity, serving the app
+in plaintext to anything that reached the node directly.
 
-A Gateway HTTPS listener **requires** `certificateRefs`; unlike a classic Traefik
-entrypoint it will not fall back to a self-signed certificate.
+An HTTPS listener **requires** `tls.certificateRefs` — nested under `tls`, not
+beside `port` — and there is no fallback to a self-signed certificate. Cilium's
+Envoy does not read that secret from the
+`gateway` namespace: `cilium-operator` copies it into `cilium-secrets` and Envoy
+loads it from there over SDS, which is how Envoy stays without cluster-wide
+secret access. Keeping the `Certificate` in the same namespace as the `Gateway`
+also avoids needing a `ReferenceGrant`.
+
+## Authentication is a route filter, not an implementation detail
+
+Cilium 1.20 added the `ExternalAuth` HTTPRoute filter from
+[GEP-1494](https://gateway-api.sigs.k8s.io/geps/gep-1494/), which delegates the
+allow/deny decision to a service over Envoy's `ext_authz` protocol. The field
+exists only in the experimental channel of the Gateway API CRDs, which is what
+the `crds` layer installs.
+
+Nothing uses it. authentik, Grafana and OpenBao each authenticate themselves —
+Grafana against authentik over OIDC. The filter matters because it means the
+routing layer no longer has to be chosen for its auth story: when a workload
+without a login of its own arrives, it gets a filter on its own route rather
+than a middleware belonging to one implementation.

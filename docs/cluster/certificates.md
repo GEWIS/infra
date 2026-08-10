@@ -1,8 +1,9 @@
 # Certificates
 
-cert-manager issues a single wildcard, `*.cbc.gewis.nl`, into the `traefik`
-namespace, referenced both by the Gateway listener and by `tlsStore.default` so
-it is the default certificate for classic IngressRoutes too.
+cert-manager issues a single wildcard, `*.cbc.gewis.nl`, into the `gateway`
+namespace, where the Gateway listener references it by name. Same namespace, so
+no `ReferenceGrant` is needed, and `cilium-operator` copies it into
+`cilium-secrets` for Envoy to load over SDS.
 
 `--dns01-recursive-nameservers-only` is required on campus, which blocks direct
 queries to authoritative nameservers.
