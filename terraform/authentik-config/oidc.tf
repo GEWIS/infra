@@ -34,9 +34,23 @@ data "authentik_property_mapping_provider_scope" "oidc" {
   managed_list = [
     "goauthentik.io/providers/oauth2/scope-openid",
     "goauthentik.io/providers/oauth2/scope-email",
-    "goauthentik.io/providers/oauth2/scope-profile",
     "goauthentik.io/providers/oauth2/scope-offline_access",
   ]
+}
+
+resource "authentik_property_mapping_provider_scope" "profile" {
+  name        = "GEWISWG: profile with directory groups"
+  scope_name  = "profile"
+  description = "General Profile Information"
+  expression  = <<-EOT
+    return {
+        "name": request.user.name,
+        "given_name": request.user.name,
+        "preferred_username": request.user.username,
+        "nickname": request.user.username,
+        "groups": request.user.attributes.get("groups", []),
+    }
+  EOT
 }
 
 resource "random_password" "oidc_client_secret" {
@@ -57,8 +71,12 @@ resource "authentik_provider_oauth2" "client" {
   authorization_flow = data.authentik_flow.authorization.id
   invalidation_flow  = data.authentik_flow.invalidation.id
   signing_key        = data.authentik_certificate_key_pair.signing.id
-  property_mappings  = data.authentik_property_mapping_provider_scope.oidc.ids
   grant_types        = ["authorization_code", "refresh_token"]
+
+  property_mappings = concat(
+    data.authentik_property_mapping_provider_scope.oidc.ids,
+    [authentik_property_mapping_provider_scope.profile.id],
+  )
 
   allowed_redirect_uris = [
     for url in each.value.redirect_uris : {

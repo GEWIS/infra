@@ -96,72 +96,58 @@ curl -sS -H "Authorization: Bearer $TOK" \
 
 Transcribing them from ADUC instead is how a mapping silently matches nothing.
 
-## The `groups` claim needs no custom mapping
+## The `groups` claim comes from the directory, not from authentik's groups
 
-authentik's built-in `profile` scope already emits it:
+authentik's built-in `profile` scope emits a `groups` claim, but it builds it from
+authentik's own group table:
 
 ```python
 "groups": [group.name for group in request.user.groups.all()],
 ```
 
-So an OIDC relying party can key its authorisation off `groups` with the stock
-scopes. Guides that add a bespoke scope mapping for this are working around
-something that is not true here.
+That table is direct membership only, and **this directory nests heavily**. Every
+application-role group holds zero users — all 14 `GRAFANA-*`, all 13 `PG01 - *`,
+`PRIV - Grafana Admin` — while team groups like
+`CBC - Application Hosting Team (ADM)` are full of them, because the role groups
+contain groups. `member` hands authentik a group DN it cannot match to a user, so
+the membership is dropped silently and the claim arrives empty. For one account:
+`memberOf` lists 12 groups and none of them is a `GRAFANA-*`.
 
-## Group membership needs three settings the defaults get wrong
+Keycloak papers over this with **Preserve Group Inheritance**, importing the
+hierarchy so membership is transitive. authentik has no equivalent, and asking AD
+to walk the chain instead — `lookup_groups_from_user` with
+`memberOf:1.2.840.113556.1.4.1941:` — costs one unindexed search *per synced group*,
+which against 1765 groups is tens of minutes per sync.
 
-`request.user.groups.all()` is only as good as the LDAP membership sync, and that
-sync has three requirements no default satisfies for this directory. Keycloak hid
-all of them behind its own group-LDAP mapper; here they are explicit.
-
-**Users must carry their DN as an attribute.** Membership is matched with
-
-```python
-users = User.objects.filter(Q(**{f"attributes__{user_membership_attribute}__in": members}))
-```
-
-where `user_membership_attribute` defaults to `distinguishedName`. Nothing in the
-sync writes that attribute — user attributes come only from property mappings, and
-**none of authentik's nine managed LDAP mappings stores the DN**. Hence the local
-`GEWISWG: distinguishedName` mapping:
+None of that is necessary, because AD publishes the answer directly.
+**`memberOfFlattened`** is a custom attribute on every user holding its full
+transitive membership: 156 entries for the same account whose `memberOf` has 12,
+`CN=GRAFANA-CBC-RW` among them. So the source stores it,
 
 ```python
-return {"attributes": {"distinguishedName": dn}}
+return {"attributes": {"groups": [
+    dn.split(",")[0].removeprefix("CN=")
+    for dn in (ldap.get("memberOfFlattened") or [])
+]}}
 ```
 
-Without it every group is synced, every name matches, and every group has zero
-members.
-
-**`group_membership_field` means the opposite of its name here.** With
-`lookup_groups_from_user = true` the sync inverts the lookup and builds
+and the Grafana provider carries its own `profile` scope mapping that emits the
+claim from that attribute instead of from `request.user.groups`:
 
 ```python
-group_filter = f"({group_membership_field}={escaped_dn})"   # searched over the *user* subtree
+"groups": request.user.attributes.get("groups", []),
 ```
 
-so the field has to be the attribute on a **user** that points at a group, not the
-`member` default, which is the attribute on a group. Left at the default the filter
-is `(member=CN=GRAFANA-…)` against user objects and matches nothing in AD.
+which is the same shape as the mapper on Keycloak's Grafana client. The managed
+`goauthentik.io/providers/oauth2/scope-profile` is left off the provider, because
+two mappings claiming `profile` would both write `groups` in an undefined order; the
+local one reproduces the rest of that scope's claims — `name`, `preferred_username`,
+`nickname` — which `login_attribute_path` and `name_attribute_path` key on.
 
-**Membership here is nested, so equality is not enough.** The value is
-`memberOf:1.2.840.113556.1.4.1941:` — the same extensible match the user filter
-uses — because plain `memberOf=` resolves direct membership only. The directory
-settles it: `PRIV - Logon Keycloak GEWISWG` has **zero** direct members, while every
-synced user exists precisely because they matched that group *through the chain*.
-A group like `PG01 - Grafana prod` sits between the user and the `GRAFANA-*` group
-that `org_mapping` keys on.
-
-**The sync is deliberately wide.** `group_object_filter` is `(objectClass=group)`,
-so all 1765 groups land in authentik and any relying party can key off any of
-them. It costs a chained search per group, which makes a full sync minutes of
-continuous LDAP traffic — the price of the directory being the single source of
-group names for every consumer, not just Grafana.
-
-Scoping *which* groups a client sees is a different question, and the LDAP filter
-is the wrong place for it: narrowing the sync to `(cn=GRAFANA-*)` would speed the
-sync up and take every other group away from every other consumer. Keycloak solved
-this with a mapper on the Grafana client; the equivalent here is a scope mapping on
-that provider which filters `groups` before it reaches the token.
+Group membership inside authentik stays direct-only and cheap, from `member`. It
+needs the `GEWISWG: distinguishedName` mapping to work at all — matching is
+`attributes.distinguishedName IN members`, and none of authentik's nine managed LDAP
+mappings writes a DN — but nothing about the OIDC claim depends on it any more.
 
 ## OIDC clients are a map
 
