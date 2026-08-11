@@ -1,10 +1,10 @@
 # Ingress arrives on the host network, not a LoadBalancer
 
-There is no LoadBalancer and no VIP. A `CiliumLoadBalancerIPPool` plus a static
-route was the original plan; it was dropped because Cilium's Gateway API
-supports **host network mode** (`gatewayAPI.hostNetwork.enabled`), which exposes
-the per-node Envoy listener on every node directly. The router simply dst-nats
-`:8443` to a node's `:443`. No LB-IPAM, no BGP, nothing to announce.
+There is no LoadBalancer, no VIP and no LB-IPAM pool. Cilium's Gateway API runs in
+**host network mode** (`gatewayAPI.hostNetwork.enabled`), which exposes the
+per-node Envoy listener directly on every node, and the router dst-nats `:8443` to
+a node's `:443`. Nothing is announced, so there is no BGP and no static route to
+an address the cluster owns.
 
 On the MikroTik side, **`To Ports` must be set to 443**. Leave it empty and
 `dst-nat` preserves the original port, forwarding to `:8443` where nothing is
@@ -44,11 +44,6 @@ and the LoadBalancer Service mode are mutually exclusive, and `TCPRoute`/
 `UDPRoute` traffic bypasses Envoy and would land on a `NodePort` with a random
 port instead of the listener's.
 
-## Replacing what listens on 443
-
-A rollout that changes *what* binds `:443` on the nodes cannot overlap. Anything
-holding the port — a `hostPort` DaemonSet, or an older Envoy — must be gone
-before a 443 listener exists, or the new bind fails with `EADDRINUSE` and the
-`Gateway` never programs. Enable `gatewayAPI` first, while no `Gateway` object
-exists and therefore nothing is bound, and only then apply the `Gateway`
-together with the removal of whatever it replaces.
+Envoy owns `:443` on every node exclusively. A second process binding it — a
+`hostPort` DaemonSet, or a second Envoy during a rollout — fails with
+`EADDRINUSE`, and the `Gateway` stays un-`Programmed` until the port is free.

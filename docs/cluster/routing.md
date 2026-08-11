@@ -39,7 +39,7 @@ exists only in the experimental channel of the Gateway API CRDs, which is what
 the `crds` layer installs.
 
 Nothing uses it. authentik, Grafana and OpenBao each authenticate themselves —
-Grafana against authentik over OIDC. The filter matters because it means the
-routing layer no longer has to be chosen for its auth story: when a workload
-without a login of its own arrives, it gets a filter on its own route rather
-than a middleware belonging to one implementation.
+Grafana against authentik over OIDC. It is the seam that keeps the routing layer
+replaceable: a workload without a login of its own gets a filter on its own
+route, in portable Gateway API config, rather than a middleware belonging to one
+implementation.
