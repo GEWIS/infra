@@ -16,6 +16,25 @@ OrgID. Skipping."` — with `role_attribute_strict: true` it discards *the entir
 mapping for every user*, not just the bad entry. `org_sync.go` likewise does
 `if errors.Is(err, org.ErrOrgNotFound) { continue }`.
 
+At login that surfaces as *"IdP did not return a role attribute, please contact
+your administrator"*, which blames the wrong system. That string is the public
+message of `errRoleAttributeStrictViolation`, and the check that raises it counts
+*org* roles rather than claims:
+
+```go
+userInfo.OrgRoles = s.orgRoleMapper.MapOrgRoles(s.orgMappingCfg, externalOrgs, userInfo.Role)
+if s.info.RoleAttributeStrict && len(userInfo.OrgRoles) == 0 {
+    return errRoleAttributeStrictViolation.Errorf("could not evaluate any valid roles using IdP provided data")
+}
+```
+
+So the `groups` claim can be perfect and every group name can match, and the
+login still fails because each mapped org was skipped. The accompanying
+`"Failed to extract role"` warnings about `role_attribute_path` are a separate,
+**non-fatal** path: with no `role_attribute_path` set, the role comes from
+`org_mapping` instead, and the caller logs that failure at warn level and carries
+on.
+
 So orgs and their datasources are owned by `terraform/grafana-config`, in the
 same style as `garage-buckets` and `openbao-config`. Both chart sidecars are
 disabled, so everything org-scoped has exactly one owner.
