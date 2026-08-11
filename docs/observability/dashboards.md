@@ -28,15 +28,15 @@ against GitHub releases. It is a **separate PR** from the chart version in
 `terraform/talos-bootstrap`, so land the two together or the dashboard drifts
 from the agent that serves the metrics.
 
-Two neighbours in that directory are deliberately left out:
+The other dashboards in that directory are not imported:
 
 - **`cilium-operator-dashboard.json` is an AWS dashboard.** Nine of its eleven
   series are `cilium_operator_ec2_*` and `cilium_operator_ipam_*`, which exist
   only under ENI IPAM; with `ipam.mode=kubernetes` all that would render is CPU
-  and resident memory. One of them, `cilium_operator_ipam_ips`, was removed
-  outright in Cilium 1.20.
-- **Hubble's dashboards** need `hubble.metrics.enabled`, which is unset, so every
-  panel would be empty.
+  and resident memory, and `cilium_operator_ipam_ips` does not exist in Cilium
+  1.20 at all.
+- **Hubble's four dashboards** need `hubble.metrics.enabled`, which is unset, so
+  every panel would be empty. Hubble itself runs — see [Hubble](hubble.md).
 
 One panel on the agent dashboard stays empty by design:
 `cilium_bpf_syscall_duration_seconds` is disabled in Cilium's default metric set.
@@ -44,7 +44,7 @@ Turning it on means `prometheus.metrics = ["+cilium_bpf_syscall_duration_seconds
 in the Cilium values, and it is a histogram per syscall operation — the reason it
 is off by default.
 
-## Cilium metrics are half-on by default
+## Cilium's metrics have two switches
 
 `operator.prometheus.enabled` defaults **true** (port 9963); the agent's
 `prometheus.enabled` defaults **false** (port 9962) and is set explicitly in the

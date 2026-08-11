@@ -39,6 +39,11 @@ locals {
 
     prometheus = { enabled = true }
 
+    hubble = {
+      relay = { enabled = true }
+      ui    = { enabled = true }
+    }
+
     securityContext = {
       capabilities = {
         ciliumAgent = [

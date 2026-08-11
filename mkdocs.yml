@@ -129,6 +129,7 @@ nav:
       - Mimir: observability/mimir.md
       - Storage: observability/storage.md
       - Collection: observability/collection.md
+      - Hubble: observability/hubble.md
       - Unfinished work: observability/unfinished.md
       - Pod Security: observability/pod-security.md
       - The one secret: observability/secret.md
