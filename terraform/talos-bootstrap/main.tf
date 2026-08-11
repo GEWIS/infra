@@ -72,4 +72,6 @@ resource "helm_release" "cilium" {
   namespace  = "kube-system"
 
   values = [yamlencode(local.cilium_values)]
+
+  depends_on = [kubectl_manifest.gateway_api_crds]
 }

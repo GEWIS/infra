@@ -1,14 +1,12 @@
-# Layers exist to order CRDs and secrets, nothing else
+# Layers exist to order secrets and readiness, nothing else
 
 ```
-crds ───────────┐
-                ├─→ controllers ─→ config ─┬─→ services ─→ apps
-sealed-secrets ─┘                └→ openbao ┘
+sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ apps
+                                └→ openbao ┘
 ```
 
 | Layer | Path | Holds |
 | --- | --- | --- |
-| `crds` | upstream `gateway-api` | Gateway API CRDs |
 | `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
 | `controllers` | `flux/controllers/` | cert-manager, external-dns, longhorn, external-secrets, cloudnative-pg |
 | `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, the Gateway, Longhorn jobs and storage classes, the kube-system Corefile |
@@ -16,17 +14,12 @@ sealed-secrets ─┘                └→ openbao ┘
 | `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
 | `apps` | `flux/apps/` | authentik, the LGTM stack |
 
-Four dependencies carry real weight and none is cosmetic:
+Three dependencies carry real weight and none is cosmetic:
 
-- **`controllers` depends on `crds`** so that the Gateway API CRDs land ahead of
-  `config`, which holds the `Gateway`. Nothing in `controllers` itself needs them
-  any more — the edge stays because every later layer inherits it, and a `Gateway`
-  applied without its CRD is not a degraded object but a rejected one. The
-  matching `GatewayClass` comes from Cilium, which OpenTofu installs, so the layer
-  graph does not order it at all: Cilium disables Gateway API support for each CRD
-  it cannot find.
-- **`controllers` depends on `sealed-secrets`** because it now applies
-  `SealedSecret` objects, so the CRD and its decryptor must already exist.
+- **`controllers` depends on `sealed-secrets`** because it applies `SealedSecret`
+  objects, so the CRD and its decryptor must already exist. Gateway API's CRDs need
+  no layer of their own: Cilium requires them at startup and runs before Flux, so
+  `terraform/talos-bootstrap` installs them — see [Gateway API](gateway-api.md).
 - **`services` depends on `openbao`** because the observability stack reads its S3
   credentials through an `ExternalSecret`. External Secrets retries until OpenBao
   answers, so this is not a correctness requirement — but with `wait: true` the

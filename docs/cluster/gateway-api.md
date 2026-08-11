@@ -1,10 +1,10 @@
 # Gateway API is an add-on, and its version must match Cilium
 
 Gateway API is **not** part of Kubernetes and nothing installs it by default —
-not Talos, and not Cilium unless `gatewayAPI.enabled` is set. It is pulled from
-upstream by the `crds` layer via a `GitRepository` pinned to a tag, so Renovate
-keeps it current; vendoring the YAML would work too but Renovate cannot bump a
-static blob.
+not Talos, and not Cilium unless `gatewayAPI.enabled` is set. It comes from
+`terraform/talos-bootstrap`, which applies the upstream `experimental-install.yaml`
+for a pinned release before the Cilium chart; a Renovate `customManager` bumps
+`gateway_api_version` against GitHub releases.
 
 **Pin the version to what the controller wants, not to whatever is newest-looking.**
 Cilium 1.20 requires Gateway API **v1.6.1 at a minimum**, and a controller whose
@@ -33,3 +33,30 @@ Use the **experimental** channel, for three reasons:
   disables the corresponding feature for each one that is missing.
 
 The channel is a strict superset of standard, so nothing is lost by using it.
+
+## Cilium reads the CRDs at startup, so tofu owns them
+
+Cilium is the CNI: nothing else runs until it does, which puts it ahead of Flux and
+therefore ahead of anything Flux could apply. That ordering is why the CRDs cannot
+live in a Flux layer. Cilium disables Gateway API support for every one of its CRDs
+missing at startup, and the chart's `gatewayAPI.gatewayClass.create: auto` decides
+at *template* time by looking for the `GatewayClass` CRD — so CRDs that arrive two
+minutes later leave neither a controller nor a `GatewayClass`, with
+`enable-gateway-api=true` sitting in the ConfigMap the whole time. The `Gateway`
+then waits on a class that does not exist:
+
+```
+$ kubectl get gatewayclass
+(nothing)
+$ kubectl -n gateway get gateway
+Accepted=Unknown  reason=Pending  msg="Waiting for controller"
+```
+
+Nothing binds `:443` and every external request is refused at the TCP level, which
+reads as "the gateway was never installed" rather than as an ordering problem.
+
+`kubectl_manifest` with `server_side_apply` does the applying, because these are
+13 CRDs of 24 000 lines — client-side apply stores the whole object in an
+annotation and blows the size limit. `gatewayClass.create` stays `auto`: forcing it
+`true` renders a `GatewayClass` unconditionally, which is a hard Helm failure on an
+unknown kind if the CRDs ever are missing.

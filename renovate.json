@@ -13,6 +13,13 @@
       "managerFilePatterns": ["/^terraform/grafana-config/dashboards\\.tf$/"],
       "matchStrings": ["raw\\.githubusercontent\\.com/(?<depName>cilium/cilium)/(?<currentValue>v[^/]+)/"],
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^terraform/talos-bootstrap/gateway-api\\.tf$/"],
+      "matchStrings": ["gateway_api_version = \"(?<currentValue>v[^\"]+)\""],
+      "depNameTemplate": "kubernetes-sigs/gateway-api",
+      "datasourceTemplate": "github-releases"
     }
   ],
   "platformAutomerge": true,
