@@ -108,6 +108,61 @@ So an OIDC relying party can key its authorisation off `groups` with the stock
 scopes. Guides that add a bespoke scope mapping for this are working around
 something that is not true here.
 
+## Group membership needs three settings the defaults get wrong
+
+`request.user.groups.all()` is only as good as the LDAP membership sync, and that
+sync has three requirements no default satisfies for this directory. Keycloak hid
+all of them behind its own group-LDAP mapper; here they are explicit.
+
+**Users must carry their DN as an attribute.** Membership is matched with
+
+```python
+users = User.objects.filter(Q(**{f"attributes__{user_membership_attribute}__in": members}))
+```
+
+where `user_membership_attribute` defaults to `distinguishedName`. Nothing in the
+sync writes that attribute — user attributes come only from property mappings, and
+**none of authentik's nine managed LDAP mappings stores the DN**. Hence the local
+`GEWISWG: distinguishedName` mapping:
+
+```python
+return {"attributes": {"distinguishedName": dn}}
+```
+
+Without it every group is synced, every name matches, and every group has zero
+members.
+
+**`group_membership_field` means the opposite of its name here.** With
+`lookup_groups_from_user = true` the sync inverts the lookup and builds
+
+```python
+group_filter = f"({group_membership_field}={escaped_dn})"   # searched over the *user* subtree
+```
+
+so the field has to be the attribute on a **user** that points at a group, not the
+`member` default, which is the attribute on a group. Left at the default the filter
+is `(member=CN=GRAFANA-…)` against user objects and matches nothing in AD.
+
+**Membership here is nested, so equality is not enough.** The value is
+`memberOf:1.2.840.113556.1.4.1941:` — the same extensible match the user filter
+uses — because plain `memberOf=` resolves direct membership only. The directory
+settles it: `PRIV - Logon Keycloak GEWISWG` has **zero** direct members, while every
+synced user exists precisely because they matched that group *through the chain*.
+A group like `PG01 - Grafana prod` sits between the user and the `GRAFANA-*` group
+that `org_mapping` keys on.
+
+**The sync is deliberately wide.** `group_object_filter` is `(objectClass=group)`,
+so all 1765 groups land in authentik and any relying party can key off any of
+them. It costs a chained search per group, which makes a full sync minutes of
+continuous LDAP traffic — the price of the directory being the single source of
+group names for every consumer, not just Grafana.
+
+Scoping *which* groups a client sees is a different question, and the LDAP filter
+is the wrong place for it: narrowing the sync to `(cn=GRAFANA-*)` would speed the
+sync up and take every other group away from every other consumer. Keycloak solved
+this with a mapper on the Grafana client; the equivalent here is a scope mapping on
+that provider which filters `groups` before it reaches the token.
+
 ## OIDC clients are a map
 
 Each relying party is one entry in `oidc_clients`:
@@ -131,6 +186,23 @@ generated, stored and consumed without anyone reading it.
 **Redirect URIs carry `:8443`.** The gateway is published on that port, it is
 part of the issuer, and `matching_mode = "strict"` means a missing port is a
 failed login with no useful error.
+
+**`grant_types` must be set explicitly.** authentik's provider model defaults the
+field to an *empty* list (`ArrayField(..., default=list)`), and the Terraform
+provider marks it Generated, so a provider created without it permits no grant at
+all. Every authorization then dies inside
+`authentik.providers.oauth2.views.authorize` on
+
+```
+Invalid grant_type for provider   grant_type=authorization_code
+The request is otherwise malformed
+```
+
+which reaches the browser as Grafana's *"Login provider denied login request"* —
+a message that names neither the grant type nor the provider. The list is
+`["authorization_code", "refresh_token"]`: the first for the code flow, the second
+because a relying party asking for `offline_access` renews with it, and the token
+endpoint runs the same check.
 
 ## Grafana authenticates against the directory through authentik
 
