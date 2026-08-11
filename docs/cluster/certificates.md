@@ -21,5 +21,3 @@ with no Cloudflare API errors means the record was written and the wait is purel
 cache expiry.
 
 Let's Encrypt caps duplicate certificates at 5/week for an identical name set.
-Save `wildcard-cbc-gewis-nl-tls` and restore it into a rebuilt cluster: cert-manager
-adopts a valid existing secret and issues nothing.
