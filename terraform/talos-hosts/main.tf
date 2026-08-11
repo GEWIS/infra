@@ -95,8 +95,8 @@ module "vm" {
   mac_address   = each.value.mac
   cpus          = 4
   memory_gib    = 8
-  root_disk_gib = 20
-  data_disk_gib = 10
+  root_disk_gib = 40
+  data_disk_gib = 150
 
   cloud_config     = null
   expected_ip_cidr = ""

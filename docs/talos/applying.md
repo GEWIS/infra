@@ -36,7 +36,7 @@ A first apply can race a node reaching maintenance mode or rebooting — a
 config-apply that errors with a connection failure just means the node was not up
 yet. Re-run; every step is idempotent.
 
-The module wires the `talos-1.13.8-nocloud` template, 20 GiB root / 10 GiB data
+The module wires the `talos-1.13.8-nocloud` template, 40 GiB root / 150 GiB data
 disks, `cloud_config = null`, and `machine.time.servers = ["time.gewis.nl"]` (the
 nodes cannot reach the default Cloudflare NTP pool). The Longhorn
 `UserVolumeConfig` rides along as a config patch. The old metal-ISO wiring is

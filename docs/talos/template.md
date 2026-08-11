@@ -34,10 +34,10 @@ it is the fix for a provider bug.
 
 `terra-farm/xenorchestra` v0.40.0 **scrambles the two `disk` blocks when cloning
 a template that has no CD drive**: both disks come out at the second block's size
-(10/10 GiB), silently losing the 20 GiB system disk, sometimes with
+both at the wrong size, silently losing the sized system disk, sometimes with
 non-deterministic device names too. A CD drive present on the template makes disk
 sizing correct. Proven again this session — the nocloud template with an empty CD
-cloned to a correct 20 GiB root + 10 GiB data on all three nodes, across hosts.
+cloned to correct root and data sizes on all three nodes, across hosts.
 `s3-01`, which has always sized correctly, happens to carry exactly this shape:
 OS on the disk plus an empty CD drive.
 
@@ -104,6 +104,6 @@ of this, so it is done once by hand with the XO REST API and `xo-cli`.
 
 The result is a template with one bootable disk (the nocloud image) at position 0
 plus one empty CD drive, UEFI — the same shape as the `s3-01` template. A full
-clone resizes the system disk to 20 GiB and Talos grows its EPHEMERAL partition
+clone resizes the system disk to the configured root size and Talos grows its EPHEMERAL partition
 into the space on first boot. Rename the `template_name_label` local in `main.tf`
 if you name the template something other than `talos-1.13.8-nocloud`.

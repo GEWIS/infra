@@ -8,7 +8,5 @@ cert-manager, external-dns and OpenBao are installed and running, and
 - **Ingress depends on a single node.** The router dst-nats to `10.82.50.101`
   only, so that node is a single point of failure even though every node listens
   on 443.
-- **Disks are testing-sized.** 20 GiB system and 10 GiB Longhorn per node; the
-  system disk cannot be grown in place.
 - **The imported VDI is labelled `talos-1.13.8-nocloud-disk`.** Purely cosmetic;
   rename it in XO if the generic label bothers you.
