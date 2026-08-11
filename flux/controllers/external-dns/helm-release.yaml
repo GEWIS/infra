@@ -30,7 +30,7 @@ spec:
       - gateway-httproute
     domainFilters:
       - gewis.nl
-    policy: sync
+    policy: upsert-only
     txtOwnerId: cbc-test
     txtPrefix: edns-
     extraArgs:

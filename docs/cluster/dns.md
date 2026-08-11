@@ -11,8 +11,18 @@ The filter is `gewis.nl`; scoping comes from ownership instead:
 | Setting | Effect |
 | --- | --- |
 | `txtOwnerId: cbc-test` | only touches records carrying its own ownership TXT |
-| `policy: sync` | deletes only records it owns, when their route disappears |
+| `policy: upsert-only` | creates and updates its own records, never deletes them |
 | `txtPrefix: edns-` | keeps the ownership TXT off the CNAME's name, which Cloudflare forbids |
+
+**`upsert-only`, not `sync`.** Under `sync` a record disappears the moment its
+route does — and a route can vanish for reasons that have nothing to do with the
+hostname being retired, such as the Gateway API CRDs being replaced, which takes
+every `HTTPRoute` with them. Recreating the record afterwards is not symmetric:
+the `gewis.nl` SOA minimum is **1800 s**, so every downstream resolver serves
+NODATA for up to half an hour after the name comes back, and the CNAME is correct
+in Cloudflare the whole time. A stale record left behind by a retired route is
+cheap in comparison — it is deletable by hand, and its ownership TXT says which
+cluster wrote it.
 
 The DNS target is the `external-dns.alpha.kubernetes.io/target` annotation on the
 **Gateway**, not on each route — external-dns reads that override from the
