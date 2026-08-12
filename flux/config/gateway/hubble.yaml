@@ -1,0 +1,55 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hubble
+  namespace: kube-system
+spec:
+  parentRefs:
+    - name: gateway
+      namespace: gateway
+  hostnames:
+    - hubble.cbc.gewis.nl
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /outpost.goauthentik.io/
+      backendRefs:
+        - name: ak-outpost-cbc
+          namespace: authentik
+          port: 9000
+    - backendRefs:
+        - name: hubble-ui
+          port: 80
+      filters:
+        - type: ExternalAuth
+          externalAuth:
+            protocol: HTTP
+            backendRef:
+              name: ak-outpost-cbc
+              namespace: authentik
+              port: 9000
+            http:
+              path: /outpost.goauthentik.io/auth/nginx
+              allowedHeaders:
+                - cookie
+              allowedResponseHeaders:
+                - set-cookie
+                - x-authentik-username
+                - x-authentik-groups
+                - x-authentik-email
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: hubble-outpost
+  namespace: authentik
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: kube-system
+  to:
+    - group: ""
+      kind: Service
+      name: ak-outpost-cbc

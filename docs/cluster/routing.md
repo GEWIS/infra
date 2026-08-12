@@ -36,10 +36,11 @@ Cilium 1.20 added the `ExternalAuth` HTTPRoute filter from
 [GEP-1494](https://gateway-api.sigs.k8s.io/geps/gep-1494/), which delegates the
 allow/deny decision to a service over Envoy's `ext_authz` protocol. The field
 exists only in the experimental channel of the Gateway API CRDs, which is what
-the `crds` layer installs.
+`terraform/talos-bootstrap` installs.
 
-Nothing uses it. authentik, Grafana and OpenBao each authenticate themselves —
-Grafana against authentik over OIDC. It is the seam that keeps the routing layer
-replaceable: a workload without a login of its own gets a filter on its own
-route, in portable Gateway API config, rather than a middleware belonging to one
-implementation.
+authentik, Grafana and OpenBao each authenticate themselves — Grafana against
+authentik over OIDC — so the filter carries exactly one workload: Hubble UI, which
+has no login at all. Its route points the filter at an authentik proxy outpost, and
+[Hubble](../observability/hubble.md) covers the two things such a route has to get
+right. The point of the seam is that this stays portable Gateway API config rather
+than a middleware belonging to one implementation.
