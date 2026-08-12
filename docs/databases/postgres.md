@@ -16,6 +16,7 @@ the whole change:
 ```hcl
 databases = {
   authentik = { namespace = "authentik" }
+  grafana   = { namespace = "observability" }
 }
 ```
 

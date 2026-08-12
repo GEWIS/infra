@@ -19,9 +19,11 @@ mints.
 ## When Grafana's database is newer than the state
 
 Every org-scoped resource here is addressed by an org ID that Grafana assigns, and
-orgs live only in Grafana's own database. Lose that database — a recreated PVC, a
-reinstall — and the state still names orgs `2`–`8` that no longer exist. The
-failure does not say so:
+orgs live only in Grafana's own database — which is the `grafana` database in the
+Postgres cluster, so it is replicated and backed up with everything else rather
+than sitting on one volume. Lose it anyway, or point the root at a different
+Grafana, and the state still names orgs that no longer exist. The failure does not
+say so:
 
 ```
 Error: error reading datasource with ID`8:mimir-cbc`: [GET /datasources/uid/{uid}][403]

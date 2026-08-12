@@ -30,12 +30,9 @@ spec:
       type: Recreate
 
     persistence:
-      enabled: true
-      type: pvc
-      size: 1Gi
-      storageClassName: longhorn
-      accessModes:
-        - ReadWriteOnce
+      enabled: false
+
+    envFromSecret: grafana-db
 
     admin:
       existingSecret: grafana-auth
@@ -64,6 +61,10 @@ spec:
     grafana.ini:
       server:
         root_url: https://grafana.cbc.gewis.nl:8443
+
+      database:
+        type: postgres
+        ssl_mode: require
 
       analytics:
         reporting_enabled: false
