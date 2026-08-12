@@ -6,7 +6,6 @@ locals {
     k8sServicePort       = 7445
 
     ipv4 = { enabled = true }
-    ipv6 = { enabled = true }
 
     encryption = {
       enabled = true

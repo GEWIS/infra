@@ -9,8 +9,8 @@ locals {
   network_name_label  = "External"
   template_name_label = "talos-1.13.8-nocloud"
 
-  pod_subnets     = ["10.244.0.0/16", "fd00:cbc:0::/56"]
-  service_subnets = ["10.96.0.0/12", "fd00:cbc:1::/108"]
+  pod_subnets     = ["10.244.0.0/16"]
+  service_subnets = ["10.96.0.0/12"]
 
   nodes = {
     talos-01 = { ip = "10.82.50.101", mac = "00:16:3e:5e:b8:01", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2" }
