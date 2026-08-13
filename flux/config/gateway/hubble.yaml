@@ -30,7 +30,7 @@ spec:
               namespace: authentik
               port: 9000
             http:
-              path: /outpost.goauthentik.io/auth/nginx
+              path: /outpost.goauthentik.io/auth/envoy
               allowedHeaders:
                 - cookie
               allowedResponseHeaders:
