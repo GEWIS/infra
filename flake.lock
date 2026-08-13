@@ -83,11 +83,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1783537458,
-        "narHash": "sha256-FqSZcaGNSCt1D03Vo4KtCcf5P5+qhI44+fj2zvDGQ2o=",
+        "lastModified": 1786624371,
+        "narHash": "sha256-88ZPqplIkmjOeCZyjQM5DTPufUluAznQgDLN9FFIN9M=",
         "owner": "GEWIS",
         "repo": "GEPRINT",
-        "rev": "f0dc8debd83d56e3ac6c5b5257c1bc41d8a2b217",
+        "rev": "3b460a896203f55b97fe07c0d87119c075495417",
         "type": "github"
       },
       "original": {
