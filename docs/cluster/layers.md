@@ -12,7 +12,7 @@ sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ app
 | `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, the Gateway, Longhorn jobs and storage classes, the kube-system Corefile |
 | `openbao` | `flux/openbao/` | OpenBao, its HTTPRoute, its seal secret |
 | `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
-| `apps` | `flux/apps/` | authentik, the LGTM stack |
+| `apps` | `flux/apps/` | authentik, the LGTM stack, the Hubble UI route |
 
 Three dependencies carry real weight and none is cosmetic:
 
