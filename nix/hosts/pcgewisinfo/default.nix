@@ -2,7 +2,6 @@
 {
   imports = [
     ./boot.nix
-    ./comin.nix
     ./disko.nix
     ./kiosk.nix
     ./networking.nix
@@ -24,6 +23,8 @@
       "gewis.cachix.org-1:bOcor+MaaLuUJN0Yj/IHCXsOQWm/RxSokm6BHGcbF5k="
     ];
   };
+
+  gewis.comin.enable = true;
 
   gewis.netbird = {
     enable = true;

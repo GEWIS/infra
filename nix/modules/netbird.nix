@@ -52,6 +52,8 @@ in
 
     services.resolved.enable = true;
 
+    gewis.persistence.extraDirectories = [ client.dir.state ];
+
     sops.secrets.${cfg.setupKeySecret} = {
       mode = "0400";
       restartUnits = [ "${client.service.name}-login.service" ];
