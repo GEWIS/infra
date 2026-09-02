@@ -63,6 +63,8 @@ nav:
       - Touchscreens: service-pc/touch.md
       - Remote access: service-pc/remote.md
   - Hosts:
+      - pcgewisc:
+          - Overview: pcgewisc/index.md
       - pcgewisinfo:
           - Overview: pcgewisinfo/index.md
           - Updates: pcgewisinfo/updates.md

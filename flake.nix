@@ -65,6 +65,8 @@
       nixosConfigurations = {
         s3-01 = host "s3-01" [ ];
 
+        pcgewisc = host "pcgewisc" [ ];
+
         pcgewisinfo = host "pcgewisinfo" [
           geprint.nixosModules.default
         ];

@@ -13,6 +13,10 @@ The module is defined in `nix/modules/service-pc/` and imported by every
 host through `nix/modules/default.nix`, so it is available everywhere and does
 nothing until a host sets `gewis.servicePc.enable`.
 
+| Host | What it shows |
+| --- | --- |
+| [`pcgewisc`](../pcgewisc/index.md) | SudoSOS POS, and Spotify on a second workspace |
+
 ## The module names no applications
 
 The module knows about "a browser" and "a set of extra apps". It does not know

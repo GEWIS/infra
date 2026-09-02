@@ -6,6 +6,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
+| `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | Not yet installable | — |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | Installed by hand | comin, polling `main` |
 | `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
