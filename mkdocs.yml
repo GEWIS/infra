@@ -68,7 +68,6 @@ nav:
       - pcgewisinfo:
           - Overview: pcgewisinfo/index.md
           - Updates: pcgewisinfo/updates.md
-          - Kiosk: pcgewisinfo/kiosk.md
           - Accounts: pcgewisinfo/accounts.md
           - Network: pcgewisinfo/network.md
           - Printing: pcgewisinfo/printing.md

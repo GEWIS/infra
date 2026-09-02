@@ -16,6 +16,7 @@ nothing until a host sets `gewis.servicePc.enable`.
 | Host | What it shows |
 | --- | --- |
 | [`pcgewisc`](../pcgewisc/index.md) | SudoSOS POS, and Spotify on a second workspace |
+| [`pcgewisinfo`](../pcgewisinfo/index.md) | One page fullscreen, from a secret URL |
 
 ## The module names no applications
 
