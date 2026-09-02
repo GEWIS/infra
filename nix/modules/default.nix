@@ -6,6 +6,7 @@
     ./motd.nix
     ./netbird.nix
     ./persistence.nix
+    ./service-pc
     ./shell.nix
   ];
 }

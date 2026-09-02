@@ -51,6 +51,7 @@ docs/                  per-host and cluster operational detail
 | `common.nix` | Flakes, weekly GC, timezone, immutable users, sshd defaults, firewall on |
 | `shell.nix` | zsh as the default user shell, the prompt theme, the base tool set |
 | `netbird.nix` | `gewis.netbird.*` — GEWIS mesh client, off unless a host enables it |
+| `service-pc.nix` | `gewis.servicePc.*` — GNOME session, pinned apps and RDP for service PCs, off unless a host enables it |
 
 `xcpng.nix` sits alongside them but is imported only by hosts that run on
 XCP-ng, because it carries Xen-specific boot and network settings.

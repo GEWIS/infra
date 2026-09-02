@@ -57,6 +57,11 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Service PCs:
+      - Overview: service-pc/index.md
+      - Options: service-pc/options.md
+      - Touchscreens: service-pc/touch.md
+      - Remote access: service-pc/remote.md
   - Hosts:
       - pcgewisinfo:
           - Overview: pcgewisinfo/index.md
