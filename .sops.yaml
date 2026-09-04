@@ -3,6 +3,8 @@ keys:
     - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
     - &admin_ruben ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDZWdjw+5VujLv00Jec8xvh7OmzmmGE2sPRRAjzKt+mA
   hosts:
+    - &pcgewisc age1q4lkanpv39xp36w0symj2uulgpr924ghvl56j0rnnphcz7qxr32spk9lkc
+    - &pcgewisd age1xjny3erjq38f8p0yu29ag6dsgpk9y4wduhahqv3vf2uapa60gs3qxm3e06
     - &pcgewisinfo age1hde6y6ee9g0pnvgdluxjj6xq4plrsdq8f7mf4yv6xn465ucpw3hq47heg0
     - &s3_01 age1r9nz065avdtvrx2rqyq5lztf53dw8ds0uvkxkuw2zgvkqqx5e9js347zqu
 
@@ -19,6 +21,18 @@ creation_rules:
   - path_regex: secrets/authentik\.yaml$
     key_groups:
       - age: *admins
+  - path_regex: secrets/pcgewisc\.yaml$
+    key_groups:
+      - age:
+          - *admin_luuk
+          - *admin_ruben
+          - *pcgewisc
+  - path_regex: secrets/pcgewisd\.yaml$
+    key_groups:
+      - age:
+          - *admin_luuk
+          - *admin_ruben
+          - *pcgewisd
   - path_regex: secrets/pcgewisinfo\.yaml$
     key_groups:
       - age:
