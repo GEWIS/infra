@@ -40,7 +40,7 @@
 
     browser = {
       enable = true;
-      url = "https://heeftjarmoautomatagehaald.nl/";
+      urlFile = config.sops.secrets.sudososUrl.path;
       workspace = 1;
       kiosk = true;
     };
@@ -82,5 +82,6 @@
     #secrets.kioskUrl.owner = "gewis";
     secrets.cbcPassword.neededForUsers = true;
     secrets.rdpPassword.owner = "gewis";
+    secrets.sudososUrl.owner = "gewis";
   };
 }

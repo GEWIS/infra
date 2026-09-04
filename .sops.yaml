@@ -36,6 +36,8 @@ creation_rules:
   - path_regex: secrets/pcgewisinfo\.yaml$
     key_groups:
       - age:
+          - *admin_luuk
+          - *admin_ruben
           - *pcgewisinfo
   - path_regex: secrets/s3-01\.yaml$
     key_groups:
