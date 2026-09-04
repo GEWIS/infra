@@ -65,6 +65,8 @@ in
       };
     };
 
+    environment.gnome.excludePackages = [ pkgs.gnome-tour ];
+    
     services.desktopManager.gnome = {
       enable = true;
 
