@@ -58,6 +58,27 @@
       firewallInterfaces = [ "nb-netbird" ];
     };
 
+    gewis.netbird = {
+      enable = true;
+      client = "netbird";
+      dnsLabel = "pcgewisc";
+    };
+  
+    services.openssh = {
+      openFirewall = false;
+      settings = {
+        PermitRootLogin = "no";
+        PasswordAuthentication = true;
+        KbdInteractiveAuthentication = true;
+      };
+      hostKeys = [
+        {
+          path = "/etc/ssh/ssh_host_ed25519_key";
+          type = "ed25519";
+        }
+      ];
+    };
+    
     sops = {
       age.keyFile = "/persist/var/lib/sops-nix/key.txt";
       defaultSopsFile = ../../../secrets/pcgewisc.yaml;
