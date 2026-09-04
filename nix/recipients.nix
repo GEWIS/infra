@@ -8,7 +8,7 @@
 
   admins = {
     luuk = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x";
-    ruben = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDZWdjw+5VujLv00Jec8xvh7OmzmmGE2sPRRAjzKt+mA";
+    ruben = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM";
   };
 
   hosts = {
