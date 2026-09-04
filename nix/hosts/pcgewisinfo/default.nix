@@ -1,10 +1,9 @@
-{ ... }:
+{ config, ... }:
 {
   imports = [
     ./boot.nix
-    ./comin.nix
     ./disko.nix
-    ./kiosk.nix
+    ./fonts.nix
     ./networking.nix
     ./persistence.nix
     ./printers.nix
@@ -13,6 +12,31 @@
 
   networking.hostName = "pcgewisinfo";
   system.stateVersion = "26.05";
+
+  users.users.cbc = {
+    isNormalUser = true;
+    hashedPasswordFile = config.sops.secrets.cbcPassword.path;
+    extraGroups = [ "wheel" ];
+  };
+
+  security.sudo.wheelNeedsPassword = false;
+
+  gewis.servicePc = {
+    enable = true;
+    uid = 1000;
+
+    browser = {
+      enable = true;
+      urlFile = config.sops.secrets.kioskUrl.path;
+      # No input devices to navigate away with, so kiosk mode costs nothing here.
+      kiosk = true;
+    };
+  };
+
+  # Mice are hidden via udev rather than disabled, to drop the cursor without a compositor-level hack.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="input", ENV{ID_INPUT_MOUSE}=="1", ENV{LIBINPUT_IGNORE_DEVICE}="1"
+  '';
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = false;
@@ -24,6 +48,8 @@
       "gewis.cachix.org-1:bOcor+MaaLuUJN0Yj/IHCXsOQWm/RxSokm6BHGcbF5k="
     ];
   };
+
+  gewis.comin.enable = true;
 
   gewis.netbird = {
     enable = true;

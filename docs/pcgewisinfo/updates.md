@@ -1,6 +1,6 @@
 # Updates
 
-`nix/hosts/pcgewisinfo/comin.nix` points comin at
+`gewis.comin.enable` turns on comin, which `nix/modules/comin.nix` points at
 `https://github.com/GEWIS/infra.git`, branch `main`. comin polls that
 repo and switches the host, so **pushing to `main` deploys** — including commits
 that only touch `s3-01`. A configuration that fails to evaluate simply stops

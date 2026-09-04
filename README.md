@@ -6,6 +6,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
+| `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | Not yet installable | — |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | Installed by hand | comin, polling `main` |
 | `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
@@ -51,6 +52,7 @@ docs/                  per-host and cluster operational detail
 | `common.nix` | Flakes, weekly GC, timezone, immutable users, sshd defaults, firewall on |
 | `shell.nix` | zsh as the default user shell, the prompt theme, the base tool set |
 | `netbird.nix` | `gewis.netbird.*` — GEWIS mesh client, off unless a host enables it |
+| `service-pc.nix` | `gewis.servicePc.*` — GNOME session, pinned apps and RDP for service PCs, off unless a host enables it |
 
 `xcpng.nix` sits alongside them but is imported only by hosts that run on
 XCP-ng, because it carries Xen-specific boot and network settings.

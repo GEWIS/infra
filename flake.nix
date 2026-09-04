@@ -51,7 +51,9 @@
           specialArgs = { inherit inputs; };
           modules = [
             { nixpkgs.hostPlatform = "x86_64-linux"; }
+            comin.nixosModules.comin
             disko.nixosModules.disko
+            impermanence.nixosModules.impermanence
             sops-nix.nixosModules.sops
             ./nix/modules
             ./nix/hosts/${name}
@@ -63,10 +65,12 @@
       nixosConfigurations = {
         s3-01 = host "s3-01" [ ];
 
+        pcgewisc = host "pcgewisc" [ ];
+
+        pcgewisd = host "pcgewisd" [ ];
+        
         pcgewisinfo = host "pcgewisinfo" [
-          comin.nixosModules.comin
           geprint.nixosModules.default
-          impermanence.nixosModules.impermanence
         ];
       };
 
