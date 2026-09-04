@@ -111,6 +111,10 @@ in
       );
     };
 
+    services.udev.extraRules = lib.mkIf cfg.touch.enable ''
+      SUBSYSTEM=="input", ATTRS{idVendor}=="0eef", ATTRS{idProduct}=="0001", ENV{ID_INPUT_TABLET}="", ENV{ID_INPUT_TOUCHSCREEN}="1"
+    '';
+
     environment.systemPackages = [
       pkgs.gnomeExtensions.no-overview
     ]
