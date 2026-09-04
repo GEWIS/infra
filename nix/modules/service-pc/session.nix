@@ -15,6 +15,8 @@ let
     "no-overview@fthx"
   ]
   ++ lib.optional needsPlacement "window-calls@domandoman.xyz";
+
+  wallpaper = ./assets/wallpaper.png;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -66,7 +68,7 @@ in
     };
 
     environment.gnome.excludePackages = [ pkgs.gnome-tour ];
-    
+
     services.desktopManager.gnome = {
       enable = true;
 
@@ -84,6 +86,12 @@ in
 
             [org.gnome.desktop.wm.preferences]
             num-workspaces=${toString cfg.workspaces}
+          ''
+          ''
+            [org.gnome.desktop.background]
+            picture-uri='file://${wallpaper}'
+            picture-uri-dark='file://${wallpaper}'
+            picture-options='zoom'
           ''
         ]
         ++ lib.optional (extensions != [ ]) ''
