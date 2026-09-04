@@ -17,7 +17,7 @@
   users.users.cbc = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    hashedPasswordFile = "/run/secrets/cbcPassword";
+    hashedPasswordFile = config.sops.secrets.cbcPassword.path;
   };
 
   gewis.comin.enable = true;
@@ -44,11 +44,18 @@
 
     remote = {
       enable = true;
-      passwordFile = "/run/secrets/rdpPassword";
+      passwordFile = config.sops.secrets.rdpPassword.path;
       # Reachable over the mesh only. Named literally rather than read from
       # services.netbird, because gewis.netbird cannot be enabled until this
       # host has a sops file to keep its setup key in.
       firewallInterfaces = [ "nb-netbird" ];
     };
+  };
+
+  sops = {
+    age.keyFile = "/persist/var/lib/sops-nix/key.txt";
+    defaultSopsFile = ../../../secrets/pcgewisd.yaml;
+    secrets.kioskUrl.owner = "gewis";
+    secrets.cbcPassword.neededForUsers = true;
   };
 }
