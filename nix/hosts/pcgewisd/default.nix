@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  config,
   ...
 }:
 {
@@ -19,6 +20,8 @@
     extraGroups = [ "wheel" ];
     hashedPasswordFile = config.sops.secrets.cbcPassword.path;
   };
+
+  security.sudo.wheelNeedsPassword = false;
 
   gewis.comin.enable = true;
 
@@ -76,7 +79,8 @@
   sops = {
     age.keyFile = "/persist/var/lib/sops-nix/key.txt";
     defaultSopsFile = ../../../secrets/pcgewisd.yaml;
-    secrets.kioskUrl.owner = "gewis";
+    #secrets.kioskUrl.owner = "gewis";
     secrets.cbcPassword.neededForUsers = true;
+    secrets.rdpPassword.owner = "gewis";
   };
 }

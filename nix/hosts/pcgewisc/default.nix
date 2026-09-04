@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  config,
   ...
 }:
 {
@@ -19,6 +20,8 @@
     extraGroups = [ "wheel" ];
     hashedPasswordFile = config.sops.secrets.cbcPassword.path;
   };
+
+  security.sudo.wheelNeedsPassword = false;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
 

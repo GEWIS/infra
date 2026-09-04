@@ -67,6 +67,8 @@
 
         pcgewisc = host "pcgewisc" [ ];
 
+        pcgewisd = host "pcgewisd" [ ];
+        
         pcgewisinfo = host "pcgewisinfo" [
           geprint.nixosModules.default
         ];
