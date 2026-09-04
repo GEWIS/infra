@@ -82,6 +82,7 @@
     age.keyFile = "/persist/var/lib/sops-nix/key.txt";
     defaultSopsFile = ../../../secrets/pcgewisinfo.yaml;
     secrets.kioskUrl.owner = "gewis";
+    secrets.rdpPassword.owner = "gewis";
     secrets.cbcPassword.neededForUsers = true;
   };
 }
