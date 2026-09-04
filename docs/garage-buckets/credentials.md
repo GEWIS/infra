@@ -10,7 +10,7 @@ Both endpoints are reachable directly, no tunnels:
 `.envrc` exports both credentials, so there is nothing to pass by hand:
 
 - `TF_VAR_garage_admin_token` ← `sops -d --extract '["garage-admin-token"]' secrets/s3-01.yaml`
-- `TF_VAR_bao_jwt` ← `kubectl -n openbao create token openbao-admin`
+- `TF_VAR_bao_jwt` ← `kubectl -n openbao create token openbao-admin --request-timeout=2s`
 
 That JWT is the same ServiceAccount path `terraform/openbao-config` uses; the
 root logs in at `auth/kubernetes/login` as the `admin` role. The token's TTL is

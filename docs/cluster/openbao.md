@@ -20,8 +20,10 @@ bao write auth/kubernetes/login role=admin \
   jwt="$(kubectl -n openbao create token openbao-admin)"
 ```
 
-`.envrc` exports that token as `TF_VAR_bao_jwt` for the `openbao-config` root,
-failing quietly when the cluster is unreachable.
+`.envrc` exports that token as `TF_VAR_bao_jwt` for the `openbao-config` root.
+It passes `--request-timeout=2s`, so entering the directory without a route to
+`kube.gewis.nl:6443` costs two seconds and leaves the variable unset instead of
+stalling on the API server's dial timeout.
 
 `disable_mlock` is not a valid OpenBao 2.x option; it was removed and is only
 warned about, not rejected.
