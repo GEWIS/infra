@@ -84,6 +84,7 @@ pkgs.testers.runNixOSTest {
     def check(machine):
       machine.wait_for_unit("display-manager.service")
       machine.wait_until_succeeds("pgrep -u gewis gnome-shell")
+      machine.wait_for_unit("graphical-session.target", "gewis")
       machine.wait_for_unit("service-pc-keyring.service", "gewis")
       machine.wait_for_unit("service-pc-rdp-credentials.service", "gewis")
       machine.wait_for_unit("service-pc-browser.service", "gewis")
@@ -95,6 +96,7 @@ pkgs.testers.runNixOSTest {
       assert "Unit status: active" in status, status
 
       machine.wait_for_open_port(3389)
+      machine.fail("pgrep -u gewis -f gcr-prompter")
 
     with subtest("a fresh machine"):
       fresh.start()

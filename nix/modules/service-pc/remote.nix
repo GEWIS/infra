@@ -18,10 +18,11 @@ let
     in
     pkgs.writeShellScript "service-pc-rdp-credentials" ''
       set -eu
+      grdctl() { ${lib.getExe' pkgs.coreutils "timeout"} 5 ${grdctl} "$@"; }
       for _ in $(seq 1 30); do
-        ${grdctl} rdp set-credentials ${lib.escapeShellArg username} \
+        grdctl rdp set-credentials ${lib.escapeShellArg username} \
           < ${cfg.remote.passwordFile} || true
-        if ${grdctl} status --show-credentials 2>/dev/null \
+        if grdctl status --show-credentials 2>/dev/null \
           | ${lib.getExe pkgs.gnugrep} -q "Username: ${username}"; then
           exit 0
         fi
@@ -78,18 +79,35 @@ in
         wantedBy = [ "gnome-session.target" ];
       };
 
+      service-pc-keyring-reset = {
+        description = "Discard the login keyring of earlier service-PC sessions";
+        partOf = [ "graphical-session.target" ];
+        wantedBy = [ "graphical-session.target" ];
+        after = [ "graphical-session.target" ];
+        before = [ "service-pc-keyring.service" ];
+        unitConfig.ConditionUser = cfg.user;
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${lib.getExe' pkgs.coreutils "rm"} -rf %h/.local/share/keyrings";
+        };
+      };
+
       service-pc-keyring = {
         description = "Login keyring for service-PC remote access";
         partOf = [ "graphical-session.target" ];
         wantedBy = [ "graphical-session.target" ];
+        after = [
+          "graphical-session.target"
+          "service-pc-keyring-reset.service"
+        ];
         before = [ "service-pc-rdp-credentials.service" ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
-          ExecStartPre = "${lib.getExe' pkgs.coreutils "rm"} -rf %h/.local/share/keyrings";
           ExecStart = "/run/wrappers/bin/gnome-keyring-daemon --replace --unlock --foreground";
           StandardInput = "file:${cfg.remote.passwordFile}";
-          Restart = "on-failure";
-          RestartSec = 5;
+          Restart = "always";
+          RestartSec = 2;
         };
       };
 
@@ -98,12 +116,17 @@ in
         description = "Credentials for service-PC remote access";
         partOf = [ "graphical-session.target" ];
         wantedBy = [ "graphical-session.target" ];
-        after = [ "service-pc-keyring.service" ];
+        after = [
+          "graphical-session.target"
+          "service-pc-keyring.service"
+        ];
+        requires = [ "service-pc-keyring.service" ];
         before = [ "gnome-remote-desktop.service" ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
+          TimeoutStartSec = 120;
           ExecStart = "${rdpCredentials}";
         };
       };
