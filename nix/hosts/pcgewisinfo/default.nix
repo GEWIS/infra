@@ -36,7 +36,7 @@
       enable = true;
       passwordFile = config.sops.secrets.rdpPassword.path;
       firewallInterfaces = [ "nb-netbird" ];
-    };ex
+    };
   };
 
   # Mice are hidden via udev rather than disabled, to drop the cursor without a compositor-level hack.
