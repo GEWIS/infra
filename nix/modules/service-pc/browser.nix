@@ -26,35 +26,9 @@ let
         sleep 2
       done
     ''}
-    exec env MOZ_ENABLE_WAYLAND=1 ${lib.getExe pkgs.firefox} \
+    exec env MOZ_ENABLE_WAYLAND=1 ${lib.getExe config.programs.firefox.finalPackage} \
       ${lib.optionalString cfg.browser.kiosk "--kiosk"} "$url"
   '';
-
-  firefoxPolicies = {
-    policies = {
-      OverrideFirstRunPage = "";
-      OverridePostUpdatePage = "";
-      DisableProfileImport = true;
-      DontCheckDefaultBrowser = true;
-      DisableAppUpdate = true;
-      NoDefaultBookmarks = true;
-      Preferences = {
-        # Start blank; the URL arrives on the command line.
-        "browser.startup.page" = {
-          Value = 0;
-          Status = "locked";
-        };
-        "browser.sessionstore.resume_from_crash" = {
-          Value = false;
-          Status = "locked";
-        };
-        "browser.shell.checkDefaultBrowser" = {
-          Value = false;
-          Status = "locked";
-        };
-      };
-    };
-  };
 in
 {
   config = lib.mkIf cfg.enable {
@@ -76,12 +50,22 @@ in
       };
     };
 
-    environment.etc = lib.mkIf cfg.browser.enable {
-      "firefox/policies/policies.json".source = lib.mkDefault (
-        (pkgs.formats.json { }).generate "service-pc-firefox-policies.json" firefoxPolicies
-      );
-    };
+    programs.firefox = lib.mkIf cfg.browser.enable {
+      enable = true;
 
-    environment.systemPackages = lib.optional cfg.browser.enable pkgs.firefox;
+      policies = {
+        OverrideFirstRunPage = "";
+        OverridePostUpdatePage = "";
+        DisableProfileImport = true;
+        DontCheckDefaultBrowser = true;
+        NoDefaultBookmarks = true;
+      };
+
+      preferences = {
+        "browser.startup.page" = 0;
+        "browser.sessionstore.resume_from_crash" = false;
+        "browser.shell.checkDefaultBrowser" = false;
+      };
+    };
   };
 }

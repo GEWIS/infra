@@ -29,26 +29,37 @@ the port only on the named interfaces, normally the NetBird mesh.
 `gnome-remote-desktop` keeps its password in libsecret, which in practice means
 the GNOME login keyring. On a service PC that keyring is never unlocked: GDM's
 autologin PAM stack only unlocks it when a password was actually typed at
-login, and nobody types one here. Left alone the keyring is not even created,
-and the only symptom is every client being refused, with
+login, and nobody types one here. Worse, `pam_gnome_keyring`'s `auto_start`
+still launches a keyring daemon for the session, without a password, and that
+daemon owns `org.freedesktop.secrets`. A second `gnome-keyring-daemon --unlock`
+cannot take the name over, so unlocking after the fact does nothing: GNOME
+starts asking on screen for a keyring password, and every client is refused
+with
 
 ```
 [RDP] Credentials are not set, denying client
 ```
 
-on the machine and `gkr-pam: couldn't unlock the login keyring` earlier in the
+on the machine and `gkr-pam: no password is available for user` earlier in the
 journal.
 
-So the module unlocks the keyring itself at session start, creating it on a
-fresh machine, using the same secret `passwordFile` points at. Then it stores
-the credential and reads it back to confirm, because `grdctl` will happily exit
-0 having written nothing if the keyring is not ready yet.
+So the module runs the keyring daemon itself, as a session service that
+`--replace`s the passwordless one and unlocks the login keyring with the same
+secret `passwordFile` points at, creating it if it is not there. It deletes
+`~/.local/share/keyrings` first: a keyring left behind by an earlier boot, or by
+the on-screen "set a password" prompt, has a password nobody knows and would
+lock the session out for good. Nothing of value is in there, because the RDP
+credential is stored again on every session start.
 
-If you are debugging on the machine, the same read-back is:
+Storing is a store-and-read-back loop, because `grdctl` exits 0 having written
+nothing while the keyring is not ready yet. On the machine, the same read-back
+is:
 
 ```console
 $ grdctl status --show-credentials
 ```
 
-`Username: (null)` there means the keyring did not open, and clients are being
-denied.
+Run it as the session user (`gewis`), in that session: `grdctl` talks to the
+session bus, so as any other user it reports that user's own empty
+configuration and an inactive unit. `Username: (empty)` for `gewis` means the
+keyring did not open, and clients are being denied.

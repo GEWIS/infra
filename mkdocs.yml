@@ -65,6 +65,8 @@ nav:
   - Hosts:
       - pcgewisc:
           - Overview: pcgewisc/index.md
+      - pcgewisd:
+          - Overview: pcgewisd/index.md
       - pcgewisinfo:
           - Overview: pcgewisinfo/index.md
           - Updates: pcgewisinfo/updates.md

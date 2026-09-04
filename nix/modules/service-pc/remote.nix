@@ -11,14 +11,6 @@ let
   rdpCert = "${stateDir}/rdp.crt";
   rdpKey = "${stateDir}/rdp.key";
 
-  # Unlock login keyring
-  keyringUnlock = pkgs.writeShellScript "service-pc-keyring" ''
-    set -eu
-    printf '%s' "$(cat ${cfg.remote.passwordFile})" \
-      | ${lib.getExe' pkgs.gnome-keyring "gnome-keyring-daemon"} \
-          --unlock --components=secrets --daemonize
-  '';
-
   rdpCredentials =
     let
       username = if cfg.remote.username != null then cfg.remote.username else cfg.user;
@@ -64,6 +56,8 @@ in
     # Off unless remote access is wanted, even though GNOME defaults it on.
     services.gnome.gnome-remote-desktop.enable = cfg.remote.enable;
 
+    services.gnome.gnome-keyring.enable = lib.mkIf cfg.remote.enable true;
+
     services.desktopManager.gnome = lib.mkIf cfg.remote.enable {
       extraGSettingsOverridePackages = [ pkgs.gnome-remote-desktop ];
       extraGSettingsOverrides = ''
@@ -85,15 +79,17 @@ in
       };
 
       service-pc-keyring = {
-        description = "Unlock the login keyring for service-PC remote access";
+        description = "Login keyring for service-PC remote access";
         partOf = [ "graphical-session.target" ];
         wantedBy = [ "graphical-session.target" ];
         before = [ "service-pc-rdp-credentials.service" ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = "${keyringUnlock}";
+          ExecStartPre = "${lib.getExe' pkgs.coreutils "rm"} -rf %h/.local/share/keyrings";
+          ExecStart = "/run/wrappers/bin/gnome-keyring-daemon --replace --unlock --foreground";
+          StandardInput = "file:${cfg.remote.passwordFile}";
+          Restart = "on-failure";
+          RestartSec = 5;
         };
       };
 

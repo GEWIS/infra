@@ -68,7 +68,7 @@
         pcgewisc = host "pcgewisc" [ ];
 
         pcgewisd = host "pcgewisd" [ ];
-        
+
         pcgewisinfo = host "pcgewisinfo" [
           geprint.nixosModules.default
         ];
@@ -85,6 +85,10 @@
 
       checks = forAllSystems (system: {
         sops-config = (sopsFor system).check;
+        service-pc = import ./nix/tests/service-pc.nix {
+          pkgs = pkgsFor system;
+          inherit inputs;
+        };
       });
 
       devShells = forAllSystems (
