@@ -132,6 +132,13 @@ in
             sleep-inactive-battery-type='nothing'
           ''
         ]
+        # Dissable night light
+        ++ [
+          ''
+            [org.gnome.settings-daemon.plugins.color]
+            night-light-enabled=false
+          ''
+        ]
       );
     };
 
