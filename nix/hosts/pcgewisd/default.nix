@@ -42,7 +42,7 @@
       enable = true;
       urlFile = config.sops.secrets.sudososUrl.path;
       workspace = 1;
-      kiosk = true;
+      kiosk = false;
     };
 
     remote = {
