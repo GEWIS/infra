@@ -139,6 +139,13 @@ in
             night-light-enabled=false
           ''
         ]
+        # Set accent color
+        ++ [
+          ''
+            [org.gnome.desktop.interface]
+            accent-color='red'
+          ''
+        ]
       );
     };
 
