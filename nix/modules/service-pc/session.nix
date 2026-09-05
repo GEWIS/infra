@@ -67,7 +67,21 @@ in
       };
     };
 
-    environment.gnome.excludePackages = [ pkgs.gnome-tour ];
+    environment.gnome.excludePackages = [
+      pkgs.gnome-tour
+      pkgs.gnome-weather
+      pkgs.gnome-maps
+      pkgs.cheese
+      pkgs.gnome-calculator
+      pkgs.gnome-music
+      pkgs.gnome-clocks
+      pkgs.gnome-contacts
+      pkgs.gnome-photos
+      pkgs.totem
+      pkgs.simple-scan
+      pkgs.gnome-characters
+      pkgs.gnome-font-viewer
+    ];
 
     services.desktopManager.gnome = {
       enable = true;
