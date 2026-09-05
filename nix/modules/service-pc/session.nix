@@ -13,10 +13,55 @@ let
 
   extensions = [
     "no-overview@fthx"
+    "just-perfection-desktop@just-perfection"
+    "quick-settings-tweaks@qwreey"
   ]
   ++ lib.optional needsPlacement "window-calls@domandoman.xyz";
 
+  hiddenToggles = [
+    "NMWiredToggle"
+    "NMWirelessToggle"
+    "NMModemToggle"
+    "NMVpnToggle"
+    "PowerProfilesToggle"
+    "NightLightToggle"
+  ];
+
+  quickToggle =
+    name:
+    ''{'isSystem': <true>, 'constructorName': <'${name}'>, 'hide': <${lib.boolToString (lib.elem name hiddenToggles)}>}'';
+
+  quickToggles = lib.concatMapStringsSep "," quickToggle [
+    "NMWiredToggle"
+    "NMWirelessToggle"
+    "NMModemToggle"
+    "NMVpnToggle"
+    "BluetoothToggle"
+    "PowerProfilesToggle"
+    "NightLightToggle"
+    "DarkModeToggle"
+    "DoNotDisturbToggle"
+    "KeyboardBrightnessToggle"
+    "RfkillToggle"
+    "RotationToggle"
+    "DndQuickToggle"
+    "UnsafeQuickToggle"
+  ];
+  
   wallpaper = ./assets/wallpaper.png;
+
+  # gnomeExtensions.* packages keep their schemas under
+  # share/gnome-shell/extensions/<uuid>/schemas/, not the
+  # share/gsettings-schemas/<name>/glib-2.0/schemas/ layout
+  # extraGSettingsOverridePackages requires (glib.getSchemaPath), so the
+  # schema files are repackaged into that layout here.
+  extensionSchemas = pkgs.runCommand "service-pc-extension-gschemas" { } ''
+    mkdir -p "$out/share/gsettings-schemas/$name/glib-2.0/schemas"
+    cp \
+      ${pkgs.gnomeExtensions.just-perfection}/share/gnome-shell/extensions/just-perfection-desktop@just-perfection/schemas/*.gschema.xml \
+      ${pkgs.gnomeExtensions.quick-settings-tweaker}/share/gnome-shell/extensions/quick-settings-tweaks@qwreey/schemas/*.gschema.xml \
+      "$out/share/gsettings-schemas/$name/glib-2.0/schemas/"
+  '';
 in
 {
   config = lib.mkIf cfg.enable {
@@ -89,6 +134,7 @@ in
       extraGSettingsOverridePackages = [
         pkgs.mutter
         pkgs.gnome-settings-daemon
+        extensionSchemas
       ];
 
       extraGSettingsOverrides = lib.concatStringsSep "\n" (
@@ -146,6 +192,18 @@ in
             accent-color='red'
           ''
         ]
+        ++ [
+          ''
+            [org.gnome.shell.extensions.just-perfection]
+            accessibility-menu=false
+
+            [org.gnome.shell.extensions.quick-settings-tweaks]
+            toggles-layout-enabled=true
+            toggles-layout-order=[${quickToggles}]
+            system-items-layout-enabled=true
+            system-items-layout-hide-settings=true
+          ''
+        ]
       );
     };
 
@@ -155,6 +213,8 @@ in
 
     environment.systemPackages = [
       pkgs.gnomeExtensions.no-overview
+      pkgs.gnomeExtensions.just-perfection
+      pkgs.gnomeExtensions.quick-settings-tweaker
     ]
     ++ lib.optional needsPlacement pkgs.gnomeExtensions.window-calls;
 
