@@ -45,30 +45,30 @@ own PID and nothing else — the claimant is a kernel module, not a process, so
 neither `lsof` nor `ps` will ever show it directly; `lsmod | grep pn533` is
 what actually reveals it.
 
-## Typing needs a real X11 connection, even on Wayland
+## Typing goes through ydotool, not X11
 
-The service types using `pyautogui`, which drives the X `XTEST` extension via
-`python-xlib`. `python-xlib` connects eagerly: importing `pyautogui` (through
-its `mouseinfo` dependency) opens the display immediately, before the service
-does anything else, so a broken connection here is a crash on start, not a
-failure to type later.
+Typing used to go through `pyautogui`, which drives the X `XTEST` extension.
+That worked, but only after a user physically approved an "Allow Remote
+Interaction" GNOME dialog on *every single scan* — Mutter now gates XTEST
+fake input from XWayland clients behind that consent prompt, with no
+unattended bypass, since unrestricted XTEST access used to be exactly the
+kind of thing a malicious X11 client could abuse. There is no supported way
+to pre-approve it, and there shouldn't be: the prompt is doing its job.
 
-Two things GNOME's systemd user environment does not hand a unit for free,
-both needed here:
+So the module uses [`programs.ydotool`](https://github.com/ReimuNotMoe/ydotool)
+instead, which injects input through `/dev/uinput` — a kernel-level virtual
+input device indistinguishable from a real keyboard, entirely outside
+Mutter's XTEST/portal consent path. No dialog, and also no need for the
+`DISPLAY`/`XAUTHORITY` wiring an X11 approach would have required.
 
-- **`DISPLAY`.** Mutter always runs an `Xwayland` instance for the session
-  (confirm with `ps -eo user,cmd | grep Xwayland`; on a single-session
-  auto-login machine it is `:0`), and `XTEST` reaches every window through
-  it regardless of whether that window is an XWayland client or a native
-  Wayland one — Firefox included, even started with `MOZ_ENABLE_WAYLAND=1`.
-  But `DISPLAY` itself is never exported into the environment, so the module
-  sets it explicitly.
-- **`XAUTHORITY`.** Without the matching auth cookie, the connection reaches
-  the X server but is refused: `Authorization required, but no authorization
-  protocol specified`. Mutter regenerates this file fresh under
-  `$XDG_RUNTIME_DIR` on every session start, as
-  `.mutter-Xwaylandauth.<random>`, so the wrapper script globs for it at
-  launch rather than hardcoding a path.
+`programs.ydotool.enable` creates the `ydotoold` system service and a
+`ydotool` group gating access to its socket; the session user is added to
+that group. The script calls the `ydotool` CLI directly:
+
+```console
+$ ydotool type 'nfc04a1b2c3d4'
+$ ydotool key 28:1 28:0   # Enter (evdev KEY_ENTER, press then release)
+```
 
 ## Reconnecting
 

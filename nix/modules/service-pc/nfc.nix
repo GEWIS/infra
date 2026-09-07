@@ -9,29 +9,37 @@ let
 
   pythonEnv = pkgs.python3.withPackages (ps: [
     ps.nfcpy
-    ps.pyautogui
   ]);
 
   nfcReaderScript = pkgs.writeShellScript "service-pc-nfc-reader" ''
     set -eu
-    shopt -s nullglob
-    authFiles=("$XDG_RUNTIME_DIR"/.mutter-Xwaylandauth.*)
-    if [ ''${#authFiles[@]} -eq 0 ]; then
-      echo "service-pc-nfc-reader: no Xwayland auth file under $XDG_RUNTIME_DIR yet" >&2
-      exit 1
-    fi
-    exec env DISPLAY=:0 XAUTHORITY="''${authFiles[0]}" \
-      ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
+    exec env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
+      ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} \
+      usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId} \
+      ${lib.getExe' pkgs.ydotool "ydotool"}
   '';
 in
 {
   config = lib.mkIf cfg.enable {
-    # The kernel's own pn533_usb driver claims the ACR122U
+    # The kernel's own pn533_usb driver claims the ACR122U (072f:2200) for
+    # the in-kernel NFC subsystem before nfcpy's libusb-based open ever
+    # gets a chance, so every open fails with "Device or resource busy".
     boot.blacklistedKernelModules = lib.mkIf cfg.nfcReader.enable [ "pn533_usb" ];
 
     services.udev.extraRules = lib.mkIf cfg.nfcReader.enable ''
       SUBSYSTEM=="usb", ATTRS{idVendor}=="${cfg.nfcReader.vendorId}", ATTRS{idProduct}=="${cfg.nfcReader.productId}", TAG+="uaccess"
     '';
+
+    # Types via ydotool (a virtual /dev/uinput keyboard) rather than X11
+    # XTEST: Mutter gates XTEST fake input from XWayland clients behind an
+    # "Allow Remote Interaction" consent dialog with no unattended bypass,
+    # which is a non-starter for an unattended kiosk. ydotool looks like a
+    # real input device to the kernel, so nothing needs to approve it.
+    programs.ydotool.enable = lib.mkIf cfg.nfcReader.enable true;
+
+    users.users.${cfg.user}.extraGroups = lib.mkIf cfg.nfcReader.enable [
+      config.programs.ydotool.group
+    ];
 
     systemd.user.services = lib.mkIf cfg.nfcReader.enable {
       service-pc-nfc-reader = sessionUnit {
