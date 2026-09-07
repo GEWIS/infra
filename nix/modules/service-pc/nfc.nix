@@ -14,7 +14,7 @@ let
 
   nfcReaderScript = pkgs.writeShellScript "service-pc-nfc-reader" ''
     set -eu
-    exec ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
+    exec env DISPLAY=:0 ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
   '';
 in
 {
