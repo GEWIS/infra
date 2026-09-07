@@ -14,7 +14,14 @@ let
 
   nfcReaderScript = pkgs.writeShellScript "service-pc-nfc-reader" ''
     set -eu
-    exec env DISPLAY=:0 ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
+    shopt -s nullglob
+    authFiles=("$XDG_RUNTIME_DIR"/.mutter-Xwaylandauth.*)
+    if [ ''${#authFiles[@]} -eq 0 ]; then
+      echo "service-pc-nfc-reader: no Xwayland auth file under $XDG_RUNTIME_DIR yet" >&2
+      exit 1
+    fi
+    exec env DISPLAY=:0 XAUTHORITY="''${authFiles[0]}" \
+      ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
   '';
 in
 {
