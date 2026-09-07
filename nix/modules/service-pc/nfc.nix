@@ -14,13 +14,11 @@ let
 
   nfcReaderScript = pkgs.writeShellScript "service-pc-nfc-reader" ''
     set -eu
-    exec ${lib.getExe' pythonEnv "python3"} ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
+    exec ${lib.getExe' pythonEnv "python3"} -u ${./assets/nfc-reader.py} usb:${cfg.nfcReader.vendorId}:${cfg.nfcReader.productId}
   '';
 in
 {
   config = lib.mkIf cfg.enable {
-    # Grants the logged-in seat user (rather than a static group) access to
-    # the reader, so it works with the auto-login service-PC session as-is.
     services.udev.extraRules = lib.mkIf cfg.nfcReader.enable ''
       SUBSYSTEM=="usb", ATTRS{idVendor}=="${cfg.nfcReader.vendorId}", ATTRS{idProduct}=="${cfg.nfcReader.productId}", TAG+="uaccess"
     '';
