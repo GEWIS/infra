@@ -61,6 +61,7 @@ nav:
       - Overview: service-pc/index.md
       - Options: service-pc/options.md
       - Touchscreens: service-pc/touch.md
+      - NFC reader: service-pc/nfc.md
       - Remote access: service-pc/remote.md
   - Hosts:
       - pcgewisc:

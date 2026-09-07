@@ -7,6 +7,7 @@ It gives a machine:
 - a real GNOME desktop, logged in by itself at boot;
 - a browser pointed at a fixed URL, and any other applications the host names;
 - each of those pinned to a workspace or screen;
+- an NFC reader that types scanned tags into whatever has focus;
 - remote control of the session.
 
 The module is defined in `nix/modules/service-pc/` and imported by every

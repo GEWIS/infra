@@ -52,6 +52,8 @@
         workspace = 2;
       };
 
+      nfcReader.enable = true;
+
       remote = {
         enable = true;
         passwordFile = config.sops.secrets.rdpPassword.path;

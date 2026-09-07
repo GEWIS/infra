@@ -16,6 +16,11 @@ only takes an interactive login. It does keep the session afterwards, and
 state, so the login only has to be done once per install even though the root
 filesystem itself is wiped on every boot.
 
+## NFC login
+
+Members identify themselves at SudoSOS by scanning an NFC card, since there
+is no keyboard or mouse. See [NFC reader](../service-pc/nfc.md).
+
 ## Remote access
 
 Remote control is enabled and reachable over the NetBird mesh only.

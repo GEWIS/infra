@@ -134,6 +134,33 @@ in
       '';
     };
 
+    nfcReader = {
+      enable = lib.mkEnableOption ''
+        a background NFC reader that types the scanned tag's ID as
+        `nfc<hex-id>` followed by Enter, into whatever window has focus
+      '';
+
+      vendorId = lib.mkOption {
+        type = lib.types.str;
+        default = "072f";
+        example = "072f";
+        description = ''
+          USB vendor ID of the NFC reader, as reported by `lsusb` (the first
+          half of the `id` column).
+        '';
+      };
+
+      productId = lib.mkOption {
+        type = lib.types.str;
+        default = "2200";
+        example = "2200";
+        description = ''
+          USB product ID of the NFC reader, as reported by `lsusb` (the
+          second half of the `id` column).
+        '';
+      };
+    };
+
     remote = {
       enable = lib.mkEnableOption "remote control of the live session over RDP";
 

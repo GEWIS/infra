@@ -60,6 +60,16 @@ A window is placed on one or the other, never both, and `monitor` requires
 `multiMonitor`. Leaving both `null` lets GNOME put the window wherever it likes.
 A window that is placed is also maximised, so it fills the screen it landed on.
 
+## NFC reader
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `nfcReader.enable` | `false` | Run the background NFC reader |
+| `nfcReader.vendorId` | `"072f"` | USB vendor ID, from `lsusb` |
+| `nfcReader.productId` | `"2200"` | USB product ID, from `lsusb` |
+
+See [NFC reader](nfc.md).
+
 ## Remote access
 
 | Option | Default | Meaning |

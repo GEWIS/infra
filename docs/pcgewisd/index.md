@@ -11,6 +11,10 @@ mouse attached.
 `/home/gewis` is carried on `/persist`, so the browser profile survives the
 root filesystem being wiped on every boot.
 
+## NFC reader
+
+An NFC reader is attached. See [NFC reader](../service-pc/nfc.md).
+
 ## Remote access
 
 Remote control is enabled and reachable over the NetBird mesh only.
