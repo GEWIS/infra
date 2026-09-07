@@ -23,6 +23,8 @@
 
   security.sudo.wheelNeedsPassword = false;
 
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
+  
   gewis.comin.enable = true;
 
   gewis.persistence = {
@@ -43,6 +45,11 @@
       urlFile = config.sops.secrets.sudososUrl.path;
       workspace = 1;
       kiosk = true;
+    };
+
+    apps.spotify = {
+      package = pkgs.spotify;
+      workspace = 2;
     };
 
     remote = {
