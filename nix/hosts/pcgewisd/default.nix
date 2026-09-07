@@ -47,11 +47,6 @@
         kiosk = true;
       };
 
-      apps.spotify = {
-        package = pkgs.spotify;
-        workspace = 2;
-      };
-
       nfcReader.enable = true;
 
       remote = {
