@@ -24,50 +24,51 @@
   security.sudo.wheelNeedsPassword = false;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
-  
-  gewis.comin.enable = true;
+  gewis = {
+    comin.enable = true;
 
-  gewis.persistence = {
-    enable = true;
-    extraDirectories = [ "/home/gewis" ];
-  };
-
-  gewis.servicePc = {
-    enable = true;
-    uid = 1000;
-    workspaces = 2;
-    touch = {
+    persistence = {
       enable = true;
+      extraDirectories = [ "/home/gewis" ];
     };
 
-    browser = {
+    servicePc = {
       enable = true;
-      urlFile = config.sops.secrets.sudososUrl.path;
-      workspace = 1;
-      kiosk = true;
+      uid = 1000;
+      workspaces = 2;
+      touch = {
+        enable = true;
+      };
+
+      browser = {
+        enable = true;
+        urlFile = config.sops.secrets.sudososUrl.path;
+        workspace = 1;
+        kiosk = true;
+      };
+
+      apps.spotify = {
+        package = pkgs.spotify;
+        workspace = 2;
+      };
+
+      nfcReader.enable = true;
+
+      remote = {
+        enable = true;
+        passwordFile = config.sops.secrets.rdpPassword.path;
+        # Reachable over the mesh only. Named literally rather than read from
+        # services.netbird, because gewis.netbird cannot be enabled until this
+        # host has a sops file to keep its setup key in.
+        firewallInterfaces = [ "nb-netbird" ];
+      };
     };
 
-    apps.spotify = {
-      package = pkgs.spotify;
-      workspace = 2;
-    };
-
-    nfcReader.enable = true;
-
-    remote = {
+    netbird = {
       enable = true;
-      passwordFile = config.sops.secrets.rdpPassword.path;
-      # Reachable over the mesh only. Named literally rather than read from
-      # services.netbird, because gewis.netbird cannot be enabled until this
-      # host has a sops file to keep its setup key in.
-      firewallInterfaces = [ "nb-netbird" ];
+      client = "netbird";
+      dnsLabel = "pcgewisd";
     };
-  };
-
-  gewis.netbird = {
-    enable = true;
-    client = "netbird";
-    dnsLabel = "pcgewisd";
   };
 
   services.openssh = {
