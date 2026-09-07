@@ -26,6 +26,9 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
+    # The kernel's own pn533_usb driver claims the ACR122U
+    boot.blacklistedKernelModules = lib.mkIf cfg.nfcReader.enable [ "pn533_usb" ];
+
     services.udev.extraRules = lib.mkIf cfg.nfcReader.enable ''
       SUBSYSTEM=="usb", ATTRS{idVendor}=="${cfg.nfcReader.vendorId}", ATTRS{idProduct}=="${cfg.nfcReader.productId}", TAG+="uaccess"
     '';
