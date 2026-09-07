@@ -158,7 +158,7 @@ let
     {
       inherit description;
       partOf = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" ];
+      after = [ "graphical-session.target" ] ++ lib.optional cfg.remote.enable "service-pc-keyring.service";
       wantedBy = [ "graphical-session.target" ];
       unitConfig.ConditionUser = cfg.user;
       serviceConfig = {
