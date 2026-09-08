@@ -81,10 +81,11 @@ in
 
       service-pc-keyring-reset = {
         description = "Discard the login keyring of earlier service-PC sessions";
-        partOf = [ "graphical-session.target" ];
-        wantedBy = [ "graphical-session.target" ];
-        after = [ "graphical-session.target" ];
-        before = [ "service-pc-keyring.service" ];
+        wantedBy = [ "default.target" ];
+        before = [
+          "graphical-session.target"
+          "service-pc-keyring.service"
+        ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           Type = "oneshot";
@@ -95,13 +96,12 @@ in
 
       service-pc-keyring = {
         description = "Login keyring for service-PC remote access";
-        partOf = [ "graphical-session.target" ];
-        wantedBy = [ "graphical-session.target" ];
-        after = [
+        wantedBy = [ "default.target" ];
+        after = [ "service-pc-keyring-reset.service" ];
+        before = [
           "graphical-session.target"
-          "service-pc-keyring-reset.service"
+          "service-pc-rdp-credentials.service"
         ];
-        before = [ "service-pc-rdp-credentials.service" ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           ExecStart = "/run/wrappers/bin/gnome-keyring-daemon --replace --unlock --foreground";
