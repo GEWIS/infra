@@ -45,11 +45,25 @@ fill_sprite.SetX(bar_x);
 fill_sprite.SetY(bar_y);
 fill_sprite.SetZ(11);
 
-fun progress_callback(duration, progress) {
-    fill_width = Math.Int(fill_image.GetWidth() * progress);
+bar_fraction = 0;
+bar_direction = 1;
+bar_step = 0.025;
+
+fun refresh_callback() {
+    bar_fraction += bar_step * bar_direction;
+    if (bar_fraction >= 1) {
+        bar_fraction = 1;
+        bar_direction = -1;
+    }
+    if (bar_fraction <= 0) {
+        bar_fraction = 0;
+        bar_direction = 1;
+    }
+
+    fill_width = Math.Int(fill_image.GetWidth() * bar_fraction);
     if (fill_width < 1) {
         fill_width = 1;
     }
     fill_sprite.SetImage(fill_image.Crop(0, 0, fill_width, fill_image.GetHeight()));
 }
-Plymouth.SetBootProgressFunction(progress_callback);
+Plymouth.SetRefreshFunction(refresh_callback);
