@@ -12,11 +12,13 @@ let
   theme = pkgs.runCommand "service-pc-plymouth-theme" { } ''
     dir="$out/share/plymouth/themes/${themeName}"
     mkdir -p "$dir"
-    cp ${./assets/plymouth-theme/gewis-service-pc.plymouth} "$dir/${themeName}.plymouth"
     cp ${./assets/plymouth-theme/gewis-service-pc.script} "$dir/${themeName}.script"
     cp ${./assets/wallpaper.png} "$dir/wallpaper.png"
     cp ${./assets/progress-track.png} "$dir/progress-track.png"
     cp ${./assets/progress-fill.png} "$dir/progress-fill.png"
+
+    substitute ${./assets/plymouth-theme/gewis-service-pc.plymouth} "$dir/${themeName}.plymouth" \
+      --replace-fail 'THEME_DIR' "$dir"
   '';
 in
 {
@@ -27,6 +29,8 @@ in
       themePackages = [ theme ];
     };
 
+    # Plymouth only covers the whole boot (not just the bit after
+    # switch-root) when it can start inside the initrd.
     boot.initrd.systemd.enable = lib.mkDefault true;
 
     boot.kernelParams = [

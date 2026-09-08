@@ -20,7 +20,8 @@ background_image = wallpaper_image.Scale(
     Math.Int(wallpaper_image.GetHeight() * cover_scale)
 );
 
-background_sprite = Sprite(background_image);
+background_sprite = Sprite();
+background_sprite.SetImage(background_image);
 background_sprite.SetX((Window.GetWidth() - background_image.GetWidth()) / 2);
 background_sprite.SetY((Window.GetHeight() - background_image.GetHeight()) / 2);
 background_sprite.SetZ(-100);
@@ -33,7 +34,8 @@ fill_image = Image("progress-fill.png");
 bar_x = Window.GetWidth() / 2 - track_image.GetWidth() / 2;
 bar_y = Window.GetHeight() * 0.82;
 
-track_sprite = Sprite(track_image);
+track_sprite = Sprite();
+track_sprite.SetImage(track_image);
 track_sprite.SetX(bar_x);
 track_sprite.SetY(bar_y);
 track_sprite.SetZ(10);
