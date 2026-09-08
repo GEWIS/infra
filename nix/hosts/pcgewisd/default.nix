@@ -22,8 +22,7 @@
   };
 
   security.sudo.wheelNeedsPassword = false;
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
+  
   gewis = {
     comin.enable = true;
 
