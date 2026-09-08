@@ -33,7 +33,7 @@ neither — there is nothing to gain from making it configurable.
 | `browser.enable` | `false` | Run Firefox |
 | `browser.url` | `null` | URL to open. Exactly one of this or `urlFile` |
 | `browser.urlFile` | `null` | File read at launch, for when the URL is itself a secret |
-| `browser.kiosk` | `false` | Fullscreen, with no GNOME top bar and no tab strip. Also hides the window list and swallows edge gestures |
+| `browser.kiosk` | `false` | Fullscreen once the window appears, by sending F11 (via `ydotool`) |
 | `browser.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
 | `browser.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
 

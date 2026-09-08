@@ -95,7 +95,10 @@ in
         type = lib.types.bool;
         default = false;
         description = ''
-          Run the browser fullscreen in kiosk mode
+          Drop the browser into fullscreen once it opens, by sending F11 via
+          ydotool rather than passing Firefox's own `--kiosk` flag. Keeps the
+          browser chrome reachable (address bar, keyboard shortcuts) behind
+          the same F11 toggle a user would use.
         '';
       };
 

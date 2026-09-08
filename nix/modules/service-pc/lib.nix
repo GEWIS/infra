@@ -71,6 +71,44 @@ let
     shell_call Maximize u "$id" >/dev/null
   '';
 
+  fullscreenScript = pkgs.writeShellScript "service-pc-fullscreen" ''
+    set -eu
+
+    class="$1"
+
+    jq=${lib.getExe pkgs.jq}
+    shell_call() {
+      ${lib.getExe' pkgs.systemd "busctl"} --user --json=short call \
+        org.gnome.Shell /org/gnome/Shell/Extensions/Windows \
+        org.gnome.Shell.Extensions.Windows "$@"
+    }
+
+    select_id='
+      ($c | ascii_downcase) as $want
+      | map(select(
+          ((.wm_class // "") | ascii_downcase) == $want
+          or ((.wm_class_instance // "") | ascii_downcase) == $want))
+      | .[0].id // empty
+    '
+
+    id=""
+    for _ in $(seq 1 ${toString placeTimeoutSeconds}); do
+      if windows=$(shell_call List 2>/dev/null | "$jq" -r '.data[0]'); then
+        id=$(printf '%s' "$windows" | "$jq" -r --arg c "$class" "$select_id")
+        [ -n "$id" ] && break
+      fi
+      sleep 1
+    done
+
+    # Exits 0 so a missing window doesn't take the whole unit down.
+    if [ -z "$id" ]; then
+      echo "service-pc-fullscreen: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s" >&2
+      exit 0
+    fi
+
+    ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0
+  '';
+
   # Shared by the browser and the extra apps, so both are placed the same way.
   placement = {
     workspace = lib.mkOption {
@@ -154,6 +192,7 @@ let
       wmClass,
       workspace,
       monitor,
+      fullscreen ? false,
     }:
     {
       inherit description;
@@ -166,24 +205,21 @@ let
         Restart = "on-failure";
         RestartSec = 5;
         ExecStartPost =
-          if workspace != null then
-            "${placeScript} ${
-              lib.escapeShellArgs [
-                wmClass
-                "workspace"
-                (toString workspace)
-              ]
-            }"
-          else if monitor != null then
-            "${placeScript} ${
-              lib.escapeShellArgs [
-                wmClass
-                "monitor"
-                (toString monitor)
-              ]
-            }"
-          else
-            [ ];
+          lib.optional (workspace != null) "${placeScript} ${
+            lib.escapeShellArgs [
+              wmClass
+              "workspace"
+              (toString workspace)
+            ]
+          }"
+          ++ lib.optional (workspace == null && monitor != null) "${placeScript} ${
+            lib.escapeShellArgs [
+              wmClass
+              "monitor"
+              (toString monitor)
+            ]
+          }"
+          ++ lib.optional fullscreen "${fullscreenScript} ${lib.escapeShellArg wmClass}";
       };
     };
 in
