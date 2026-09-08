@@ -14,8 +14,6 @@ let
     mkdir -p "$dir"
     cp ${./assets/plymouth-theme/gewis-service-pc.script} "$dir/${themeName}.script"
     cp ${./assets/wallpaper.png} "$dir/wallpaper.png"
-    cp ${./assets/progress-track.png} "$dir/progress-track.png"
-    cp ${./assets/progress-fill.png} "$dir/progress-fill.png"
 
     substitute ${./assets/plymouth-theme/gewis-service-pc.plymouth} "$dir/${themeName}.plymouth" \
       --replace-fail 'THEME_DIR' "$dir"
