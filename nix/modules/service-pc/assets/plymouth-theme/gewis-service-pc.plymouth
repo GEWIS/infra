@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=GEWIS Service PC
+Description=Boot splash
+ModuleName=script
+
+[script]
+ImageDir=THEME_DIR
+ScriptFile=THEME_DIR/gewis-service-pc.script

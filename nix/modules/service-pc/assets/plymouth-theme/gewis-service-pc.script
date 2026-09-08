@@ -1,0 +1,53 @@
+// Fullscreen wallpaper with a progress bar near the bottom.
+
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+// Background
+
+wallpaper_image = Image("wallpaper.png");
+
+scale_x = Window.GetWidth() / wallpaper_image.GetWidth();
+scale_y = Window.GetHeight() / wallpaper_image.GetHeight();
+if (scale_x > scale_y) {
+    cover_scale = scale_x;
+} else {
+    cover_scale = scale_y;
+}
+
+background_image = wallpaper_image.Scale(
+    Math.Int(wallpaper_image.GetWidth() * cover_scale),
+    Math.Int(wallpaper_image.GetHeight() * cover_scale)
+);
+
+background_sprite = Sprite(background_image);
+background_sprite.SetX((Window.GetWidth() - background_image.GetWidth()) / 2);
+background_sprite.SetY((Window.GetHeight() - background_image.GetHeight()) / 2);
+background_sprite.SetZ(-100);
+
+// Progress bar
+
+track_image = Image("progress-track.png");
+fill_image = Image("progress-fill.png");
+
+bar_x = Window.GetWidth() / 2 - track_image.GetWidth() / 2;
+bar_y = Window.GetHeight() * 0.82;
+
+track_sprite = Sprite(track_image);
+track_sprite.SetX(bar_x);
+track_sprite.SetY(bar_y);
+track_sprite.SetZ(10);
+
+fill_sprite = Sprite();
+fill_sprite.SetX(bar_x);
+fill_sprite.SetY(bar_y);
+fill_sprite.SetZ(11);
+
+fun progress_callback(duration, progress) {
+    fill_width = Math.Int(fill_image.GetWidth() * progress);
+    if (fill_width < 1) {
+        fill_width = 1;
+    }
+    fill_sprite.SetImage(fill_image.Crop(0, 0, fill_width, fill_image.GetHeight()));
+}
+Plymouth.SetBootProgressFunction(progress_callback);
