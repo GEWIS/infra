@@ -28,6 +28,13 @@ in
       default = "netbird-setupkey";
       description = "Name of the sops secret holding the NetBird setup key.";
     };
+
+    interface = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      default = client.interface;
+      description = "Name of the mesh's wireguard interface, for firewall rules.";
+    };
   };
 
   config = lib.mkIf cfg.enable {

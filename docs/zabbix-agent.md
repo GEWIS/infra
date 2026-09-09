@@ -9,7 +9,7 @@ poll it for CPU, memory, disk, network and service state. It is defined in
 ```nix
 gewis.zabbixAgent = {
   enable = true;
-  firewallInterfaces = [ "nb-netbird" ];
+  firewallInterfaces = [ config.gewis.netbird.interface ];
 };
 ```
 

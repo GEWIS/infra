@@ -37,7 +37,7 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       example = lib.literalExpression ''
-        [ config.services.netbird.clients.netbird.interface ]
+        [ config.gewis.netbird.interface ]
       '';
       description = "Interfaces to open {option}`port` on.";
     };

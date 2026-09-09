@@ -7,7 +7,7 @@ machine's screen.
 gewis.servicePc.remote = {
   enable = true;
   passwordFile = config.sops.secrets.rdpPassword.path;
-  firewallInterfaces = [ config.services.netbird.clients.netbird.interface ];
+  firewallInterfaces = [ config.gewis.netbird.interface ];
 };
 ```
 
