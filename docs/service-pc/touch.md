@@ -15,9 +15,8 @@ apps.spotify.workspace = 2;
 ```
 
 Placement happens once, when the window first appears, and the window is
-maximised onto the workspace it lands on, see
-[Options](options.md#when-a-window-does-not-move) for what to do when a window
-stays put.
+maximised onto the workspace it lands on. See
+[Placement](options.md#placement) for how the two options interact.
 
 ## More than one screen
 

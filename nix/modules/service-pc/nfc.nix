@@ -30,11 +30,8 @@ in
       SUBSYSTEM=="usb", ATTRS{idVendor}=="${cfg.nfcReader.vendorId}", ATTRS{idProduct}=="${cfg.nfcReader.productId}", TAG+="uaccess"
     '';
 
-    # Types via ydotool (a virtual /dev/uinput keyboard) rather than X11
-    # XTEST: Mutter gates XTEST fake input from XWayland clients behind an
-    # "Allow Remote Interaction" consent dialog with no unattended bypass,
-    # which is a non-starter for an unattended kiosk. ydotool looks like a
-    # real input device to the kernel, so nothing needs to approve it.
+    # ydotool looks like a real input device to the kernel, so an unattended
+    # session never has to approve the synthetic input.
     programs.ydotool.enable = lib.mkIf cfg.nfcReader.enable true;
 
     users.users.${cfg.user}.extraGroups = lib.mkIf cfg.nfcReader.enable [

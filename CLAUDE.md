@@ -78,7 +78,7 @@ placement, NFC reader, RDP. `lib.nix` holds what the sub-files share (the placem
 helper, `sessionUnit`, the `apps` submodule). The module deliberately names no
 applications; packages, URLs and unfree allowances live in `nix/hosts/<host>/`. The
 naming is "service PC", never "desktop". Fullscreen is done by sending F11 through
-ydotool rather than Firefox's `--kiosk`, on purpose, so the browser chrome stays reachable.
+ydotool, so the browser chrome stays reachable.
 
 Hosts with `gewis.persistence` run a tmpfs root with `/persist` (impermanence). Anything
 that must survive a reboot goes in `extraDirectories`; the sops age key lives at

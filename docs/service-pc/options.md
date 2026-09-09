@@ -26,17 +26,21 @@ See [Touchscreens and workspaces](touch.md).
 ## Browser
 
 The browser is always Firefox. The policy file below is Firefox's and the
-launcher sets `MOZ_ENABLE_WAYLAND`, so another browser would come up with
-neither — there is nothing to gain from making it configurable.
+launcher sets `MOZ_ENABLE_WAYLAND`.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `browser.enable` | `false` | Run Firefox |
 | `browser.url` | `null` | URL to open. Exactly one of this or `urlFile` |
 | `browser.urlFile` | `null` | File read at launch, for when the URL is itself a secret |
-| `browser.kiosk` | `false` | Fullscreen once the window appears, by asking Mutter to fullscreen it |
+| `browser.kiosk` | `false` | Fullscreen once the window appears, by sending F11 until it takes |
 | `browser.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
 | `browser.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
+
+`kiosk` waits for Firefox's window, raises it, and sends F11 through `ydotool`,
+repeating the press until GNOME reports the window as fullscreen. Firefox keeps
+only a fullscreen state it entered itself, and F11 is a toggle, so each press is
+checked.
 
 ### When it does not go fullscreen
 
@@ -48,7 +52,7 @@ by that name rather than with `--user`, which would look at root's own manager:
 $ sudo journalctl -b _SYSTEMD_USER_UNIT=service-pc-browser.service -o cat
 ```
 
-The helper always logs why it gave up, and the three messages mean different
+The helper always logs why it gave up, and the four messages mean different
 things:
 
 - *`org.gnome.Shell.Extensions.Windows never answered`* — the
@@ -62,8 +66,11 @@ things:
   nothing it listed matched. The `saw:` list is the set of classes Mutter
   actually reports; if Firefox is in there under another name, that name is
   what the helper should be matching on.
-- *`… is still not fullscreen after N attempts`* — Mutter took the call and the
-  window did not end up fullscreen anyway. The line after it dumps what Mutter
+- *`ydotool failed on attempt N: …`* — the keystroke never left the tool, and
+  the message is ydotool's own. Almost always `ydotoold` not running or its
+  socket not readable; see [the NFC page](nfc.md), which uses the same daemon.
+- *`… is still not fullscreen after N F11 presses`* — the keystrokes went out
+  and the window still is not fullscreen. The line after it dumps what GNOME
   reports for that window, so compare its `width`/`height` against the monitor.
 
 ## Applications
