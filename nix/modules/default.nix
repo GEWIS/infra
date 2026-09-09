@@ -8,5 +8,6 @@
     ./persistence.nix
     ./service-pc
     ./shell.nix
+    ./zabbix-agent.nix
   ];
 }

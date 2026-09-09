@@ -64,6 +64,11 @@
       client = "netbird";
       dnsLabel = "pcgewisd";
     };
+
+    zabbixAgent = {
+      enable = true;
+      firewallInterfaces = [ "nb-netbird" ];
+    };
   };
 
   services.openssh = {

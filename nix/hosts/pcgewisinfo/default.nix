@@ -63,6 +63,11 @@
     dnsLabel = "pcgewisinfo";
   };
 
+  gewis.zabbixAgent = {
+    enable = true;
+    firewallInterfaces = [ "nb-netbird" ];
+  };
+
   services.openssh = {
     openFirewall = false;
     settings = {

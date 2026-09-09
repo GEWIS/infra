@@ -25,3 +25,8 @@ is no keyboard or mouse. See [NFC reader](../service-pc/nfc.md).
 
 Remote control is enabled and reachable over the NetBird mesh only.
 See [Remote access](../service-pc/remote.md).
+
+## Monitoring
+
+The Zabbix agent answers checks over the NetBird mesh only.
+See [Zabbix agent](../zabbix-agent.md).
