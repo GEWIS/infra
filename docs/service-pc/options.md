@@ -38,6 +38,9 @@ launcher sets `MOZ_ENABLE_WAYLAND`.
 | `browser.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
 | `browser.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
 
+Firefox is restarted whenever it exits, whatever the reason, so closing it over
+RDP just brings it back.
+
 `kiosk` waits for Firefox's window, raises it, and sends F11 through `ydotool`,
 repeating the press until GNOME reports the window as fullscreen. Firefox keeps
 only a fullscreen state it entered itself, and F11 is a toggle, so each press is

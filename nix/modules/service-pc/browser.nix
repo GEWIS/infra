@@ -52,6 +52,7 @@ in
         exec = "${browserLauncher}";
         wmClass = "firefox";
         fullscreen = cfg.browser.kiosk;
+        restart = "always";
         inherit (cfg.browser) workspace monitor;
       };
     };
