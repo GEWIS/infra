@@ -8,7 +8,7 @@ let
   inherit (import ./lib.nix { inherit config lib pkgs; }) cfg;
 
   themeName = "gewis-service-pc";
-  
+
   theme = pkgs.runCommand "service-pc-plymouth-theme" { } ''
     dir="$out/share/plymouth/themes/${themeName}"
     mkdir -p "$dir"

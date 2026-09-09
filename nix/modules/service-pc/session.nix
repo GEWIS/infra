@@ -47,7 +47,7 @@ let
     "DndQuickToggle"
     "UnsafeQuickToggle"
   ];
-  
+
   wallpaper = ./assets/wallpaper.png;
 
   # gnomeExtensions.* packages keep their schemas under
@@ -185,18 +185,10 @@ in
           ''
             [org.gnome.desktop.notifications]
             show-banners=false
-          ''
-        ]
-        # Dissable night light
-        ++ [
-          ''
+
             [org.gnome.settings-daemon.plugins.color]
             night-light-enabled=false
-          ''
-        ]
-        # Set accent color
-        ++ [
-          ''
+
             [org.gnome.desktop.interface]
             accent-color='red'
           ''
