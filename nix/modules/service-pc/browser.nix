@@ -13,18 +13,6 @@ let
     else
       ''"$(cat ${cfg.browser.urlFile})"'';
 
-  policiesJsonPath = "/etc/firefox/policies/policies.json";
-
-  homepageScript = pkgs.writeShellScript "service-pc-browser-homepage" ''
-    set -eu
-    url=${browserUrl}
-    tmp=$(${lib.getExe' pkgs.coreutils "mktemp"} ${policiesJsonPath}.XXXXXX)
-    ${lib.getExe pkgs.jq} --arg url "$url" \
-      '.policies.Homepage = {"URL": $url, "StartPage": "homepage"}' \
-      ${policiesJsonPath} > "$tmp"
-    mv -f "$tmp" ${policiesJsonPath}
-  '';
-
   browserLauncher = pkgs.writeShellScript "service-pc-browser" ''
     set -eu
     url=${browserUrl}
