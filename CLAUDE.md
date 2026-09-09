@@ -1,13 +1,19 @@
 # CLAUDE.md
 
-Always work in the main worktree, do not ever commit or push changes.
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 NixOS host configurations for GEWIS CBC, the OpenTofu that provisions them, and the
 Flux tree reconciled into the Talos cluster. `README.md` covers layout and operator
 workflow; `AGENTS.md` carries the docs rules, repeated below because they are enforced
 by CI. **This repository is public.**
+
+Always work in the main worktree, do not ever commit or push changes.
+
+In comments or documentation, never reference old versions of the code or mention why specific decisions were made over other alternatives.
+The docs and comments should always reflect the current state of the code, not reference old versions.
+
+Comments in the code itself should be minimal, and should only be used if an unorthodox decision was made.
+If comments explaning the code are required, your code is too complex and should be refactored.
 
 ## Commands
 
