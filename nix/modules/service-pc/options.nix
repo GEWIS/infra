@@ -103,10 +103,10 @@ in
         type = lib.types.bool;
         default = false;
         description = ''
-          Drop the browser into fullscreen once it opens, by sending F11 via
-          ydotool rather than passing Firefox's own `--kiosk` flag. Keeps the
-          browser chrome reachable (address bar, keyboard shortcuts) behind
-          the same F11 toggle a user would use.
+          Drop the browser into fullscreen once its window appears, by asking
+          Mutter to fullscreen that window rather than passing Firefox's own
+          `--kiosk` flag. Keeps the browser chrome reachable (address bar,
+          keyboard shortcuts) behind the same F11 toggle a user would use.
         '';
       };
 

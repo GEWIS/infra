@@ -7,6 +7,7 @@ let
   cfg = config.gewis.servicePc;
 
   placeTimeoutSeconds = 60;
+  fullscreenAttempts = 10;
 
   placeScript = pkgs.writeShellScript "service-pc-place" ''
     set -eu
@@ -106,8 +107,17 @@ let
       exit 0
     fi
 
-    env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
-          ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0
+    for _ in $(seq 1 ${toString fullscreenAttempts}); do
+      shell_call MakeFullscreen u "$id" >/dev/null 2>&1 || true
+      sleep 1
+      details=$(shell_call Details u "$id" 2>/dev/null | "$jq" -r '.data[0]' || true)
+      if [ "$(printf '%s' "$details" | "$jq" -r '.fullscreen // false' 2>/dev/null || echo false)" = "true" ]; then
+        exit 0
+      fi
+    done
+
+    # Exits 0 for the same reason the missing-window branch does.
+    echo "service-pc-fullscreen: '$class' is still not fullscreen after ${toString fullscreenAttempts} attempts" >&2
   '';
 
   # Shared by the browser and the extra apps, so both are placed the same way.
