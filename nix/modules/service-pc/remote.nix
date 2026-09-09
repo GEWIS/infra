@@ -11,6 +11,9 @@ let
   rdpCert = "${stateDir}/rdp.crt";
   rdpKey = "${stateDir}/rdp.key";
 
+  keyringTimeoutSeconds = 30;
+  credentialsTimeoutSeconds = 120;
+
   rdpCredentials =
     let
       username = if cfg.remote.username != null then cfg.remote.username else cfg.user;
@@ -19,7 +22,8 @@ let
     pkgs.writeShellScript "service-pc-rdp-credentials" ''
       set -eu
       grdctl() { ${lib.getExe' pkgs.coreutils "timeout"} 5 ${grdctl} "$@"; }
-      for _ in $(seq 1 30); do
+      deadline=$(( $(date +%s) + ${toString credentialsTimeoutSeconds} ))
+      while [ "$(date +%s)" -lt "$deadline" ]; do
         grdctl rdp set-credentials ${lib.escapeShellArg username} \
           < ${cfg.remote.passwordFile} || true
         if grdctl status --show-credentials 2>/dev/null \
@@ -28,21 +32,28 @@ let
         fi
         sleep 1
       done
-      echo "service-pc-rdp-credentials: could not store the RDP password in the keyring" >&2
+      echo "service-pc-rdp-credentials: could not store the RDP password in the keyring within ${toString credentialsTimeoutSeconds}s" >&2
       exit 1
     '';
 
+  # Asks the bus driver, never the keyring: a property read on a collection
+  # can abort the daemon while it is still initialising.
   keyringReady = pkgs.writeShellScript "service-pc-keyring-ready" ''
     set -eu
-    for _ in $(seq 1 30); do
-      if [ "$(${lib.getExe' pkgs.systemd "busctl"} --user --auto-start=no get-property \
-        org.freedesktop.secrets /org/freedesktop/secrets/collection/login \
-        org.freedesktop.Secret.Collection Locked 2>/dev/null || true)" = "b false" ]; then
+    for _ in $(seq 1 ${toString keyringTimeoutSeconds}); do
+      if ! kill -0 "$MAINPID" 2>/dev/null; then
+        echo "service-pc-keyring: the daemon exited before it owned org.freedesktop.secrets" >&2
+        exit 1
+      fi
+      owner=$(${lib.getExe' pkgs.systemd "busctl"} --user call \
+        org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus \
+        GetConnectionUnixProcessID s org.freedesktop.secrets 2>/dev/null || true)
+      if [ "$owner" = "u $MAINPID" ]; then
         exit 0
       fi
       sleep 1
     done
-    echo "service-pc-keyring: login keyring still locked; the daemon lost org.freedesktop.secrets" >&2
+    echo "service-pc-keyring: org.freedesktop.secrets is still owned by another daemon after ${toString keyringTimeoutSeconds}s" >&2
     exit 1
   '';
 in
@@ -120,7 +131,7 @@ in
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           ExecStart = "/run/wrappers/bin/gnome-keyring-daemon --replace --unlock --foreground";
-          ExecStartPost = "${keyringReady}";
+          ExecStartPost = [ "${keyringReady}" ];
           StandardInput = "file:${cfg.remote.passwordFile}";
           TimeoutStartSec = 60;
           Restart = "always";
@@ -137,13 +148,13 @@ in
           "graphical-session.target"
           "service-pc-keyring.service"
         ];
-        requires = [ "service-pc-keyring.service" ];
+        wants = [ "service-pc-keyring.service" ];
         before = [ "gnome-remote-desktop.service" ];
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
-          TimeoutStartSec = 120;
+          TimeoutStartSec = credentialsTimeoutSeconds + 30;
           ExecStart = "${rdpCredentials}";
         };
       };

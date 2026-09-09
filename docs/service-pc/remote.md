@@ -85,14 +85,34 @@ keyring is open before anything in the session can ask it for a secret. That
 ordering is only worth anything because the daemon gates it. `Before=` waits
 for a start job, and a `Type=simple` start job is finished the moment the
 process forks, which is well before the daemon has taken
-`org.freedesktop.secrets` from the passwordless one. So an `ExecStartPost`
-polls the login collection's `Locked` property on the session bus and holds the
-unit `activating` until it reads `b false`: `Before=` then waits for the keyring
-to be unlocked, and `Requires=` on it in the credential store means the same.
-Reading a property never raises a gcr prompt, where asking for a secret would,
-and `--auto-start=no` keeps the probe itself from ever being what D-Bus-activates
-a passwordless daemon. The poll gives up after 30s and fails the unit, which is
-what makes `Restart = "always"` retry the `--replace`.
+`org.freedesktop.secrets` from the passwordless one. So an `ExecStartPost` asks
+the bus driver which process owns `org.freedesktop.secrets` and holds the unit
+`activating` until the answer is the unit's own daemon. The probe talks to the
+bus driver only, never to the keyring: it cannot raise a gcr prompt, it cannot
+be the client that D-Bus-activates a passwordless daemon, and it cannot trip
+the daemon's own startup bug (below). Unlocking needs no probe of its own,
+because `--unlock` opens the login keyring before the daemon serves anything
+and the reset unit guarantees that keyring is one this password opens. The
+poll gives up after 30s, or as soon as the daemon is gone, and fails the unit,
+which is what makes `Restart = "always"` retry the `--replace`.
+
+`gnome-keyring-daemon` sometimes aborts itself during session start. A client
+that reads a collection property while the daemon has no record of that client
+yet hits an assertion in its D-Bus property handler and the daemon dumps core;
+GNOME's own session components trigger it now and then, so it cannot be
+avoided from here, only survived. The journal shows
+
+```
+gkd_secret_service_get_pkcs11_session: assertion 'client' failed
+GLib-GIO:ERROR:../gio/gdbusconnection.c:...:invoke_get_property_in_idle_cb: assertion failed: (error != NULL)
+```
+
+followed by a restart of `service-pc-keyring.service`. That is why the
+credential store only `Wants=` the keyring instead of requiring it: a
+`Requires=` on a unit that fails its first start cancels the dependent job for
+good, and the RDP password would never be stored. With `Wants=` the store
+starts once the keyring's first attempt is over, whichever way it went, and its
+loop rides out the restart.
 
 The credential store stays **after** the target, and keeps its
 `TimeoutStartSec`. Ordered before it, a `grdctl` blocking on a gcr prompt keeps
@@ -106,9 +126,10 @@ never passes, the unit ends `failed` and the session still comes up — without
 RDP, and with the on-screen keyring prompt this whole arrangement exists to
 avoid.
 
-Storing is a store-and-read-back loop, because `grdctl` exits 0 having written
-nothing while the keyring is not ready yet. On the machine, the same read-back
-is:
+Storing is a store-and-read-back loop that keeps trying for two minutes,
+because `grdctl` exits 0 having written nothing while the keyring is not ready
+yet, and because the keyring may be restarting underneath it. On the machine,
+the same read-back is:
 
 ```console
 $ grdctl status --show-credentials

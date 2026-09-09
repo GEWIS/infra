@@ -61,6 +61,28 @@ let
         '';
       };
     };
+  # The daemon is aborted the first time it comes up, after it has taken
+  # org.freedesktop.secrets, which is what gnome-keyring does to itself now
+  # and then when a client reads a collection property during its startup.
+  crashingKeyring =
+    { lib, pkgs, ... }:
+    {
+      systemd.user.services.service-pc-keyring.serviceConfig.ExecStartPost = lib.mkBefore [
+        (pkgs.writeShellScript "abort-keyring-once" ''
+          marker="$XDG_RUNTIME_DIR/keyring-aborted-once"
+          [ -e "$marker" ] && exit 0
+          touch "$marker"
+          for _ in $(seq 1 30); do
+            owner=$(${lib.getExe' pkgs.systemd "busctl"} --user call \
+              org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus \
+              GetConnectionUnixProcessID s org.freedesktop.secrets 2>/dev/null || true)
+            [ "$owner" = "u $MAINPID" ] && break
+            sleep 1
+          done
+          kill -ABRT "$MAINPID"
+        '')
+      ];
+    };
 in
 pkgs.testers.runNixOSTest {
   name = "service-pc";
@@ -72,6 +94,10 @@ pkgs.testers.runNixOSTest {
     stale.imports = [
       servicePc
       forgottenKeyring
+    ];
+    crashing.imports = [
+      servicePc
+      crashingKeyring
     ];
   };
 
@@ -108,5 +134,14 @@ pkgs.testers.runNixOSTest {
       stale.wait_for_unit("forgotten-keyring.service")
       stale.succeed("test -s /home/gewis/.local/share/keyrings/login.keyring")
       check(stale)
+      stale.shutdown()
+
+    with subtest("a keyring daemon that dies while the session starts"):
+      crashing.start()
+      check(crashing)
+      restarts = crashing.succeed(
+        f"su gewis -c '{session}systemctl --user show -p NRestarts --value service-pc-keyring.service'"
+      )
+      assert int(restarts) >= 1, restarts
   '';
 }
