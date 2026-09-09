@@ -38,6 +38,34 @@ neither — there is nothing to gain from making it configurable.
 | `browser.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
 | `browser.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
 
+### When it does not go fullscreen
+
+`kiosk` runs as an `ExecStartPost` of the `service-pc-browser` user unit, so
+everything it says is in that unit's journal. It is a *user* unit, so ask for it
+by that name rather than with `--user`, which would look at root's own manager:
+
+```console
+$ sudo journalctl -b _SYSTEMD_USER_UNIT=service-pc-browser.service -o cat
+```
+
+The helper always logs why it gave up, and the three messages mean different
+things:
+
+- *`org.gnome.Shell.Extensions.Windows never answered`* — the
+  [window-calls](https://github.com/ickyicky/window-calls) extension is not
+  running, so nothing here can work. It is pulled in automatically by `kiosk`
+  and by `workspace`/`monitor`, but GNOME disables an extension that does not
+  declare support for the running shell version. Check with `gnome-extensions
+  list --enabled` in the session, and look for `JS ERROR` in the shell's own
+  log: `sudo journalctl -b _COMM=gnome-shell`.
+- *`no window with wm_class 'firefox' … saw: …`* — the extension answered, but
+  nothing it listed matched. The `saw:` list is the set of classes Mutter
+  actually reports; if Firefox is in there under another name, that name is
+  what the helper should be matching on.
+- *`… is still not fullscreen after N attempts`* — Mutter took the call and the
+  window did not end up fullscreen anyway. The line after it dumps what Mutter
+  reports for that window, so compare its `width`/`height` against the monitor.
+
 ## Applications
 
 `apps` is an attribute set; the name is the attribute key.

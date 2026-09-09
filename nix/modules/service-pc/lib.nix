@@ -93,17 +93,29 @@ let
     '
 
     id=""
+    windows="[]"
+    listed=no
     for _ in $(seq 1 ${toString placeTimeoutSeconds}); do
       if windows=$(shell_call List 2>/dev/null | "$jq" -r '.data[0]'); then
+        listed=yes
         id=$(printf '%s' "$windows" | "$jq" -r --arg c "$class" "$select_id")
         [ -n "$id" ] && break
       fi
       sleep 1
     done
 
-    # Exits 0 so a missing window doesn't take the whole unit down.
+    # Exits 0 so a missing window doesn't take the whole unit down. Says which
+    # of the two ways it failed, because they need opposite fixes: a bare
+    # window-calls failure means the extension is not answering at all, while
+    # a list of classes means it answered and `class` is simply wrong.
     if [ -z "$id" ]; then
-      echo "service-pc-fullscreen: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s" >&2
+      if [ "$listed" = no ]; then
+        echo "service-pc-fullscreen: org.gnome.Shell.Extensions.Windows never answered in ${toString placeTimeoutSeconds}s; is window-calls enabled?" >&2
+      else
+        seen=$(printf '%s' "$windows" \
+          | "$jq" -r '[.[] | .wm_class] | unique | join(", ")' 2>/dev/null || echo "none")
+        echo "service-pc-fullscreen: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s; saw: $seen" >&2
+      fi
       exit 0
     fi
 
@@ -116,8 +128,12 @@ let
       fi
     done
 
-    # Exits 0 for the same reason the missing-window branch does.
-    echo "service-pc-fullscreen: '$class' is still not fullscreen after ${toString fullscreenAttempts} attempts" >&2
+    # Exits 0 for the same reason the missing-window branch does. Dumps what
+    # Mutter reports about the window, since a MakeFullscreen that is accepted
+    # and then silently reverted looks identical to one that never arrived.
+    echo "service-pc-fullscreen: '$class' (id $id) is still not fullscreen after ${toString fullscreenAttempts} attempts" >&2
+    printf '%s' "$details" \
+      | "$jq" -c '{fullscreen, maximized, monitor, x, y, width, height, focus}' >&2 2>/dev/null || true
   '';
 
   # Shared by the browser and the extra apps, so both are placed the same way.
