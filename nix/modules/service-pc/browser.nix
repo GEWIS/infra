@@ -56,18 +56,6 @@ in
       };
     };
 
-    systemd.services.service-pc-browser-homepage = lib.mkIf cfg.browser.enable {
-      description = "Home page for the service-PC browser";
-      wantedBy = [ "multi-user.target" ];
-      before = [ "display-manager.service" ];
-      restartTriggers = [ config.environment.etc."firefox/policies/policies.json".source ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "${homepageScript}";
-      };
-    };
-
     programs.firefox = lib.mkIf cfg.browser.enable {
       enable = true;
 
@@ -80,6 +68,7 @@ in
       };
 
       preferences = {
+        "browser.startup.page" = 0;
         "browser.sessionstore.resume_from_crash" = false;
         "browser.shell.checkDefaultBrowser" = false;
         "datareporting.policy.dataSubmissionPolicyBypassNotification" = true;
