@@ -63,6 +63,7 @@ nav:
       - Touchscreens: service-pc/touch.md
       - NFC reader: service-pc/nfc.md
       - Remote access: service-pc/remote.md
+      - Installing: service-pc/install.md
   - Zabbix agent: zabbix-agent.md
   - Hosts:
       - pcgewisc:

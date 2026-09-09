@@ -9,11 +9,14 @@ It gives a machine:
 - each of those pinned to a workspace or screen;
 - an NFC reader that types scanned tags into whatever has focus;
 - remote control of the session;
+- a boot splash showing the wallpaper instead of kernel output;
 - a power-off every evening, so a stuck session never outlives the day.
 
 The module is defined in `nix/modules/service-pc/` and imported by every
 host through `nix/modules/default.nix`, so it is available everywhere and does
-nothing until a host sets `gewis.servicePc.enable`.
+nothing until a host sets `gewis.servicePc.enable`. The hosts pair it with
+`gewis.tmpfsRoot` for the disk layout and `gewis.admin` for the `cbc` account;
+[Installing](install.md) walks through a new one.
 
 | Host | What it shows |
 | --- | --- |

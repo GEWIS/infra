@@ -6,14 +6,16 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
-| `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | Not yet installable | — |
-| `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | Installed by hand | comin, polling `main` |
+| `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
+| `pcgewisd` | Service PC: SudoSOS POS on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
+| `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | nixos-anywhere, by hand | comin, polling `main` |
 | `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
 
 The docs are published as a browsable site at
 <https://gewis.github.io/infra/>, built from `docs/` on every push to
-`main`. Operational detail lives in [`docs/pcgewisinfo/`](docs/pcgewisinfo/index.md),
+`main`. Operational detail lives in [`docs/service-pc/`](docs/service-pc/index.md),
+[`docs/pcgewisinfo/`](docs/pcgewisinfo/index.md),
 [`docs/s3-01/`](docs/s3-01/index.md) and [`docs/talos/`](docs/talos/index.md). What runs
 *inside* the Kubernetes cluster — Flux layering, ingress, certificates, DNS,
 OpenBao — is [`docs/cluster/`](docs/cluster/index.md). S3 buckets and the
@@ -51,15 +53,21 @@ docs/                  per-host and cluster operational detail
 | --- | --- |
 | `common.nix` | Flakes, weekly GC, timezone, immutable users, sshd defaults, firewall on |
 | `shell.nix` | zsh as the default user shell, the prompt theme, the base tool set |
-| `netbird.nix` | `gewis.netbird.*` — GEWIS mesh client, off unless a host enables it |
-| `service-pc.nix` | `gewis.servicePc.*` — GNOME session, pinned apps and RDP for service PCs, off unless a host enables it |
-| `zabbix-agent.nix` | `gewis.zabbixAgent.*` — Zabbix agent, off unless a host enables it |
+| `motd.nix` | The hostname banner shown at login |
+| `admin.nix` | `gewis.admin.*` — the `cbc` administrator account, sudo, ssh with a password and a persisted host key |
+| `comin.nix` | `gewis.comin.*` — continuous deployment from `main` |
+| `netbird.nix` | `gewis.netbird.*` — GEWIS mesh client |
+| `persistence.nix` | `gewis.persistence.*` — what survives a reboot on a tmpfs root |
+| `tmpfs-root.nix` | `gewis.tmpfsRoot.*` — disko layout for a tmpfs root with `/nix` and `/persist` on one UEFI disk |
+| `service-pc/` | `gewis.servicePc.*` — GNOME session, pinned apps, NFC, RDP and the nightly power-off for service PCs |
+| `zabbix-agent.nix` | `gewis.zabbixAgent.*` — Zabbix agent |
 
-`xcpng.nix` sits alongside them but is imported only by hosts that run on
-XCP-ng, because it carries Xen-specific boot and network settings.
+Every `gewis.*` module is off until a host enables it. `xcpng.nix` sits
+alongside them but is imported only by hosts that run on XCP-ng, because it
+carries Xen-specific boot and network settings.
 
-Anything a host needs that the other one does not — the kiosk's printers, the
-S3 box's disk layout — stays in `nix/hosts/<host>/`.
+Anything a host needs that the others do not — the kiosk's printers, the S3
+box's disk layout — stays in `nix/hosts/<host>/`.
 
 ## Shell
 
@@ -94,6 +102,8 @@ encryption passphrase. Recipients are declared in `.sops.yaml`, where the
 
 ```sh
 sops secrets/s3-01.yaml
+sops secrets/pcgewisc.yaml
+sops secrets/pcgewisd.yaml
 sops secrets/pcgewisinfo.yaml
 sops secrets/tofu.yaml
 sops secrets/talos.yaml
@@ -105,17 +115,20 @@ published as ciphertext.
 
 ## Deploying
 
-`pcgewisinfo` — push to `main`; comin polls the repo and switches the host.
-Every push rebuilds it, including commits that only touch `s3-01`.
+The service PCs (`pcgewisc`, `pcgewisd`, `pcgewisinfo`) — push to `main`;
+comin polls the repo and switches each host. Every push rebuilds them,
+including commits that only touch `s3-01`. Installing a new one is
+[`docs/service-pc/install.md`](docs/service-pc/install.md).
 
-Both live under `terraform/`, each its own root with its own state, so an apply
-to one cannot touch the other. `s3-01` — see [`docs/s3-01.md`](docs/s3-01.md):
+The rest lives under `terraform/`, each its own root with its own state, so an
+apply to one cannot touch another. `s3-01` — see
+[`docs/s3-01/`](docs/s3-01/index.md):
 
 ```sh
 cd terraform/s3-01 && tofu apply
 ```
 
-`talos-*` — see [`docs/talos.md`](docs/talos.md); a Talos template must be
+`talos-*` — see [`docs/talos/`](docs/talos/index.md); a Talos template must be
 imported into Xen Orchestra once first, then:
 
 ```sh

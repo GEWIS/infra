@@ -8,9 +8,14 @@ Kubernetes cluster.
 
 | Host | Role |
 | --- | --- |
+| [pcgewisc](pcgewisc/index.md) | Bar service PC: SudoSOS POS and Spotify on a touchscreen |
+| [pcgewisd](pcgewisd/index.md) | Service PC: SudoSOS POS on a touchscreen |
 | [pcgewisinfo](pcgewisinfo/index.md) | Info-screen kiosk; DHCP and print server for the booth LAN |
 | [s3-01](s3-01/index.md) | Garage S3 object store, single node |
 | [talos](talos/index.md) | 3-node Talos Kubernetes cluster |
+
+What the three service PCs share, and how to install another, is
+[Service PCs](service-pc/index.md).
 
 ## Inside the cluster
 

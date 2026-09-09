@@ -65,12 +65,15 @@ through secrets and the cluster.
 `flake.nix` builds each host as `host "<name>" [extraModules]`: comin, disko, impermanence
 and sops-nix modules, then all of `nix/modules`, then `nix/hosts/<name>/`. Every shared
 module is imported by every host and is inert until enabled under the `gewis.*` option
-namespace: `gewis.comin`, `gewis.persistence`, `gewis.netbird`, `gewis.servicePc`.
-`nix/modules/xcpng.nix` is the exception and is imported only by XCP-ng VMs.
+namespace: `gewis.admin`, `gewis.comin`, `gewis.netbird`, `gewis.persistence`,
+`gewis.servicePc`, `gewis.tmpfsRoot`, `gewis.zabbixAgent`. `nix/modules/xcpng.nix` is the
+exception and is imported only by XCP-ng VMs. Firewall rules for the mesh use
+`config.gewis.netbird.interface`, never the literal interface name.
 
-Adding a host touches, in order: `nix/hosts/<name>/` (with `disko.nix`), an entry in
-`flake.nix`, its age key in `nix/recipients.nix`, `nix run .#sops-config`,
-`secrets/<name>.yaml`, and a docs page plus `nav:` entry.
+Adding a host touches, in order: `nix/hosts/<name>/` (enabling `gewis.tmpfsRoot` or
+carrying its own `disko.nix`), an entry in `flake.nix`, its age key in
+`nix/recipients.nix`, `nix run .#sops-config`, `secrets/<name>.yaml`, and a docs page plus
+`nav:` entry. `docs/service-pc/install.md` is the operator version of that list.
 
 `gewis.servicePc` (`nix/modules/service-pc/`) is the kiosk/POS desktop: GNOME auto-login
 as an unprivileged user, Firefox at a fixed URL, extra apps, per-workspace or per-monitor
@@ -80,9 +83,11 @@ applications; packages, URLs and unfree allowances live in `nix/hosts/<host>/`. 
 naming is "service PC", never "desktop". Fullscreen is done by sending F11 through
 ydotool, so the browser chrome stays reachable.
 
-Hosts with `gewis.persistence` run a tmpfs root with `/persist` (impermanence). Anything
-that must survive a reboot goes in `extraDirectories`; the sops age key lives at
-`/persist/var/lib/sops-nix/key.txt`, and comin's clone is persisted by `comin.nix` itself.
+Hosts with `gewis.tmpfsRoot` run a tmpfs root with `/persist` (impermanence, via
+`gewis.persistence`). Anything that must survive a reboot goes in `extraDirectories` or
+`extraFiles`; the sops age key lives at `/persist/var/lib/sops-nix/key.txt`, and each
+module persists its own state (comin's clone, NetBird's state, the RDP certificate, the ssh
+host key).
 
 root keeps bash on every host: nixos-anywhere and `nixos-rebuild --target-host` pipe POSIX
 fragments through root's login shell.
