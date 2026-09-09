@@ -28,6 +28,11 @@ The browser is always Firefox. The policy file below is Firefox's and the
 launcher sets `MOZ_ENABLE_WAYLAND`, so another browser would come up with
 neither — there is nothing to gain from making it configurable.
 
+The URL is also set as Firefox's home page, so opening a new window (or using
+the Home button) always returns to it if the running one is ever closed. This
+is written to `/etc/firefox/policies/policies.json` at boot rather than baked
+in at build time, since `urlFile` can point at a secret.
+
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `browser.enable` | `false` | Run Firefox |
