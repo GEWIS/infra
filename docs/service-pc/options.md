@@ -12,6 +12,7 @@ Everything below is under `gewis.servicePc`, defined in
 | `uid` | `null` | Fixed uid, also used as the primary group's gid. Pin it where state outlives reinstalls |
 | `workspaces` | `1` | Number of static workspaces |
 | `multiMonitor` | `false` | This host has more than one screen; enables per-monitor placement |
+| `justPerfection` | `false` | Load the Just Perfection extension |
 
 ## Touch
 

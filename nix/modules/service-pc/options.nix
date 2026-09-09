@@ -52,6 +52,14 @@ in
       '';
     };
 
+    justPerfection = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Load the Just Perfection GNOME extension.
+      '';
+    };
+
     touch = {
       enable = lib.mkOption {
         type = lib.types.bool;

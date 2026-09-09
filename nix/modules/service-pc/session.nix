@@ -13,9 +13,9 @@ let
 
   extensions = [
     "no-overview@fthx"
-    "just-perfection-desktop@just-perfection"
     "quick-settings-tweaks@qwreey"
   ]
+  ++ lib.optional cfg.justPerfection "just-perfection-desktop@just-perfection"
   ++ lib.optional needsWindowCalls "window-calls@domandoman.xyz";
 
   hiddenToggles = [
@@ -55,11 +55,14 @@ let
   # share/gsettings-schemas/<name>/glib-2.0/schemas/ layout
   # extraGSettingsOverridePackages requires (glib.getSchemaPath), so the
   # schema files are repackaged into that layout here.
+  extensionSchemaDirs = [
+    "${pkgs.gnomeExtensions.quick-settings-tweaker}/share/gnome-shell/extensions/quick-settings-tweaks@qwreey/schemas"
+  ]
+  ++ lib.optional cfg.justPerfection "${pkgs.gnomeExtensions.just-perfection}/share/gnome-shell/extensions/just-perfection-desktop@just-perfection/schemas";
+
   extensionSchemas = pkgs.runCommand "service-pc-extension-gschemas" { } ''
     mkdir -p "$out/share/gsettings-schemas/$name/glib-2.0/schemas"
-    cp \
-      ${pkgs.gnomeExtensions.just-perfection}/share/gnome-shell/extensions/just-perfection-desktop@just-perfection/schemas/*.gschema.xml \
-      ${pkgs.gnomeExtensions.quick-settings-tweaker}/share/gnome-shell/extensions/quick-settings-tweaks@qwreey/schemas/*.gschema.xml \
+    cp ${lib.concatMapStringsSep " " (d: "${d}/*.gschema.xml") extensionSchemaDirs} \
       "$out/share/gsettings-schemas/$name/glib-2.0/schemas/"
   '';
 in
@@ -198,11 +201,12 @@ in
             accent-color='red'
           ''
         ]
+        ++ lib.optional cfg.justPerfection ''
+          [org.gnome.shell.extensions.just-perfection]
+          accessibility-menu=false
+        ''
         ++ [
           ''
-            [org.gnome.shell.extensions.just-perfection]
-            accessibility-menu=false
-
             [org.gnome.shell.extensions.quick-settings-tweaks]
             toggles-layout-enabled=true
             toggles-layout-order=[${quickToggles}]
@@ -219,9 +223,9 @@ in
 
     environment.systemPackages = [
       pkgs.gnomeExtensions.no-overview
-      pkgs.gnomeExtensions.just-perfection
       pkgs.gnomeExtensions.quick-settings-tweaker
     ]
+    ++ lib.optional cfg.justPerfection pkgs.gnomeExtensions.just-perfection
     ++ lib.optional needsWindowCalls pkgs.gnomeExtensions.window-calls;
 
     systemd.targets = {

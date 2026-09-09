@@ -36,6 +36,7 @@
       enable = true;
       uid = 1000;
       workspaces = 2;
+      justPerfection = true;
       touch = {
         enable = true;
       };
