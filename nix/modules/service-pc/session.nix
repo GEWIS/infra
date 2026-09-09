@@ -202,6 +202,7 @@ in
           ''
             [org.gnome.shell.extensions.just-perfection]
             accessibility-menu=false
+            support-notifier-type=0
 
             [org.gnome.shell.extensions.quick-settings-tweaks]
             toggles-layout-enabled=true
