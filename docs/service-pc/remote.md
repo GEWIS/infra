@@ -70,6 +70,8 @@ a password nobody knows and would lock the session out for good. Nothing of
 value is in there, because the RDP credential is stored again on every session
 start. The delete is its own unit rather than an `ExecStartPre` so that a
 restart of the daemon cannot throw away a credential that was already stored.
+The daemon `Requires=` it, so a keyring the delete could not clear is never the
+one the session ends up using.
 
 `Restart = "always"`, not `on-failure`, because the daemon exits **0** when it
 loses the race for `$XDG_RUNTIME_DIR/keyring`: `gkd_control_listen()` failing
@@ -78,13 +80,32 @@ created for the autologin session is still holding that socket at session start,
 so the first attempt regularly exits clean and has to be retried, or the keyring
 is never unlocked at all.
 
-Both units, and the credential store, are ordered **after**
-`graphical-session.target`, and the store gets a `TimeoutStartSec`. Ordered
-before the target instead, a `grdctl` blocking on a gcr prompt keeps the
-target's start job pending forever, and then nothing that belongs to the session
-ever runs: no browser, no `gnome-remote-desktop`. The symptom is a session that
-looks half-started, with `graphical-session.target` reading `inactive dead` with
-a pending `start` job in `systemctl --user --machine gewis@ list-units`.
+Both keyring units are ordered **before** `graphical-session.target`, so the
+keyring is open before anything in the session can ask it for a secret. That
+ordering is only worth anything because the daemon gates it. `Before=` waits
+for a start job, and a `Type=simple` start job is finished the moment the
+process forks, which is well before the daemon has taken
+`org.freedesktop.secrets` from the passwordless one. So an `ExecStartPost`
+polls the login collection's `Locked` property on the session bus and holds the
+unit `activating` until it reads `b false`: `Before=` then means "unlocked"
+rather than "spawned", and `Requires=` on it in the credential store means the
+same. Reading a property never raises a gcr prompt, where asking for a secret
+would, and `--auto-start=no` keeps the probe itself from ever being what
+D-Bus-activates a passwordless daemon. The poll gives up after 30s and fails
+the unit, which is what makes `Restart = "always"` retry the `--replace` rather
+than leave a forked-but-useless daemon sitting there looking healthy.
+
+The credential store stays **after** the target, and keeps its
+`TimeoutStartSec`. Ordered before it, a `grdctl` blocking on a gcr prompt keeps
+the target's start job pending forever, and then nothing that belongs to the
+session ever runs: no browser, no `gnome-remote-desktop`. The symptom is a
+session that looks half-started, with `graphical-session.target` reading
+`inactive dead` with a pending `start` job in
+`systemctl --user --machine gewis@ list-units`. The keyring units cannot wedge
+it the same way, because neither ever prompts and both are bounded: if the gate
+never passes, the unit ends `failed` rather than pending and the session still
+comes up — without RDP, and with the on-screen keyring prompt this whole
+arrangement exists to avoid.
 
 Storing is a store-and-read-back loop, because `grdctl` exits 0 having written
 nothing while the keyring is not ready yet. On the machine, the same read-back

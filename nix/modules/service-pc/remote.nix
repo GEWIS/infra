@@ -31,6 +31,20 @@ let
       echo "service-pc-rdp-credentials: could not store the RDP password in the keyring" >&2
       exit 1
     '';
+
+  keyringReady = pkgs.writeShellScript "service-pc-keyring-ready" ''
+    set -eu
+    for _ in $(seq 1 30); do
+      if [ "$(${lib.getExe' pkgs.systemd "busctl"} --user --auto-start=no get-property \
+        org.freedesktop.secrets /org/freedesktop/secrets/collection/login \
+        org.freedesktop.Secret.Collection Locked 2>/dev/null || true)" = "b false" ]; then
+        exit 0
+      fi
+      sleep 1
+    done
+    echo "service-pc-keyring: login keyring still locked; the daemon lost org.freedesktop.secrets" >&2
+    exit 1
+  '';
 in
 {
   config = lib.mkIf cfg.enable {
@@ -98,6 +112,7 @@ in
         description = "Login keyring for service-PC remote access";
         wantedBy = [ "default.target" ];
         after = [ "service-pc-keyring-reset.service" ];
+        requires = [ "service-pc-keyring-reset.service" ];
         before = [
           "graphical-session.target"
           "service-pc-rdp-credentials.service"
@@ -105,7 +120,9 @@ in
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = {
           ExecStart = "/run/wrappers/bin/gnome-keyring-daemon --replace --unlock --foreground";
+          ExecStartPost = "${keyringReady}";
           StandardInput = "file:${cfg.remote.passwordFile}";
+          TimeoutStartSec = 60;
           Restart = "always";
           RestartSec = 2;
         };
