@@ -3,6 +3,7 @@ let
   servicePc = {
     imports = [
       inputs.comin.nixosModules.comin
+      inputs.disko.nixosModules.disko
       inputs.impermanence.nixosModules.impermanence
       inputs.sops-nix.nixosModules.sops
       ../modules
@@ -30,6 +31,11 @@ let
         waitForUrl = false;
         kiosk = true;
         workspace = 1;
+      };
+
+      apps.xterm = {
+        package = pkgs.xterm;
+        workspace = 2;
       };
 
       remote = {
@@ -115,6 +121,9 @@ pkgs.testers.runNixOSTest {
       machine.wait_for_unit("service-pc-rdp-credentials.service", "gewis")
       machine.wait_for_unit("service-pc-browser.service", "gewis")
       machine.wait_until_succeeds("pgrep -u gewis firefox")
+      machine.wait_for_unit("service-pc-app-xterm.service", "gewis")
+      machine.wait_until_succeeds("pgrep -u gewis xterm")
+      machine.fail("journalctl -b _SYSTEMD_USER_UNIT=service-pc-app-xterm.service | grep -q service-pc-place:")
 
       status = machine.succeed(f"su gewis -c '{session}grdctl status --show-credentials'")
       assert "Username: gewis" in status, status
