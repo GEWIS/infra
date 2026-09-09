@@ -8,7 +8,7 @@ let
   inherit (import ./lib.nix { inherit config lib pkgs; })
     cfg
     placed
-    needsPlacement
+    needsWindowCalls
     ;
 
   extensions = [
@@ -16,7 +16,7 @@ let
     "just-perfection-desktop@just-perfection"
     "quick-settings-tweaks@qwreey"
   ]
-  ++ lib.optional needsPlacement "window-calls@domandoman.xyz";
+  ++ lib.optional needsWindowCalls "window-calls@domandoman.xyz";
 
   hiddenToggles = [
     "NMWiredToggle"
@@ -223,7 +223,7 @@ in
       pkgs.gnomeExtensions.just-perfection
       pkgs.gnomeExtensions.quick-settings-tweaker
     ]
-    ++ lib.optional needsPlacement pkgs.gnomeExtensions.window-calls;
+    ++ lib.optional needsWindowCalls pkgs.gnomeExtensions.window-calls;
 
     systemd.targets = {
       sleep.enable = false;

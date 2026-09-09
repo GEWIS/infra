@@ -184,6 +184,8 @@ let
 
   needsPlacement = lib.any (p: p.workspace != null || p.monitor != null) placed;
 
+  needsWindowCalls = needsPlacement || (cfg.browser.enable && cfg.browser.kiosk);
+
   # ConditionUser scopes this to cfg.user; systemd user units otherwise start for every logged-in user.
   sessionUnit =
     {
@@ -230,6 +232,7 @@ in
     appModule
     placed
     needsPlacement
+    needsWindowCalls
     sessionUnit
     ;
 }
