@@ -8,7 +8,8 @@ It gives a machine:
 - a browser pointed at a fixed URL, and any other applications the host names;
 - each of those pinned to a workspace or screen;
 - an NFC reader that types scanned tags into whatever has focus;
-- remote control of the session.
+- remote control of the session;
+- a power-off every evening, so a stuck session never outlives the day.
 
 The module is defined in `nix/modules/service-pc/` and imported by every
 host through `nix/modules/default.nix`, so it is available everywhere and does

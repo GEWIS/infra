@@ -13,6 +13,7 @@ Everything below is under `gewis.servicePc`, defined in
 | `workspaces` | `1` | Number of static workspaces |
 | `multiMonitor` | `false` | This host has more than one screen; enables per-monitor placement |
 | `justPerfection` | `false` | Load the Just Perfection extension |
+| `shutdownAt` | `"23:00"` | Daily power-off time, as a systemd calendar expression; `null` keeps the host running |
 
 ## Touch
 

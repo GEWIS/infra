@@ -8,5 +8,6 @@
     ./remote.nix
     ./nfc.nix
     ./plymouth.nix
+    ./shutdown.nix
   ];
 }

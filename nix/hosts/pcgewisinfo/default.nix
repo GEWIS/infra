@@ -7,7 +7,6 @@
     ./networking.nix
     ./persistence.nix
     ./printers.nix
-    ./schedule.nix
   ];
 
   networking.hostName = "pcgewisinfo";

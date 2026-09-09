@@ -60,6 +60,16 @@ in
       '';
     };
 
+    shutdownAt = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = "23:00";
+      example = "*-*-* 22:30:00";
+      description = ''
+        Time the host powers itself off every day, as a systemd calendar
+        expression. `null` keeps it running.
+      '';
+    };
+
     touch = {
       enable = lib.mkOption {
         type = lib.types.bool;
