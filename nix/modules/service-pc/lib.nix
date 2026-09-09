@@ -106,7 +106,8 @@ let
       exit 0
     fi
 
-    ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0
+    env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
+          ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0
   '';
 
   # Shared by the browser and the extra apps, so both are placed the same way.
