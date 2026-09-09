@@ -40,6 +40,12 @@ in
       }
     ];
 
+    programs.ydotool.enable = lib.mkIf (cfg.browser.enable && cfg.browser.kiosk) true;
+
+    users.users.${cfg.user}.extraGroups = lib.mkIf (cfg.browser.enable && cfg.browser.kiosk) [
+      config.programs.ydotool.group
+    ];
+
     systemd.user.services = lib.mkIf cfg.browser.enable {
       service-pc-browser = sessionUnit {
         description = "Browser for the service-PC session";

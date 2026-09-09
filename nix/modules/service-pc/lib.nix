@@ -104,10 +104,7 @@ let
       sleep 1
     done
 
-    # Exits 0 so a missing window doesn't take the whole unit down. Says which
-    # of the two ways it failed, because they need opposite fixes: a bare
-    # window-calls failure means the extension is not answering at all, while
-    # a list of classes means it answered and `class` is simply wrong.
+    # Exits 0 so a missing window doesn't take the whole unit down.
     if [ -z "$id" ]; then
       if [ "$listed" = no ]; then
         echo "service-pc-fullscreen: org.gnome.Shell.Extensions.Windows never answered in ${toString placeTimeoutSeconds}s; is window-calls enabled?" >&2
@@ -119,19 +116,37 @@ let
       exit 0
     fi
 
-    for _ in $(seq 1 ${toString fullscreenAttempts}); do
-      shell_call MakeFullscreen u "$id" >/dev/null 2>&1 || true
+    fullscreen_now() {
+      shell_call Details u "$id" 2>/dev/null \
+        | "$jq" -r '.data[0]' \
+        | "$jq" -r '.fullscreen // false' 2>/dev/null || echo false
+    }
+
+    # Firefox keeps only a fullscreen state it entered itself, so it is driven
+    # through its own F11 handler. F11 toggles, so the press is repeated only
+    # while GNOME still reports the window as not fullscreen.
+    attempt=0
+    while [ "$attempt" -lt ${toString fullscreenAttempts} ]; do
+      attempt=$((attempt + 1))
+
+      # ydotool types into whatever the compositor considers focused.
+      shell_call Activate u "$id" >/dev/null 2>&1 || true
+
+      if ! err=$(env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
+        ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0 2>&1 >/dev/null); then
+        echo "service-pc-fullscreen: ydotool failed on attempt $attempt: $err" >&2
+      fi
+
       sleep 1
-      details=$(shell_call Details u "$id" 2>/dev/null | "$jq" -r '.data[0]' || true)
-      if [ "$(printf '%s' "$details" | "$jq" -r '.fullscreen // false' 2>/dev/null || echo false)" = "true" ]; then
+      if [ "$(fullscreen_now)" = true ]; then
         exit 0
       fi
     done
 
-    # Exits 0 for the same reason the missing-window branch does. Dumps what
-    # Mutter reports about the window, since a MakeFullscreen that is accepted
-    # and then silently reverted looks identical to one that never arrived.
-    echo "service-pc-fullscreen: '$class' (id $id) is still not fullscreen after ${toString fullscreenAttempts} attempts" >&2
+    details=$(shell_call Details u "$id" 2>/dev/null | "$jq" -r '.data[0]' || true)
+
+    # Exits 0 for the same reason the missing-window branch does.
+    echo "service-pc-fullscreen: '$class' (id $id) is still not fullscreen after ${toString fullscreenAttempts} F11 presses" >&2
     printf '%s' "$details" \
       | "$jq" -c '{fullscreen, maximized, monitor, x, y, width, height, focus}' >&2 2>/dev/null || true
   '';
