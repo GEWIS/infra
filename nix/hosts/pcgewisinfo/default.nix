@@ -1,40 +1,56 @@
 { config, ... }:
+let
+  sessionUser = config.gewis.servicePc.user;
+  mesh = [ config.gewis.netbird.interface ];
+in
 {
   imports = [
     ./boot.nix
-    ./disko.nix
     ./fonts.nix
     ./networking.nix
-    ./persistence.nix
     ./printers.nix
   ];
 
   networking.hostName = "pcgewisinfo";
   system.stateVersion = "26.05";
 
-  users.users.cbc = {
-    isNormalUser = true;
-    hashedPasswordFile = config.sops.secrets.cbcPassword.path;
-    extraGroups = [ "wheel" ];
-  };
-
-  security.sudo.wheelNeedsPassword = false;
-
-  gewis.servicePc = {
-    enable = true;
-    uid = 1000;
-
-    browser = {
+  gewis = {
+    admin = {
       enable = true;
-      urlFile = config.sops.secrets.kioskUrl.path;
-      # No input devices to navigate away with, so kiosk mode costs nothing here.
-      kiosk = true;
+      firewallInterfaces = [ "enp1s0" ] ++ mesh;
     };
 
-    remote = {
+    comin.enable = true;
+
+    tmpfsRoot.enable = true;
+
+    servicePc = {
       enable = true;
-      passwordFile = config.sops.secrets.rdpPassword.path;
-      firewallInterfaces = [ "nb-netbird" ];
+      uid = 1000;
+
+      browser = {
+        enable = true;
+        urlFile = config.sops.secrets.kioskUrl.path;
+        # No input devices to navigate away with, so kiosk mode costs nothing here.
+        kiosk = true;
+      };
+
+      remote = {
+        enable = true;
+        passwordFile = config.sops.secrets.rdpPassword.path;
+        firewallInterfaces = mesh;
+      };
+    };
+
+    netbird = {
+      enable = true;
+      client = "netbird";
+      dnsLabel = "pcgewisinfo";
+    };
+
+    zabbixAgent = {
+      enable = true;
+      firewallInterfaces = mesh;
     };
   };
 
@@ -43,50 +59,17 @@
     SUBSYSTEM=="input", ENV{ID_INPUT_MOUSE}=="1", ENV{LIBINPUT_IGNORE_DEVICE}="1"
   '';
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = false;
-
   nix.settings = {
-    trusted-users = [ "cbc" ];
     substituters = [ "https://gewis.cachix.org" ];
     trusted-public-keys = [
       "gewis.cachix.org-1:bOcor+MaaLuUJN0Yj/IHCXsOQWm/RxSokm6BHGcbF5k="
     ];
   };
 
-  gewis.comin.enable = true;
-
-  gewis.netbird = {
-    enable = true;
-    client = "netbird";
-    dnsLabel = "pcgewisinfo";
-  };
-
-  gewis.zabbixAgent = {
-    enable = true;
-    firewallInterfaces = [ "nb-netbird" ];
-  };
-
-  services.openssh = {
-    openFirewall = false;
-    settings = {
-      PermitRootLogin = "no";
-      PasswordAuthentication = true;
-      KbdInteractiveAuthentication = true;
-    };
-    hostKeys = [
-      {
-        path = "/etc/ssh/ssh_host_ed25519_key";
-        type = "ed25519";
-      }
-    ];
-  };
-
   sops = {
     age.keyFile = "/persist/var/lib/sops-nix/key.txt";
     defaultSopsFile = ../../../secrets/pcgewisinfo.yaml;
-    secrets.kioskUrl.owner = "gewis";
-    secrets.rdpPassword.owner = "gewis";
-    secrets.cbcPassword.neededForUsers = true;
+    secrets.kioskUrl.owner = sessionUser;
+    secrets.rdpPassword.owner = sessionUser;
   };
 }

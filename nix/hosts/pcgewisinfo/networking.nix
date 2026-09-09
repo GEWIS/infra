@@ -36,10 +36,7 @@ _: {
         53
         67
       ];
-      allowedTCPPorts = [
-        53
-        22
-      ];
+      allowedTCPPorts = [ 53 ];
     };
     interfaces = {
       "enp0s31f6".useDHCP = true;
