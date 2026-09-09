@@ -84,6 +84,21 @@ in
         default = true;
         description = "Enable GNOME's on-screen keyboard.";
       };
+
+      vendorId = lib.mkOption {
+        type = lib.types.str;
+        default = "0eef";
+        description = ''
+          USB vendor ID of the touch panel, as reported by `lsusb`. The panel
+          is reclassified from tablet to touchscreen for libinput.
+        '';
+      };
+
+      productId = lib.mkOption {
+        type = lib.types.str;
+        default = "0001";
+        description = "USB product ID of the touch panel, as reported by `lsusb`.";
+      };
     };
 
     browser = {

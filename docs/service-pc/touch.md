@@ -1,5 +1,14 @@
 # Touchscreens and workspaces
 
+## The panel
+
+`touch.enable` says the host is a touchscreen with no keyboard or mouse. It
+turns on GNOME's on-screen keyboard and reclassifies the panel for libinput:
+the panels in use announce themselves as tablets, which libinput would treat as
+a pen device, so a udev rule matching `touch.vendorId` and `touch.productId`
+marks the device as a touchscreen instead. A different panel needs its two IDs
+from `lsusb`.
+
 ## Workspaces
 
 `workspaces` fixes how many workspaces the session has, and switches GNOME off

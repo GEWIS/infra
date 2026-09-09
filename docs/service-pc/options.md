@@ -21,6 +21,8 @@ Everything below is under `gewis.servicePc`, defined in
 | --- | --- | --- |
 | `touch.enable` | `false` | This host is a touchscreen with no keyboard or mouse |
 | `touch.onScreenKeyboard` | `true` | GNOME's on-screen keyboard |
+| `touch.vendorId` | `"0eef"` | USB vendor ID of the panel, from `lsusb` |
+| `touch.productId` | `"0001"` | USB product ID of the panel, from `lsusb` |
 
 See [Touchscreens and workspaces](touch.md).
 
