@@ -178,6 +178,12 @@ in
             sleep-inactive-battery-type='nothing'
           ''
         ]
+        ++ [
+          ''
+            [org.gnome.desktop.notifications]
+            show-banners=false
+          ''
+        ]
         # Dissable night light
         ++ [
           ''
