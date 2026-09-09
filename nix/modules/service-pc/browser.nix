@@ -71,6 +71,7 @@ in
         "browser.startup.page" = 0;
         "browser.sessionstore.resume_from_crash" = false;
         "browser.shell.checkDefaultBrowser" = false;
+        "datareporting.policy.dataSubmissionPolicyBypassNotification" = true;
       };
     };
   };
