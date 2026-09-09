@@ -42,9 +42,6 @@ in
       service-pc-nfc-reader = sessionUnit {
         description = "NFC tag reader for the service-PC session";
         exec = "${nfcReaderScript}";
-        wmClass = "service-pc-nfc-reader";
-        workspace = null;
-        monitor = null;
       };
     };
   };

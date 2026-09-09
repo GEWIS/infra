@@ -9,19 +9,22 @@ let
   placeTimeoutSeconds = 60;
   fullscreenAttempts = 10;
 
-  placeScript = pkgs.writeShellScript "service-pc-place" ''
-    set -eu
-
-    class="$1"
-    mode="$2"
-    index="$3"
-
+  windowCalls = ''
     jq=${lib.getExe pkgs.jq}
     shell_call() {
       ${lib.getExe' pkgs.systemd "busctl"} --user --json=short call \
         org.gnome.Shell /org/gnome/Shell/Extensions/Windows \
         org.gnome.Shell.Extensions.Windows "$@"
     }
+  '';
+
+  findWindowScript = pkgs.writeShellScript "service-pc-find-window" ''
+    set -eu
+
+    tag="$1"
+    class="$2"
+
+    ${windowCalls}
 
     # Matched case-insensitively, against the instance name as well as the class.
     select_id='
@@ -34,21 +37,41 @@ let
 
     id=""
     windows="[]"
+    listed=no
     for _ in $(seq 1 ${toString placeTimeoutSeconds}); do
       if windows=$(shell_call List 2>/dev/null | "$jq" -r '.data[0]'); then
+        listed=yes
         id=$(printf '%s' "$windows" | "$jq" -r --arg c "$class" "$select_id")
         [ -n "$id" ] && break
       fi
       sleep 1
     done
 
-    # Exits 0 so a missing window doesn't take the whole unit down.
     if [ -z "$id" ]; then
-      seen=$(printf '%s' "$windows" \
-        | "$jq" -r '[.[] | .wm_class] | unique | join(", ")' 2>/dev/null || echo "none")
-      echo "service-pc-place: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s; saw: $seen" >&2
-      exit 0
+      if [ "$listed" = no ]; then
+        echo "$tag: org.gnome.Shell.Extensions.Windows never answered in ${toString placeTimeoutSeconds}s; is window-calls enabled?" >&2
+      else
+        seen=$(printf '%s' "$windows" \
+          | "$jq" -r '[.[] | .wm_class] | unique | join(", ")' 2>/dev/null || echo "none")
+        echo "$tag: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s; saw: $seen" >&2
+      fi
+      exit 1
     fi
+
+    printf '%s\n' "$id"
+  '';
+
+  placeScript = pkgs.writeShellScript "service-pc-place" ''
+    set -eu
+
+    class="$1"
+    mode="$2"
+    index="$3"
+
+    ${windowCalls}
+
+    # Exits 0 so a missing window doesn't take the whole unit down.
+    id=$(${findWindowScript} service-pc-place "$class") || exit 0
 
     case "$mode" in
       workspace)
@@ -77,44 +100,10 @@ let
 
     class="$1"
 
-    jq=${lib.getExe pkgs.jq}
-    shell_call() {
-      ${lib.getExe' pkgs.systemd "busctl"} --user --json=short call \
-        org.gnome.Shell /org/gnome/Shell/Extensions/Windows \
-        org.gnome.Shell.Extensions.Windows "$@"
-    }
-
-    select_id='
-      ($c | ascii_downcase) as $want
-      | map(select(
-          ((.wm_class // "") | ascii_downcase) == $want
-          or ((.wm_class_instance // "") | ascii_downcase) == $want))
-      | .[0].id // empty
-    '
-
-    id=""
-    windows="[]"
-    listed=no
-    for _ in $(seq 1 ${toString placeTimeoutSeconds}); do
-      if windows=$(shell_call List 2>/dev/null | "$jq" -r '.data[0]'); then
-        listed=yes
-        id=$(printf '%s' "$windows" | "$jq" -r --arg c "$class" "$select_id")
-        [ -n "$id" ] && break
-      fi
-      sleep 1
-    done
+    ${windowCalls}
 
     # Exits 0 so a missing window doesn't take the whole unit down.
-    if [ -z "$id" ]; then
-      if [ "$listed" = no ]; then
-        echo "service-pc-fullscreen: org.gnome.Shell.Extensions.Windows never answered in ${toString placeTimeoutSeconds}s; is window-calls enabled?" >&2
-      else
-        seen=$(printf '%s' "$windows" \
-          | "$jq" -r '[.[] | .wm_class] | unique | join(", ")' 2>/dev/null || echo "none")
-        echo "service-pc-fullscreen: no window with wm_class '$class' after ${toString placeTimeoutSeconds}s; saw: $seen" >&2
-      fi
-      exit 0
-    fi
+    id=$(${findWindowScript} service-pc-fullscreen "$class") || exit 0
 
     fullscreen_now() {
       shell_call Details u "$id" 2>/dev/null \
@@ -233,20 +222,21 @@ let
     {
       description,
       exec,
-      wmClass,
-      workspace,
-      monitor,
+      wmClass ? null,
+      workspace ? null,
+      monitor ? null,
       fullscreen ? false,
+      restart ? "on-failure",
     }:
     {
       inherit description;
       partOf = [ "graphical-session.target" ];
-      after = [ "graphical-session.target" ] ++ lib.optional cfg.remote.enable "service-pc-keyring.service";
+      after = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
       unitConfig.ConditionUser = cfg.user;
       serviceConfig = {
         ExecStart = exec;
-        Restart = "on-failure";
+        Restart = restart;
         RestartSec = 5;
         ExecStartPost =
           lib.optional (workspace != null) "${placeScript} ${
