@@ -133,6 +133,10 @@ in
 
     i18n.inputMethod.ibus.waylandFrontend = true;
 
+    # GNOME's on-screen keyboard only opens for fields announced through the
+    # Wayland text-input protocol, which GTK skips while GTK_IM_MODULE=ibus is set.
+    i18n.inputMethod.ibus.waylandFrontend = true;
+
     services.desktopManager.gnome = {
       enable = true;
 
