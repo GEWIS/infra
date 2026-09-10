@@ -11,11 +11,31 @@ let
     needsWindowCalls
     ;
 
+  oskOnFocusUuid = "osk-on-focus@gewis.nl";
+
+  oskOnFocus = pkgs.runCommand "gnome-shell-extension-osk-on-focus" { } ''
+    dir="$out/share/gnome-shell/extensions/${oskOnFocusUuid}"
+    mkdir -p "$dir"
+    cp ${./assets/osk-on-focus/extension.js} "$dir/extension.js"
+    cp ${
+      pkgs.writeText "metadata.json" (
+        builtins.toJSON {
+          uuid = oskOnFocusUuid;
+          name = "OSK on focus";
+          description = "Opens the on-screen keyboard whenever an application focuses a text field.";
+          shell-version = [ (lib.versions.major pkgs.gnome-shell.version) ];
+          url = "https://github.com/GEWIS/infra";
+        }
+      )
+    } "$dir/metadata.json"
+  '';
+
   extensions = [
     "no-overview@fthx"
     "quick-settings-tweaks@qwreey"
   ]
   ++ lib.optional cfg.justPerfection "just-perfection-desktop@just-perfection"
+  ++ lib.optional cfg.touch.enable oskOnFocusUuid
   ++ lib.optional needsWindowCalls "window-calls@domandoman.xyz";
 
   hiddenToggles = [
@@ -133,10 +153,6 @@ in
 
     i18n.inputMethod.ibus.waylandFrontend = true;
 
-    # GNOME's on-screen keyboard only opens for fields announced through the
-    # Wayland text-input protocol, which GTK skips while GTK_IM_MODULE=ibus is set.
-    i18n.inputMethod.ibus.waylandFrontend = true;
-
     services.desktopManager.gnome = {
       enable = true;
 
@@ -224,7 +240,8 @@ in
       pkgs.gnomeExtensions.quick-settings-tweaker
     ]
     ++ lib.optional cfg.justPerfection pkgs.gnomeExtensions.just-perfection
-    ++ lib.optional needsWindowCalls pkgs.gnomeExtensions.window-calls;
+    ++ lib.optional needsWindowCalls pkgs.gnomeExtensions.window-calls
+    ++ lib.optional cfg.touch.enable oskOnFocus;
 
     systemd.targets = {
       sleep.enable = false;

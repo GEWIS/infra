@@ -76,7 +76,7 @@ in
         default = false;
         description = ''
           This host is a touchscreen with no keyboard or mouse. Enables GNOME's
-          on-screen keyboard.
+          on-screen keyboard and opens it whenever a text field gets focus.
         '';
       };
 
