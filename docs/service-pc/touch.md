@@ -18,8 +18,8 @@ text-input protocol. GTK only speaks that protocol when `GTK_IM_MODULE` is
 unset, so every service PC runs IBus with its Wayland frontend, which leaves
 the variable out of the session. Mutter itself raises the keyboard only when a
 field that already has focus is enabled a second time, which GTK does on a tap
-into a focused entry and Firefox never does; the extension raises it on the
-first focus instead, so a field focused by a tap or by the page itself gets the
+into a focused entry and Firefox never does; the extension raises it on every
+focus-in instead, so a field focused by a tap or by the page itself gets the
 keyboard straight away. The keyboard closes when the field loses focus, and a
 keyboard the user dismissed stays hidden until focus leaves and returns.
 
