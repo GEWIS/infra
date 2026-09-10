@@ -163,7 +163,7 @@ in
           [org.gnome.shell]
           enabled-extensions=[${lib.concatMapStringsSep "," (e: "'${e}'") extensions}]
         ''
-        ++ lib.optional (cfg.touch.enable && cfg.touch.onScreenKeyboard) ''
+        ++ lib.optional cfg.touch.enable ''
           [org.gnome.desktop.a11y.applications]
           screen-keyboard-enabled=true
         ''

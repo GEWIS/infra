@@ -75,14 +75,9 @@ in
         type = lib.types.bool;
         default = false;
         description = ''
-          This host is a touchscreen with no keyboard or mouse.
+          This host is a touchscreen with no keyboard or mouse. Enables GNOME's
+          on-screen keyboard.
         '';
-      };
-
-      onScreenKeyboard = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Enable GNOME's on-screen keyboard.";
       };
 
       vendorId = lib.mkOption {
