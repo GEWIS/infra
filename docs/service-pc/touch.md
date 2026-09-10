@@ -9,6 +9,15 @@ a pen device, so a udev rule matching `touch.vendorId` and `touch.productId`
 marks the device as a touchscreen instead. A different panel needs its two IDs
 from `lsusb`.
 
+The on-screen keyboard opens when an application announces a focused text
+field to mutter over the Wayland text-input protocol. GTK only speaks that
+protocol when `GTK_IM_MODULE` is unset, so every service PC runs IBus with its
+Wayland frontend, which leaves the variable out of the session. Firefox then
+announces a field each time focus moves from a non-editable element to an
+editable one. Focus moving straight between two fields, or set from JavaScript
+while another field is active, does not count, so a web app that wants the
+keyboard back must blur the active element before focusing the next.
+
 ## Workspaces
 
 `workspaces` fixes how many workspaces the session has, and switches GNOME off

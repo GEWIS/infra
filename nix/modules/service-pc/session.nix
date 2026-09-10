@@ -131,6 +131,8 @@ in
       pkgs.gnome-font-viewer
     ];
 
+    i18n.inputMethod.ibus.waylandFrontend = true;
+
     services.desktopManager.gnome = {
       enable = true;
 
