@@ -27,10 +27,17 @@ in
       justPerfection = true;
       touch.enable = true;
 
-      browsers.sudosos = {
-        urlFile = config.sops.secrets.sudososUrl.path;
-        workspace = 1;
-        kiosk = true;
+      browsers = {
+        sudosos = {
+          urlFile = config.sops.secrets.sudososUrl.path;
+          workspace = 1;
+          kiosk = true;
+        };
+        test = {
+          url = "https://heeftjarmoautomatagehaald.nl";
+          workspace = 2;
+          kiosk = true;
+        }
       };
 
       nfcReader.enable = true;
