@@ -1,9 +1,4 @@
-{
-  lib,
-  pkgs,
-  config,
-  ...
-}:
+{ config,  ... }:
 let
   sessionUser = config.gewis.servicePc.user;
   mesh = [ config.gewis.netbird.interface ];
