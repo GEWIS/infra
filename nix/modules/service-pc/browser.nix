@@ -5,59 +5,72 @@
   ...
 }:
 let
-  inherit (import ./lib.nix { inherit config lib pkgs; }) cfg sessionUnit;
+  inherit (import ./lib.nix { inherit config lib pkgs; })
+    cfg
+    browserWmClass
+    needsKiosk
+    sessionUnit
+    ;
 
   browserUrl =
-    if cfg.browser.url != null then
-      lib.escapeShellArg cfg.browser.url
+    browser:
+    if browser.url != null then
+      lib.escapeShellArg browser.url
     else
-      ''"$(cat ${cfg.browser.urlFile})"'';
+      ''"$(cat ${browser.urlFile})"'';
 
-  browserLauncher = pkgs.writeShellScript "service-pc-browser" ''
-    set -eu
-    url=${browserUrl}
-    ${lib.optionalString cfg.browser.waitForUrl ''
-      deadline=$(( $(date +%s) + ${toString cfg.browser.waitTimeout} ))
-      until ${lib.getExe pkgs.curl} -sSf --max-time 5 -o /dev/null "$url"; do
-        if [ ${toString cfg.browser.waitTimeout} -gt 0 ] && [ "$(date +%s)" -ge "$deadline" ]; then
-          echo "service-pc-browser: $url did not answer within ${toString cfg.browser.waitTimeout}s; starting anyway" >&2
-          break
-        fi
-        sleep 2
-      done
-    ''}
-    exec env MOZ_ENABLE_WAYLAND=1 ${lib.getExe config.programs.firefox.finalPackage} "$url"
-  '';
+  # `--new-instance` keeps Firefox from handing the URL to an already running
+  # instance and exiting, which would put the unit in a restart loop.
+  browserLauncher =
+    name: browser:
+    pkgs.writeShellScript "service-pc-browser-${name}" ''
+      set -eu
+      url=${browserUrl browser}
+      ${lib.optionalString browser.waitForUrl ''
+        deadline=$(( $(date +%s) + ${toString browser.waitTimeout} ))
+        until ${lib.getExe pkgs.curl} -sSf --max-time 5 -o /dev/null "$url"; do
+          if [ ${toString browser.waitTimeout} -gt 0 ] && [ "$(date +%s)" -ge "$deadline" ]; then
+            echo "service-pc-browser-${name}: $url did not answer within ${toString browser.waitTimeout}s; starting anyway" >&2
+            break
+          fi
+          sleep 2
+        done
+      ''}
+      exec env MOZ_ENABLE_WAYLAND=1 ${lib.getExe config.programs.firefox.finalPackage} \
+        --name ${lib.escapeShellArg (browserWmClass name)} \
+        --new-instance \
+        --profile "$HOME/.mozilla/firefox/service-pc-${name}" \
+        "$url"
+    '';
 in
 {
   config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = cfg.browser.enable -> ((cfg.browser.url == null) != (cfg.browser.urlFile == null));
-        message = ''
-          gewis.servicePc.browser needs exactly one of `url` or `urlFile`.
-        '';
-      }
-    ];
+    assertions = lib.mapAttrsToList (name: browser: {
+      assertion = (browser.url == null) != (browser.urlFile == null);
+      message = ''
+        gewis.servicePc.browsers.${name} needs exactly one of `url` or `urlFile`.
+      '';
+    }) cfg.browsers;
 
-    programs.ydotool.enable = lib.mkIf (cfg.browser.enable && cfg.browser.kiosk) true;
+    programs.ydotool.enable = lib.mkIf needsKiosk true;
 
-    users.users.${cfg.user}.extraGroups = lib.mkIf (cfg.browser.enable && cfg.browser.kiosk) [
+    users.users.${cfg.user}.extraGroups = lib.mkIf needsKiosk [
       config.programs.ydotool.group
     ];
 
-    systemd.user.services = lib.mkIf cfg.browser.enable {
-      service-pc-browser = sessionUnit {
-        description = "Browser for the service-PC session";
-        exec = "${browserLauncher}";
-        wmClass = "firefox";
-        fullscreen = cfg.browser.kiosk;
+    systemd.user.services = lib.mapAttrs' (
+      name: browser:
+      lib.nameValuePair "service-pc-browser-${name}" (sessionUnit {
+        description = "${name} browser for the service-PC session";
+        exec = "${browserLauncher name browser}";
+        wmClass = browserWmClass name;
+        fullscreen = browser.kiosk;
         restart = "always";
-        inherit (cfg.browser) workspace monitor;
-      };
-    };
+        inherit (browser) workspace monitor;
+      })
+    ) cfg.browsers;
 
-    programs.firefox = lib.mkIf cfg.browser.enable {
+    programs.firefox = lib.mkIf (cfg.browsers != { }) {
       enable = true;
 
       policies = {

@@ -140,7 +140,7 @@ let
       | "$jq" -c '{fullscreen, maximized, monitor, x, y, width, height, focus}' >&2 2>/dev/null || true
   '';
 
-  # Shared by the browser and the extra apps, so both are placed the same way.
+  # Shared by the browsers and the extra apps, so all are placed the same way.
   placement = {
     workspace = lib.mkOption {
       type = lib.types.nullOr lib.types.ints.positive;
@@ -163,6 +163,62 @@ let
         Mutually exclusive with `workspace`.
       '';
     };
+  };
+
+  # Firefox derives its Wayland app-id from the program name `--name` sets, so
+  # this is the wm_class the placement helper sees for that instance.
+  browserWmClass = name: "firefox-${name}";
+
+  browserModule = lib.types.submodule {
+    options = {
+      url = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "https://sudosos.gewis.nl/pos";
+        description = ''
+          URL to open. Mutually exclusive with `urlFile`; use that one if the
+          URL contains an API key or other secret.
+        '';
+      };
+
+      urlFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        example = lib.literalExpression "config.sops.secrets.kioskUrl.path";
+        description = ''
+          File read at launch to get the URL. Mutually exclusive with `url`.
+        '';
+      };
+
+      kiosk = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Drop the browser into fullscreen once its window appears, by sending
+          F11 via ydotool. The browser chrome stays reachable (address bar,
+          keyboard shortcuts) behind the same F11 toggle a user would use. The
+          press is repeated until GNOME reports the window as fullscreen.
+        '';
+      };
+
+      waitForUrl = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Poll the URL before starting the browser.
+        '';
+      };
+
+      waitTimeout = lib.mkOption {
+        type = lib.types.ints.unsigned;
+        default = 120;
+        description = ''
+          Seconds to keep polling before giving up and starting the browser
+          anyway; 0 waits forever.
+        '';
+      };
+    }
+    // placement;
   };
 
   appModule = lib.types.submodule (
@@ -202,12 +258,12 @@ let
   );
 
   # Everything the placement helper is asked to move, so the assertions can
-  # check the browser and the extra apps in one pass.
+  # check the browsers and the extra apps in one pass.
   placed =
-    lib.optional cfg.browser.enable {
-      what = "gewis.servicePc.browser";
-      inherit (cfg.browser) workspace monitor;
-    }
+    lib.mapAttrsToList (name: browser: {
+      what = "gewis.servicePc.browsers.${name}";
+      inherit (browser) workspace monitor;
+    }) cfg.browsers
     ++ lib.mapAttrsToList (name: app: {
       what = "gewis.servicePc.apps.${name}";
       inherit (app) workspace monitor;
@@ -215,7 +271,9 @@ let
 
   needsPlacement = lib.any (p: p.workspace != null || p.monitor != null) placed;
 
-  needsWindowCalls = needsPlacement || (cfg.browser.enable && cfg.browser.kiosk);
+  needsKiosk = lib.any (browser: browser.kiosk) (lib.attrValues cfg.browsers);
+
+  needsWindowCalls = needsPlacement || needsKiosk;
 
   # ConditionUser scopes this to cfg.user; systemd user units otherwise start for every logged-in user.
   sessionUnit =
@@ -260,10 +318,12 @@ in
 {
   inherit
     cfg
-    placement
+    browserWmClass
+    browserModule
     appModule
     placed
     needsPlacement
+    needsKiosk
     needsWindowCalls
     sessionUnit
     ;

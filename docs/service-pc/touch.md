@@ -43,7 +43,7 @@ anything stable and an app could not be assigned to it.
 Each application then names where it belongs:
 
 ```nix
-browser.workspace = 1;
+browsers.pos.workspace = 1;
 apps.spotify.workspace = 2;
 ```
 
@@ -58,12 +58,15 @@ Set `multiMonitor = true` and give an application a `monitor` instead of a
 
 ```nix
 multiMonitor = true;
+browsers.pos.monitor = 1;
 apps.spotify.monitor = 2;
 ```
 
 The window is moved to that monitor and maximised there, and stays visible
 whichever workspace the primary screen is showing, GNOME's
-`workspaces-only-on-primary` default does that for us.
+`workspaces-only-on-primary` default does that for us. Two browsers on two
+screens work the same way, since every browser is its own Firefox instance;
+see [Browsers](options.md#browsers).
 
 Monitor numbering follows GNOME's own logical monitor order, which the module
 reads at runtime from mutter. Nothing here declares resolutions or arrangement:

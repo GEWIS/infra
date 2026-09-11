@@ -25,36 +25,59 @@ Everything below is under `gewis.servicePc`, defined in
 
 See [Touchscreens and workspaces](touch.md).
 
-## Browser
+## Browsers
 
-The browser is always Firefox. The policy file below is Firefox's and the
-launcher sets `MOZ_ENABLE_WAYLAND`.
+`browsers` is an attribute set; the name is the attribute key. The browser is
+always Firefox. The policy file below is Firefox's and the launcher sets
+`MOZ_ENABLE_WAYLAND`.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `browser.enable` | `false` | Run Firefox |
-| `browser.url` | `null` | URL to open. Exactly one of this or `urlFile` |
-| `browser.urlFile` | `null` | File read at launch, for when the URL is itself a secret |
-| `browser.kiosk` | `false` | Fullscreen once the window appears, by sending F11 until it takes |
-| `browser.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
-| `browser.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
+| `browsers.<name>.url` | `null` | URL to open. Exactly one of this or `urlFile` |
+| `browsers.<name>.urlFile` | `null` | File read at launch, for when the URL is itself a secret |
+| `browsers.<name>.kiosk` | `false` | Fullscreen once the window appears, by sending F11 until it takes |
+| `browsers.<name>.waitForUrl` | `true` | Poll the URL before starting, so a fast-booting PC does not land on an error page |
+| `browsers.<name>.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
 
-Firefox is restarted whenever it exits, whatever the reason, so closing it over
-RDP just brings it back.
+Each browser is a separate Firefox instance with its own profile at
+`~/.mozilla/firefox/service-pc-<name>`, started with `--new-instance` so it
+never hands its URL to another one and exits. Its window reports
+`firefox-<name>` as its class, which is how the placement helper tells the
+instances apart. A host that wants two pages on two screens names two browsers
+and gives each a `monitor`:
 
-`kiosk` waits for Firefox's window, raises it, and sends F11 through `ydotool`,
-repeating the press until GNOME reports the window as fullscreen. Firefox keeps
-only a fullscreen state it entered itself, and F11 is a toggle, so each press is
-checked.
+```nix
+multiMonitor = true;
+browsers = {
+  pos = {
+    url = "https://sudosos.gewis.nl/pos";
+    monitor = 1;
+    kiosk = true;
+  };
+  dashboard = {
+    url = "https://grafana.gewis.nl/d/bar";
+    monitor = 2;
+  };
+};
+```
+
+A browser is restarted whenever it exits, whatever the reason, so closing it
+over RDP just brings it back.
+
+`kiosk` waits for the browser's window, raises it, and sends F11 through
+`ydotool`, repeating the press until GNOME reports the window as fullscreen.
+Firefox keeps only a fullscreen state it entered itself, and F11 is a toggle,
+so each press is checked.
 
 ### When it does not go fullscreen
 
-`kiosk` runs as an `ExecStartPost` of the `service-pc-browser` user unit, so
-everything it says is in that unit's journal. It is a *user* unit, so ask for it
-by that name rather than with `--user`, which would look at root's own manager:
+`kiosk` runs as an `ExecStartPost` of the `service-pc-browser-<name>` user
+unit, so everything it says is in that unit's journal. It is a *user* unit, so
+ask for it by that name rather than with `--user`, which would look at root's
+own manager:
 
 ```console
-$ sudo journalctl -b _SYSTEMD_USER_UNIT=service-pc-browser.service -o cat
+$ sudo journalctl -b _SYSTEMD_USER_UNIT=service-pc-browser-<name>.service -o cat
 ```
 
 The helper always logs why it gave up, and the four messages mean different
@@ -67,10 +90,10 @@ things:
   declare support for the running shell version. Check with `gnome-extensions
   list --enabled` in the session, and look for `JS ERROR` in the shell's own
   log: `sudo journalctl -b _COMM=gnome-shell`.
-- *`no window with wm_class 'firefox' … saw: …`* — the extension answered, but
-  nothing it listed matched. The `saw:` list is the set of classes Mutter
-  actually reports; if Firefox is in there under another name, that name is
-  what the helper should be matching on.
+- *`no window with wm_class 'firefox-<name>' … saw: …`* — the extension
+  answered, but nothing it listed matched. The `saw:` list is the set of
+  classes Mutter actually reports; if Firefox is in there under another name,
+  that name is what the helper should be matching on.
 - *`ydotool failed on attempt N: …`* — the keystroke never left the tool, and
   the message is ydotool's own. Almost always `ydotoold` not running or its
   socket not readable; see [the NFC page](nfc.md), which uses the same daemon.
@@ -92,7 +115,7 @@ instead of Xwayland, whether started by the module or from the app grid.
 
 ## Placement
 
-Both the browser and each app take these:
+Each browser and each app takes these:
 
 | Option | Default | Meaning |
 | --- | --- | --- |

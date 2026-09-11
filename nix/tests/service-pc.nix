@@ -25,12 +25,18 @@ let
       uid = 1000;
       workspaces = 2;
 
-      browser = {
-        enable = true;
-        url = "about:blank";
-        waitForUrl = false;
-        kiosk = true;
-        workspace = 1;
+      browsers = {
+        first = {
+          url = "about:blank";
+          waitForUrl = false;
+          kiosk = true;
+          workspace = 1;
+        };
+        second = {
+          url = "about:blank";
+          waitForUrl = false;
+          workspace = 2;
+        };
       };
 
       apps.xterm = {
@@ -119,8 +125,10 @@ pkgs.testers.runNixOSTest {
       machine.wait_for_unit("graphical-session.target", "gewis")
       machine.wait_for_unit("service-pc-keyring.service", "gewis")
       machine.wait_for_unit("service-pc-rdp-credentials.service", "gewis")
-      machine.wait_for_unit("service-pc-browser.service", "gewis")
-      machine.wait_until_succeeds("pgrep -u gewis firefox")
+      for browser in ("first", "second"):
+        machine.wait_for_unit(f"service-pc-browser-{browser}.service", "gewis")
+        machine.wait_until_succeeds(f"pgrep -u gewis -f -- '--name firefox-{browser}'")
+        machine.fail(f"journalctl -b _SYSTEMD_USER_UNIT=service-pc-browser-{browser}.service | grep -q service-pc-place:")
       machine.wait_for_unit("service-pc-app-xterm.service", "gewis")
       machine.wait_until_succeeds("pgrep -u gewis xterm")
       machine.fail("journalctl -b _SYSTEMD_USER_UNIT=service-pc-app-xterm.service | grep -q service-pc-place:")

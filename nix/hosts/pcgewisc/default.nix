@@ -32,8 +32,7 @@ in
       justPerfection = true;
       touch.enable = true;
 
-      browser = {
-        enable = true;
+      browsers.sudosos = {
         urlFile = config.sops.secrets.sudososUrl.path;
         workspace = 1;
         kiosk = true;

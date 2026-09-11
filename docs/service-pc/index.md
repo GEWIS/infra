@@ -5,7 +5,8 @@
 It gives a machine:
 
 - a real GNOME desktop, logged in by itself at boot;
-- a browser pointed at a fixed URL, and any other applications the host names;
+- browsers, each pointed at a fixed URL, and any other applications the host
+  names;
 - each of those pinned to a workspace or screen;
 - an NFC reader that types scanned tags into whatever has focus;
 - remote control of the session;
@@ -26,7 +27,7 @@ nothing until a host sets `gewis.servicePc.enable`. The hosts pair it with
 
 ## The module names no applications
 
-The module knows about "a browser" and "a set of extra apps". It does not know
-which apps. Everything machine-specific, which packages, which URL, any
+The module knows about "a set of browsers" and "a set of extra apps". It does
+not know which URLs or which apps. Everything machine-specific, which packages, which URL, any
 unfree licence, belongs in `nix/hosts/<host>/`, so a second service PC running
 something else is a new host file and not a change here.

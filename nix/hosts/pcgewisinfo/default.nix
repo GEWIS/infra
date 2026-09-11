@@ -28,8 +28,7 @@ in
       enable = true;
       uid = 1000;
 
-      browser = {
-        enable = true;
+      browsers.info = {
         urlFile = config.sops.secrets.kioskUrl.path;
         # No input devices to navigate away with, so kiosk mode costs nothing here.
         kiosk = true;

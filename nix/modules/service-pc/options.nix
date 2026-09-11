@@ -7,7 +7,7 @@
 let
   inherit (import ./lib.nix { inherit config lib pkgs; })
     cfg
-    placement
+    browserModule
     appModule
     ;
 in
@@ -19,7 +19,7 @@ in
       type = lib.types.str;
       default = "gewis";
       description = ''
-        Unprivileged user the graphical session, the browser, the extra apps
+        Unprivileged user the graphical session, the browsers, the extra apps
         and the remote-access daemon all run as. The module creates it.
       '';
     };
@@ -96,58 +96,28 @@ in
       };
     };
 
-    browser = {
-      enable = lib.mkEnableOption "Firefox pointed at a fixed URL";
-
-      url = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        example = "https://sudosos.gewis.nl/pos";
-        description = ''
-          URL to open. Mutually exclusive with {option}`urlFile`; use that one
-          if the URL contains an API key or other secret.
-        '';
-      };
-
-      urlFile = lib.mkOption {
-        type = lib.types.nullOr lib.types.path;
-        default = null;
-        example = lib.literalExpression "config.sops.secrets.kioskUrl.path";
-        description = ''
-          File read at launch to get the URL. Mutually exclusive with
-          {option}`url`.
-        '';
-      };
-
-      kiosk = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = ''
-          Drop the browser into fullscreen once its window appears, by sending
-          F11 via ydotool. The browser chrome stays reachable (address bar,
-          keyboard shortcuts) behind the same F11 toggle a user would use. The
-          press is repeated until GNOME reports the window as fullscreen.
-        '';
-      };
-
-      waitForUrl = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = ''
-          Poll the URL before starting the browser.
-        '';
-      };
-
-      waitTimeout = lib.mkOption {
-        type = lib.types.ints.unsigned;
-        default = 120;
-        description = ''
-          Seconds to keep polling before giving up and starting the browser
-          anyway; 0 waits forever.
-        '';
-      };
-    }
-    // placement;
+    browsers = lib.mkOption {
+      type = lib.types.attrsOf browserModule;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          pos = {
+            url = "https://sudosos.gewis.nl/pos";
+            monitor = 1;
+            kiosk = true;
+          };
+          dashboard = {
+            url = "https://heeftjarmoautomatagehaald.nl";
+            monitor = 2;
+          };
+        }
+      '';
+      description = ''
+        Firefox windows to start with the session, keyed by name. Each runs as
+        its own instance from its own profile, so several can be open at once
+        and placed independently.
+      '';
+    };
 
     apps = lib.mkOption {
       type = lib.types.attrsOf appModule;

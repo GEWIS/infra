@@ -76,9 +76,10 @@ carrying its own `disko.nix`), an entry in `flake.nix`, its age key in
 `nav:` entry. `docs/service-pc/install.md` is the operator version of that list.
 
 `gewis.servicePc` (`nix/modules/service-pc/`) is the kiosk/POS desktop: GNOME auto-login
-as an unprivileged user, Firefox at a fixed URL, extra apps, per-workspace or per-monitor
-placement, NFC reader, RDP. `lib.nix` holds what the sub-files share (the placement
-helper, `sessionUnit`, the `apps` submodule). The module deliberately names no
+as an unprivileged user, one or more Firefox instances each at a fixed URL, extra apps,
+per-workspace or per-monitor placement, NFC reader, RDP. `lib.nix` holds what the
+sub-files share (the placement helper, `sessionUnit`, the `browsers` and `apps`
+submodules). The module deliberately names no
 applications; packages, URLs and unfree allowances live in `nix/hosts/<host>/`. The
 naming is "service PC", never "desktop". Fullscreen is done by sending F11 through
 ydotool, so the browser chrome stays reachable.
