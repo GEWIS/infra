@@ -1,7 +1,4 @@
-{ config, 
-  lib,
-  pkgs,
-  ... }:
+{ config, ... }:
 let
   sessionUser = config.gewis.servicePc.user;
   mesh = [ config.gewis.netbird.interface ];
@@ -11,8 +8,6 @@ in
   system.stateVersion = "26.05";
 
   networking.networkmanager.enable = true;
-
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
   
   gewis = {
     admin = {
@@ -37,11 +32,6 @@ in
         urlFile = config.sops.secrets.sudososUrl.path;
         workspace = 1;
         kiosk = true;
-      };
-
-      apps.spotify = {
-        package = pkgs.spotify;
-        workspace = 2;
       };
 
       nfcReader.enable = true;
