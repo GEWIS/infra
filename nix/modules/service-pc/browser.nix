@@ -21,6 +21,8 @@ let
 
   # `--new-instance` keeps Firefox from handing the URL to an already running
   # instance and exiting, which would put the unit in a restart loop.
+  # Firefox resolves `--profile` with realpath, so the directory has to exist
+  # before it starts.
   browserLauncher =
     name: browser:
     pkgs.writeShellScript "service-pc-browser-${name}" ''
@@ -36,10 +38,12 @@ let
           sleep 2
         done
       ''}
+      profile="$HOME/.mozilla/firefox/service-pc-${name}"
+      mkdir -p "$profile"
       exec env MOZ_ENABLE_WAYLAND=1 ${lib.getExe config.programs.firefox.finalPackage} \
         --name ${lib.escapeShellArg (browserWmClass name)} \
         --new-instance \
-        --profile "$HOME/.mozilla/firefox/service-pc-${name}" \
+        --profile "$profile" \
         "$url"
     '';
 in

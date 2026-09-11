@@ -40,7 +40,8 @@ always Firefox. The policy file below is Firefox's and the launcher sets
 | `browsers.<name>.waitTimeout` | `120` | Seconds to poll before starting anyway; `0` waits forever |
 
 Each browser is a separate Firefox instance with its own profile at
-`~/.mozilla/firefox/service-pc-<name>`, started with `--new-instance` so it
+`~/.mozilla/firefox/service-pc-<name>`, created on first start, and runs with
+`--new-instance` so it
 never hands its URL to another one and exits. Its window reports
 `firefox-<name>` as its class, which is how the placement helper tells the
 instances apart. A host that wants two pages on two screens names two browsers
