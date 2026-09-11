@@ -9,6 +9,8 @@ in
 
   networking.networkmanager.enable = true;
 
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "spotify" ];
+  
   gewis = {
     admin = {
       enable = true;
@@ -32,6 +34,11 @@ in
         urlFile = config.sops.secrets.sudososUrl.path;
         workspace = 1;
         kiosk = true;
+      };
+
+      apps.spotify = {
+        package = pkgs.spotify;
+        workspace = 2;
       };
 
       nfcReader.enable = true;
