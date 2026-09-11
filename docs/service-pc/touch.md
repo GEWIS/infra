@@ -28,6 +28,10 @@ an editable one. Focus moving straight between two fields, or set from
 JavaScript while another field is active, does not count, so a web app that
 wants the keyboard back must blur the active element before focusing the next.
 
+Only native Wayland windows take part; an app running under Xwayland never
+announces its fields and gets no keyboard. The extra apps start with
+`NIXOS_OZONE_WL=1` so Chromium-based apps such as Spotify choose Wayland.
+
 ## Workspaces
 
 `workspaces` fixes how many workspaces the session has, and switches GNOME off

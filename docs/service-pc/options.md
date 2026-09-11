@@ -80,7 +80,9 @@ things:
 
 ## Applications
 
-`apps` is an attribute set; the name is the attribute key.
+`apps` is an attribute set; the name is the attribute key. Every app starts
+with `NIXOS_OZONE_WL=1`, so Chromium and Electron apps run natively on Wayland
+instead of Xwayland.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
