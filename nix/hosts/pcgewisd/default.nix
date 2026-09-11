@@ -33,11 +33,6 @@ in
           workspace = 1;
           kiosk = true;
         };
-        test = {
-          url = "https://heeftjarmoautomatagehaald.nl";
-          workspace = 2;
-          kiosk = true;
-        };
       };
 
       nfcReader.enable = true;
