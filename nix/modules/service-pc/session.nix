@@ -153,6 +153,11 @@ in
 
     i18n.inputMethod.ibus.waylandFrontend = true;
 
+    # The session exports DISPLAY, which makes Chromium-based apps pick
+    # Xwayland and drop out of the Wayland text-input protocol the on-screen
+    # keyboard depends on.
+    environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
     services.desktopManager.gnome = {
       enable = true;
 

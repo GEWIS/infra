@@ -11,19 +11,11 @@ in
   config = lib.mkIf cfg.enable {
     systemd.user.services = lib.mapAttrs' (
       name: app:
-      lib.nameValuePair "service-pc-app-${name}" (
-        sessionUnit {
-          description = "${name} for the service-PC session";
-          exec = if app.exec != null then app.exec else lib.getExe app.package;
-          inherit (app) wmClass workspace monitor;
-        }
-        // {
-          # The session exports DISPLAY, which makes Chromium-based apps pick
-          # Xwayland and drop out of the Wayland text-input protocol the
-          # on-screen keyboard depends on.
-          environment.NIXOS_OZONE_WL = "1";
-        }
-      )
+      lib.nameValuePair "service-pc-app-${name}" (sessionUnit {
+        description = "${name} for the service-PC session";
+        exec = if app.exec != null then app.exec else lib.getExe app.package;
+        inherit (app) wmClass workspace monitor;
+      })
     ) cfg.apps;
 
     environment.systemPackages = lib.mapAttrsToList (_: app: app.package) cfg.apps;

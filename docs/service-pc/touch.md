@@ -29,8 +29,9 @@ JavaScript while another field is active, does not count, so a web app that
 wants the keyboard back must blur the active element before focusing the next.
 
 Only native Wayland windows take part; an app running under Xwayland never
-announces its fields and gets no keyboard. The extra apps start with
-`NIXOS_OZONE_WL=1` so Chromium-based apps such as Spotify choose Wayland.
+announces its fields and gets no keyboard. The session exports
+`NIXOS_OZONE_WL=1` so Chromium-based apps such as Spotify choose Wayland, also
+when launched by hand from the app grid.
 
 ## Workspaces
 
