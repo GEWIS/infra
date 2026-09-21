@@ -8,8 +8,14 @@ let
 
   placeTimeoutSeconds = 60;
   fullscreenAttempts = 10;
-  toolbarNudges = 5;
+  toolbarNudges = 30;
   toolbarNudgeSeconds = 2;
+
+  # ExecStartPost runs the placement and fullscreen helpers back to back, and
+  # each may spend its whole budget, so the unit start timeout has to cover
+  # both or systemd kills a browser that is merely slow to paint.
+  startTimeoutSeconds =
+    2 * placeTimeoutSeconds + fullscreenAttempts + toolbarNudges * toolbarNudgeSeconds + 30;
 
   keyF11 = 87;
   keyLeftShift = 42;
@@ -126,9 +132,10 @@ let
     # Firefox keeps the toolbar visible when F11 lands while its address bar
     # has focus, which it does until the page first paints, and it only tries
     # to hide the toolbar again on the next key press. A host without input
-    # devices never produces one, so a bare Shift is sent a few times after
-    # fullscreen is reached; Shift on its own means nothing to Firefox, GNOME
-    # or the page.
+    # devices never produces one, so a bare Shift is sent every few seconds
+    # after fullscreen is reached, long enough to outlast a first paint on a
+    # fresh profile; Shift on its own means nothing to Firefox, GNOME or the
+    # page.
     nudge_toolbar() {
       for _ in $(seq 1 ${toString toolbarNudges}); do
         sleep ${toString toolbarNudgeSeconds}
@@ -221,8 +228,8 @@ let
           F11 via ydotool. The browser chrome stays reachable (address bar,
           keyboard shortcuts) behind the same F11 toggle a user would use. The
           press is repeated until GNOME reports the window as fullscreen, then
-          followed by a few bare Shift presses so Firefox hides its toolbar
-          even when the page had not painted yet when F11 arrived.
+          followed by bare Shift presses for a while so Firefox hides its
+          toolbar even when the page had not painted yet when F11 arrived.
         '';
       };
 
@@ -321,6 +328,7 @@ let
         ExecStart = exec;
         Restart = restart;
         RestartSec = 5;
+        TimeoutStartSec = startTimeoutSeconds;
         ExecStartPost =
           lib.optional (workspace != null) "${placeScript} ${
             lib.escapeShellArgs [

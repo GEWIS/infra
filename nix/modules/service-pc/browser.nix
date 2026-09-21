@@ -58,6 +58,14 @@ in
 
     programs.ydotool.enable = lib.mkIf needsKiosk true;
 
+    # libinput treats any keyboard with a scroll wheel as a pointer too, and
+    # ydotoold's device has one unless its mouse half is switched off. That
+    # pointer is enough for Mutter to draw a cursor on a host that has no
+    # mouse; nothing here ever moves or clicks, so the device is keyboard-only.
+    systemd.services.ydotoold.serviceConfig.ExecStart = lib.mkIf config.programs.ydotool.enable (
+      lib.mkForce "${lib.getExe' pkgs.ydotool "ydotoold"} --socket-path=${config.environment.variables.YDOTOOL_SOCKET} --socket-perm=0660 --mouse-off"
+    );
+
     users.users.${cfg.user}.extraGroups = lib.mkIf needsKiosk [
       config.programs.ydotool.group
     ];

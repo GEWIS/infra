@@ -68,11 +68,13 @@ over RDP just brings it back.
 `kiosk` waits for the browser's window, raises it, and sends F11 through
 `ydotool`, repeating the press until GNOME reports the window as fullscreen.
 Firefox keeps only a fullscreen state it entered itself, and F11 is a toggle,
-so each press is checked. Once fullscreen, it sends a bare Shift a few times
-over the next seconds: Firefox leaves its toolbar showing when F11 arrives
-while the address bar still has focus, which it does until the page first
-paints, and only hides it on the next key press. A host with no keyboard or
-mouse would otherwise show the toolbar until someone connects over RDP.
+so each press is checked. Once fullscreen, it keeps sending a bare Shift
+every couple of seconds for about a minute: Firefox leaves its toolbar showing
+when F11 arrives while the address bar still has focus, which it does until
+the page first paints, and only hides it on the next key press. A host with no
+keyboard or mouse would otherwise show the toolbar until someone connects over
+RDP. The window is long because `$HOME` does not survive a reboot, so every
+boot is Firefox's first run on a new profile and the first paint is slow.
 
 ### When it does not go fullscreen
 

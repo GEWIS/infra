@@ -50,7 +50,10 @@ it, and it needs no `DISPLAY`/`XAUTHORITY` wiring.
 
 `programs.ydotool.enable` creates the `ydotoold` system service and a
 `ydotool` group gating access to its socket; the session user is added to
-that group. The script calls the `ydotool` CLI directly:
+that group. The daemon runs with `--mouse-off`, so its virtual device is a
+keyboard only: with the mouse half on it carries a scroll wheel, libinput
+then counts it as a pointer, and Mutter draws a cursor even on a host without
+a mouse. The script calls the `ydotool` CLI directly:
 
 ```console
 $ ydotool type 'nfc04a1b2c3d4'
