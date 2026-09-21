@@ -8,6 +8,11 @@ let
 
   placeTimeoutSeconds = 60;
   fullscreenAttempts = 10;
+  toolbarNudges = 5;
+  toolbarNudgeSeconds = 2;
+
+  keyF11 = 87;
+  keyLeftShift = 42;
 
   windowCalls = ''
     jq=${lib.getExe pkgs.jq}
@@ -111,6 +116,26 @@ let
         | "$jq" -r '.fullscreen // false' 2>/dev/null || echo false
     }
 
+    press() {
+      if ! err=$(env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
+        ${lib.getExe' pkgs.ydotool "ydotool"} key "$1:1" "$1:0" 2>&1 >/dev/null); then
+        echo "service-pc-fullscreen: ydotool failed: $err" >&2
+      fi
+    }
+
+    # Firefox keeps the toolbar visible when F11 lands while its address bar
+    # has focus, which it does until the page first paints, and it only tries
+    # to hide the toolbar again on the next key press. A host without input
+    # devices never produces one, so a bare Shift is sent a few times after
+    # fullscreen is reached; Shift on its own means nothing to Firefox, GNOME
+    # or the page.
+    nudge_toolbar() {
+      for _ in $(seq 1 ${toString toolbarNudges}); do
+        sleep ${toString toolbarNudgeSeconds}
+        press ${toString keyLeftShift}
+      done
+    }
+
     # Firefox keeps only a fullscreen state it entered itself, so it is driven
     # through its own F11 handler. F11 toggles, so the press is repeated only
     # while GNOME still reports the window as not fullscreen.
@@ -121,13 +146,11 @@ let
       # ydotool types into whatever the compositor considers focused.
       shell_call Activate u "$id" >/dev/null 2>&1 || true
 
-      if ! err=$(env YDOTOOL_SOCKET=${config.environment.variables.YDOTOOL_SOCKET} \
-        ${lib.getExe' pkgs.ydotool "ydotool"} key 87:1 87:0 2>&1 >/dev/null); then
-        echo "service-pc-fullscreen: ydotool failed on attempt $attempt: $err" >&2
-      fi
+      press ${toString keyF11}
 
       sleep 1
       if [ "$(fullscreen_now)" = true ]; then
+        nudge_toolbar
         exit 0
       fi
     done
@@ -197,7 +220,9 @@ let
           Drop the browser into fullscreen once its window appears, by sending
           F11 via ydotool. The browser chrome stays reachable (address bar,
           keyboard shortcuts) behind the same F11 toggle a user would use. The
-          press is repeated until GNOME reports the window as fullscreen.
+          press is repeated until GNOME reports the window as fullscreen, then
+          followed by a few bare Shift presses so Firefox hides its toolbar
+          even when the page had not painted yet when F11 arrived.
         '';
       };
 

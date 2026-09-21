@@ -68,7 +68,11 @@ over RDP just brings it back.
 `kiosk` waits for the browser's window, raises it, and sends F11 through
 `ydotool`, repeating the press until GNOME reports the window as fullscreen.
 Firefox keeps only a fullscreen state it entered itself, and F11 is a toggle,
-so each press is checked.
+so each press is checked. Once fullscreen, it sends a bare Shift a few times
+over the next seconds: Firefox leaves its toolbar showing when F11 arrives
+while the address bar still has focus, which it does until the page first
+paints, and only hides it on the next key press. A host with no keyboard or
+mouse would otherwise show the toolbar until someone connects over RDP.
 
 ### When it does not go fullscreen
 
@@ -95,7 +99,7 @@ things:
   answered, but nothing it listed matched. The `saw:` list is the set of
   classes Mutter actually reports; if Firefox is in there under another name,
   that name is what the helper should be matching on.
-- *`ydotool failed on attempt N: …`* — the keystroke never left the tool, and
+- *`ydotool failed: …`* — the keystroke never left the tool, and
   the message is ydotool's own. Almost always `ydotoold` not running or its
   socket not readable; see [the NFC page](nfc.md), which uses the same daemon.
 - *`… is still not fullscreen after N F11 presses`* — the keystrokes went out
