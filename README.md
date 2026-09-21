@@ -6,6 +6,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
+| `pcgewisb` | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights and audio | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisd` | Service PC: SudoSOS POS on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | nixos-anywhere, by hand | comin, polling `main` |
@@ -102,6 +103,7 @@ encryption passphrase. Recipients are declared in `.sops.yaml`, where the
 
 ```sh
 sops secrets/s3-01.yaml
+sops secrets/pcgewisb.yaml
 sops secrets/pcgewisc.yaml
 sops secrets/pcgewisd.yaml
 sops secrets/pcgewisinfo.yaml
@@ -115,8 +117,8 @@ published as ciphertext.
 
 ## Deploying
 
-The service PCs (`pcgewisc`, `pcgewisd`, `pcgewisinfo`) — push to `main`;
-comin polls the repo and switches each host. Every push rebuilds them,
+The service PCs (`pcgewisb`, `pcgewisc`, `pcgewisd`, `pcgewisinfo`) — push to
+`main`; comin polls the repo and switches each host. Every push rebuilds them,
 including commits that only touch `s3-01`. Installing a new one is
 [`docs/service-pc/install.md`](docs/service-pc/install.md).
 

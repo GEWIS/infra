@@ -95,10 +95,10 @@ fragments through root's login shell.
 
 ### Deployment paths
 
-- `pcgewisc`, `pcgewisd`, `pcgewisinfo`: comin polls `GEWIS/infra` `main` and switches
-  the host. **Every push to `main` deploys**, including commits that touch nothing of
-  theirs. A config that fails to evaluate just stops updates. root has no ssh, so there is
-  no `nixos-rebuild --target-host` fallback.
+- `pcgewisb`, `pcgewisc`, `pcgewisd`, `pcgewisinfo`: comin polls `GEWIS/infra` `main`
+  and switches the host. **Every push to `main` deploys**, including commits that touch
+  nothing of theirs. A config that fails to evaluate just stops updates. root has no ssh,
+  so there is no `nixos-rebuild --target-host` fallback.
 - `s3-01`: `terraform/s3-01` creates the XCP-ng VM and runs nixos-anywhere via
   `terraform/modules/nixos-host`; later applies only `nixos-rebuild --switch`. Replace the
   VM resource to force a reinstall.

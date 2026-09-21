@@ -4,6 +4,16 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    aurora-audio-player = {
+      url = "github:GEWIS/aurora-audio-player";
+      flake = false;
+    };
+
+    aurora-lights-proxy = {
+      url = "github:GEWIS/aurora-lights-proxy";
+      flake = false;
+    };
+
     comin = {
       url = "github:nlewo/comin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -64,6 +74,8 @@
     {
       nixosConfigurations = {
         s3-01 = host "s3-01" [ ];
+
+        pcgewisb = host "pcgewisb" [ ];
 
         pcgewisc = host "pcgewisc" [ ];
 

@@ -1,5 +1,37 @@
 {
   "nodes": {
+    "aurora-audio-player": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1770991446,
+        "narHash": "sha256-owgzF/DHs9Nu04CpUBF/rHNd3CSF4aCjBLKMGmNg+1k=",
+        "owner": "GEWIS",
+        "repo": "aurora-audio-player",
+        "rev": "e5b9ea2b27bf2f1ce3632ca55e721064804a9037",
+        "type": "github"
+      },
+      "original": {
+        "owner": "GEWIS",
+        "repo": "aurora-audio-player",
+        "type": "github"
+      }
+    },
+    "aurora-lights-proxy": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1770991489,
+        "narHash": "sha256-mOPqhN1wWjBGeoKRHc4X6esLCRBzznSdus8Zyjgi0lM=",
+        "owner": "GEWIS",
+        "repo": "aurora-lights-proxy",
+        "rev": "8ab85bc35420e7a76853c84a7444a8740cecb8f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "GEWIS",
+        "repo": "aurora-lights-proxy",
+        "type": "github"
+      }
+    },
     "comin": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -218,6 +250,8 @@
     },
     "root": {
       "inputs": {
+        "aurora-audio-player": "aurora-audio-player",
+        "aurora-lights-proxy": "aurora-lights-proxy",
         "comin": "comin",
         "disko": "disko",
         "geprint": "geprint",
