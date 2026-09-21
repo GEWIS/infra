@@ -21,6 +21,7 @@ nothing until a host sets `gewis.servicePc.enable`. The hosts pair it with
 
 | Host | What it shows |
 | --- | --- |
+| [`pcgewisa`](../pcgewisa/index.md) | Two Aurora pages, one per monitor |
 | [`pcgewisb`](../pcgewisb/index.md) | Two Aurora pages, one per monitor, next to the Aurora lights and audio services |
 | [`pcgewisc`](../pcgewisc/index.md) | SudoSOS POS, and Spotify on a second workspace |
 | [`pcgewisd`](../pcgewisd/index.md) | SudoSOS POS |

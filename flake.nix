@@ -75,6 +75,8 @@
       nixosConfigurations = {
         s3-01 = host "s3-01" [ ];
 
+        pcgewisa = host "pcgewisa" [ ];
+
         pcgewisb = host "pcgewisb" [ ];
 
         pcgewisc = host "pcgewisc" [ ];

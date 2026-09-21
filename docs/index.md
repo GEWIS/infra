@@ -8,6 +8,7 @@ Kubernetes cluster.
 
 | Host | Role |
 | --- | --- |
+| [pcgewisa](pcgewisa/index.md) | Service PC: Aurora narrowcasting on two screens |
 | [pcgewisb](pcgewisb/index.md) | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights and audio |
 | [pcgewisc](pcgewisc/index.md) | Bar service PC: SudoSOS POS and Spotify on a touchscreen |
 | [pcgewisd](pcgewisd/index.md) | Service PC: SudoSOS POS on a touchscreen |
@@ -15,7 +16,7 @@ Kubernetes cluster.
 | [s3-01](s3-01/index.md) | Garage S3 object store, single node |
 | [talos](talos/index.md) | 3-node Talos Kubernetes cluster |
 
-What the four service PCs share, and how to install another, is
+What the five service PCs share, and how to install another, is
 [Service PCs](service-pc/index.md).
 
 ## Inside the cluster

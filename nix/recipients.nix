@@ -16,6 +16,10 @@
       key = "age1hde6y6ee9g0pnvgdluxjj6xq4plrsdq8f7mf4yv6xn465ucpw3hq47heg0";
       adminReadable = true;
     };
+    pcgewisa = {
+      key = "age16yd07ghxtftg84gcmqxeat77vga0rt26455l340dz3cwgy7mhdcqjtg8rt";
+      adminReadable = true;
+    };
     pcgewisb = {
       key = "age16srmfhgxusd87d9clvstejjj9s7dmphymulkgymj9py9xqzmxgsq2e3amj";
       adminReadable = true;

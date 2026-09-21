@@ -66,6 +66,8 @@ nav:
       - Installing: service-pc/install.md
   - Zabbix agent: zabbix-agent.md
   - Hosts:
+      - pcgewisa:
+          - Overview: pcgewisa/index.md
       - pcgewisb:
           - Overview: pcgewisb/index.md
       - pcgewisc:
