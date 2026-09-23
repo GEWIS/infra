@@ -3,8 +3,8 @@ keys:
     - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
     - &admin_ruben ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM
   hosts:
-    - &pcgewisa age16yd07ghxtftg84gcmqxeat77vga0rt26455l340dz3cwgy7mhdcqjtg8rt
-    - &pcgewisb age16srmfhgxusd87d9clvstejjj9s7dmphymulkgymj9py9xqzmxgsq2e3amj
+    - &pcgewisa age1yr0lfetlnev2j8298ra4u3yc38amrrnasu97eh36gtuamadpwyrqwhyryv
+    - &pcgewisb age132p2xyv4zax3r3agtzdf5qnd0duzdyytk22gr6sejsh9hek2hynsz3alda
     - &pcgewisc age1q4lkanpv39xp36w0symj2uulgpr924ghvl56j0rnnphcz7qxr32spk9lkc
     - &pcgewisd age1xjny3erjq38f8p0yu29ag6dsgpk9y4wduhahqv3vf2uapa60gs3qxm3e06
     - &pcgewisinfo age1hde6y6ee9g0pnvgdluxjj6xq4plrsdq8f7mf4yv6xn465ucpw3hq47heg0

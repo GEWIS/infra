@@ -17,11 +17,11 @@
       adminReadable = true;
     };
     pcgewisa = {
-      key = "age16yd07ghxtftg84gcmqxeat77vga0rt26455l340dz3cwgy7mhdcqjtg8rt";
+      key = "age1yr0lfetlnev2j8298ra4u3yc38amrrnasu97eh36gtuamadpwyrqwhyryv";
       adminReadable = true;
     };
     pcgewisb = {
-      key = "age16srmfhgxusd87d9clvstejjj9s7dmphymulkgymj9py9xqzmxgsq2e3amj";
+      key = "age132p2xyv4zax3r3agtzdf5qnd0duzdyytk22gr6sejsh9hek2hynsz3alda";
       adminReadable = true;
     };
     pcgewisc = {
