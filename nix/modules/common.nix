@@ -17,6 +17,7 @@
   };
 
   time.timeZone = "Europe/Amsterdam";
+  networking.timeServers = [ "time.gewis.nl" ];
 
   users.mutableUsers = false;
 
