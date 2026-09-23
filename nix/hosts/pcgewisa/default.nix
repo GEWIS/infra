@@ -17,7 +17,11 @@ in
 
     comin.enable = true;
 
-    tmpfsRoot.enable = true;
+    tmpfsRoot = {
+      enable = true;
+      device = "/dev/sda";
+    };
+    
     persistence.extraDirectories = [ "/home/${sessionUser}" ];
 
     servicePc = {
