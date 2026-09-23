@@ -7,7 +7,7 @@
     ./apps.nix
     ./remote.nix
     ./nfc.nix
-    ./plymouth.nix
+    #./plymouth.nix
     ./shutdown.nix
   ];
 }
