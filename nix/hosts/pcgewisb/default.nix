@@ -12,6 +12,8 @@ in
   networking.hostName = "pcgewisb";
   system.stateVersion = "26.05";
 
+  hardware.enableRedistributableFirmware = true;
+
   gewis = {
     admin = {
       enable = true;

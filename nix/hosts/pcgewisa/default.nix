@@ -7,6 +7,8 @@ in
   networking.hostName = "pcgewisa";
   system.stateVersion = "26.05";
 
+  hardware.enableRedistributableFirmware = true;
+
   networking.networkmanager.enable = true;
 
   gewis = {
