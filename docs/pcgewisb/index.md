@@ -41,14 +41,24 @@ session, not with the display, and needs no window.
 
 | Interface | Role |
 | --- | --- |
-| uplink | DHCP client |
-| `enp1s0` | Lighting controller, static `169.254.0.1/16` |
+| `enp0s31f6` | Uplink, DHCP client via NetworkManager |
+| `enp2s0` | Lighting controller, static `169.254.0.1/16`, unmanaged by NetworkManager |
 
 The lights proxy sends ArtNet to `169.254.0.2`, the address the controller
 is set to; it sits on its own link because it must not be on the general
-network. `enp1s0` was chosen before the machine was installed: check it
-against `ip link` on the host and change `nix/hosts/pcgewisb/networking.nix`
-if the controller is plugged into a differently named port.
+network. `enp2s0` is excluded from NetworkManager (which GNOME enables), or
+its DHCP profile would take the port and leave it without `169.254.0.1`.
+Without that address the ArtNet traffic follows the default route out of the
+uplink and never reaches the controller.
+
+If the lights stay dark, check the link before the proxy:
+
+```sh
+ip -br addr show enp2s0       # 169.254.0.1/16, UP
+ip route get 169.254.0.2      # must say "dev enp2s0"
+ping -c3 169.254.0.2
+sudo nix run nixpkgs#tcpdump -- -ni enp2s0 udp port 6454   # ~40 packets/s
+```
 
 ## Audio
 
