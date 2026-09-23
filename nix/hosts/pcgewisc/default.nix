@@ -40,6 +40,7 @@ in
 
       apps.spotify = {
         package = pkgs.spotify;
+        exec = "${lib.getExe pkgs.spotify} --password-store=basic";
         workspace = 2;
       };
 
