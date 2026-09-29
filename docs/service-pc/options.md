@@ -29,7 +29,9 @@ See [Touchscreens and workspaces](touch.md).
 
 `browsers` is an attribute set; the name is the attribute key. The browser is
 always Firefox. The policy file below is Firefox's and the launcher sets
-`MOZ_ENABLE_WAYLAND`.
+`MOZ_ENABLE_WAYLAND`. Firefox force-installs uBlock Origin in every instance
+through the `ExtensionSettings` policy, so ad blocking is on even though the
+browsers are started straight onto a URL and never opened interactively.
 
 | Option | Default | Meaning |
 | --- | --- | --- |

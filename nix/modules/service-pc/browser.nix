@@ -91,6 +91,15 @@ in
         DisableProfileImport = true;
         DontCheckDefaultBrowser = true;
         NoDefaultBookmarks = true;
+
+        # Every browser force-installs uBlock Origin through the ExtensionSettings
+        # policy; force_installed keeps it from being disabled or removed.
+        ExtensionSettings = {
+          "uBlock0@raymondhill.net" = {
+            installation_mode = "force_installed";
+            install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+          };
+        };
       };
 
       preferences = {
