@@ -1,6 +1,6 @@
 # observability
 
-Logs, metrics, traces and dashboards, all backed by Garage rather than Longhorn.
+Logs, metrics, traces and dashboards, all backed by SeaweedFS rather than Longhorn.
 Loki, Mimir, Tempo, Grafana, kube-state-metrics and two Alloy collectors live in
 `observability`; the node exporter lives on its own, for a reason given below.
 

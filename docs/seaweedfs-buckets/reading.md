@@ -13,26 +13,26 @@ boundary this root builds.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: garage
+  name: seaweedfs
   namespace: observability
 ---
 apiVersion: external-secrets.io/v1
 kind: SecretStore
 metadata:
-  name: garage
+  name: seaweedfs
   namespace: observability
 spec:
   provider:
     vault:
       server: http://openbao-active.openbao.svc:8200
-      path: garage
+      path: seaweedfs
       version: v2
       auth:
         kubernetes:
           mountPath: kubernetes
-          role: garage-observability
+          role: seaweedfs-observability
           serviceAccountRef:
-            name: garage
+            name: seaweedfs
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
@@ -42,27 +42,39 @@ metadata:
 spec:
   refreshInterval: 1h
   secretStoreRef:
-    name: garage
+    name: seaweedfs
     kind: SecretStore
   target:
     name: loki-s3
-  dataFrom:
-    - extract:
+  data:
+    - secretKey: S3_ACCESS_KEY_ID
+      remoteRef:
         key: observability/loki
+        property: access_key_id
+    - secretKey: S3_SECRET_ACCESS_KEY
+      remoteRef:
+        key: observability/loki
+        property: secret_access_key
 ```
 
-`dataFrom.extract` copies every field of the KV entry into the Secret, so the
-resulting keys are `bucket`, `endpoint`, `region`, `access_key_id` and
-`secret_access_key`. Use `data` with explicit `remoteRef.property` entries when
-an app wants different key names.
+The `vault` provider `path` is the kv-v2 mount this root owns, and the `role` is
+the per-namespace Kubernetes auth role from [Which mount](mount.md). The KV keys
+(`observability/loki`, `observability/mimir`, `observability/tempo`) and their
+properties (`access_key_id`, `secret_access_key`) did not change at the cutover;
+only the store, the ServiceAccount and the role were renamed.
+
+Only the two key fields are pulled. `bucket`, `endpoint` and `region` also sit in
+the KV entry, but they are not secrets and the charts carry them in values;
+`dataFrom.extract` would copy all five into the Secret if an app wanted that.
 
 Buckets are addressed **path-style** — `endpoint` carries no bucket, and clients
 must set `force_path_style` (boto3: `addressing_style = "path"`) with region
-`garage`.
+`us-east-1`.
 
-The `endpoint` stored in KV is `http://s3.gewis.nl:3900`, a name the cluster
+The `endpoint` stored in KV is `http://s3.gewis.nl:8333`, a name the cluster
 resolver answers from the `hosts` block in `flux/services/dns/corefile.yaml`. It
 is deliberately not the raw address: s3-01 holds a DHCP lease, and every
-consumer reading this KV entry runs inside the cluster. The Garage **Admin** API
-default stays an address, because `tofu` runs on a workstation that resolves
-through campus DNS, which knows nothing about that name.
+consumer reading this KV entry runs inside the cluster. The
+`seaweedfs_endpoint` default used by `tofu` stays an address, because it runs on
+a workstation that resolves through campus DNS, which knows nothing about that
+name.

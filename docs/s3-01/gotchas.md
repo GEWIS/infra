@@ -1,13 +1,20 @@
 # Gotchas
 
-- **The address is pinned to `10.82.50.100`**, arranged outside this repo, so
-  nothing here declares or enforces it. Before it was pinned the address moved
-  between the bootstrap OS and the installed system, because `dhclient` and
-  systemd-networkd identify differently to the DHCP server and got different
-  leases. `dhcpV4Config.ClientIdentifier = "mac"` was tried as a fix and **did
-  not work**; it is removed, do not re-add it. Nothing depends on the address
-  holding still either way — `target_host` is read live from the guest agent and
-  is in no trigger, so churn can never force a reinstall.
+- **The address is reserved at `10.82.50.100`** by a static lease on the
+  MikroTik (`dhcp50-external`), keyed on the MAC `00:16:3e:5e:a1:01` that
+  `main.tf` pins on the NIC. Two things must hold for it to match:
+    - `dhcpV4Config.ClientIdentifier = "mac"` in `nix/hosts/s3-01/default.nix`.
+      networkd's default client ID is a DUID derived from `machine-id`, which
+      every reinstall regenerates.
+    - The lease's **Client ID field stays empty**. RouterOS matches on client ID
+      whenever one is set; a stale DUID there (`ff:…`) makes the lease sit at
+      *waiting* while the host draws a dynamic address from the pool. This is
+      why `ClientIdentifier = "mac"` once looked like it did not work.
+
+  The corefile entry for `s3.gewis.nl` and the `seaweedfs-buckets` endpoint
+  default both hardcode `.100`. After fixing a mismatch, delete the host's
+  dynamic lease and run `networkctl reconfigure enX0` (or reboot): a plain
+  `renew` just extends the lease the host already holds.
 - **A rebuild can drop its own connection.** Activation restarts
   `systemd-networkd`, which can renew onto a *different* lease mid-apply. The
   switch itself completes — you will see `activating the configuration...` and

@@ -93,7 +93,7 @@ nav:
           - Applying: s3-01/applying.md
           - State: s3-01/state.md
           - Disks: s3-01/disks.md
-          - Garage: s3-01/garage.md
+          - SeaweedFS: s3-01/seaweedfs.md
           - Gotchas: s3-01/gotchas.md
       - talos:
           - Overview: talos/index.md
@@ -150,12 +150,12 @@ nav:
       - The one secret: observability/secret.md
       - Applying: observability/applying.md
       - Verifying: observability/verifying.md
-  - Garage buckets:
-      - Overview: garage-buckets/index.md
-      - The declaration: garage-buckets/declaration.md
-      - Which mount: garage-buckets/mount.md
-      - Credentials: garage-buckets/credentials.md
-      - Applying: garage-buckets/applying.md
-      - Reading from the cluster: garage-buckets/reading.md
-      - Verifying: garage-buckets/verifying.md
-      - Notes: garage-buckets/notes.md
+  - SeaweedFS buckets:
+      - Overview: seaweedfs-buckets/index.md
+      - The declaration: seaweedfs-buckets/declaration.md
+      - Which mount: seaweedfs-buckets/mount.md
+      - Credentials: seaweedfs-buckets/credentials.md
+      - Applying: seaweedfs-buckets/applying.md
+      - Reading from the cluster: seaweedfs-buckets/reading.md
+      - Verifying: seaweedfs-buckets/verifying.md
+      - Notes: seaweedfs-buckets/notes.md

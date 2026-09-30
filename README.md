@@ -11,7 +11,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisd` | Service PC: SudoSOS POS on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | nixos-anywhere, by hand | comin, polling `main` |
-| `s3-01` | Garage S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
+| `s3-01` | SeaweedFS S3 object store, single node | OpenTofu + nixos-anywhere | `tofu apply` |
 | `talos-01`..`03` | 3-node Talos Kubernetes cluster | OpenTofu + Image Factory | `tofu apply` (talos root) |
 
 The docs are published as a browsable site at
@@ -22,7 +22,7 @@ The docs are published as a browsable site at
 *inside* the Kubernetes cluster — Flux layering, ingress, certificates, DNS,
 OpenBao — is [`docs/cluster/`](docs/cluster/index.md). S3 buckets and the
 credentials the cluster reads for them are
-[`docs/garage-buckets/`](docs/garage-buckets/index.md); the LGTM stack and its
+[`docs/seaweedfs-buckets/`](docs/seaweedfs-buckets/index.md); the LGTM stack and its
 tenancy model are [`docs/observability/`](docs/observability/index.md). HA Postgres
 and MariaDB placement and their backup model are
 [`docs/databases/`](docs/databases/index.md).
@@ -39,7 +39,7 @@ terraform/s3-01/            OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
 terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
 terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux)
 terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
-terraform/garage-buckets/   OpenTofu root: Garage buckets + their credentials in OpenBao
+terraform/seaweedfs-buckets/ OpenTofu root: SeaweedFS buckets + their credentials in OpenBao
 terraform/grafana-config/   OpenTofu root: Grafana organizations and datasources
 terraform/postgres-databases/ OpenTofu root: Postgres roles + their credentials in OpenBao
 terraform/authentik-config/ OpenTofu root: authentik's AD source, providers and applications

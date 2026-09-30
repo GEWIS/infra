@@ -42,11 +42,12 @@ no address for it — so this creates a name rather than shadowing one. Overridi
 every pod and every LAN client pointed here, and nothing upstream will hint that
 the answer is local.
 
-One caveat specific to this entry: **s3-01's address is not reserved.** It comes
-from DHCP, which is why `docs/s3-01.md` leaves Garage's `root_domain` unset and
-addresses buckets path-style. `10.82.50.100` is hardcoded here and in
-`terraform/garage-buckets`, so both rot together if the lease moves. A DHCP
-reservation, as the Talos nodes already have, is what makes this safe.
+One caveat specific to this entry: **s3-01's address is a DHCP reservation, not
+a static address.** `10.82.50.100` is hardcoded here and in
+`terraform/seaweedfs-buckets`, and it holds only as long as the router's static
+lease keeps matching the host — see [s3-01 gotchas](../s3-01/gotchas.md) for the
+two conditions. Buckets are addressed path-style, with no virtual-host domain
+configured in [`s3-01/seaweedfs.md`](../s3-01/seaweedfs.md).
 
 ## Aliasing one name onto another
 

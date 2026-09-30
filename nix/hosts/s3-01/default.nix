@@ -3,11 +3,12 @@
   imports = [
     ../../modules/xcpng.nix
     ./disko.nix
-    ./garage.nix
+    ./seaweedfs.nix
   ];
 
   networking.hostName = "s3-01";
   networking.firewall.allowedTCPPorts = [ 22 ];
+  systemd.network.networks."10-lan".dhcpV4Config.ClientIdentifier = "mac";
   system.stateVersion = "26.05";
 
   nix.settings.auto-optimise-store = true;

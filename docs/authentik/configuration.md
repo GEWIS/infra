@@ -166,7 +166,7 @@ That renders an `authentik_provider_oauth2` and an `authentik_application`,
 generates the client secret, and writes `client_id` and `client_secret` to
 OpenBao at `authentik/<namespace>/<client>` with a read policy and a Kubernetes
 auth role for that namespace. The consuming namespace pulls them in with an
-`ExternalSecret`, exactly as it does for Garage credentials — so the secret is
+`ExternalSecret`, exactly as it does for SeaweedFS credentials — so the secret is
 generated, stored and consumed without anyone reading it.
 
 **Redirect URIs carry `:8443`.** The gateway is published on that port, it is

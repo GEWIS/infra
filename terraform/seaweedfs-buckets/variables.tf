@@ -4,14 +4,20 @@ variable "state_passphrase" {
   sensitive   = true
 }
 
-variable "garage_endpoint" {
-  description = "Garage Admin API endpoint. Reachable from the campus LAN only; the host has no WAN leg."
+variable "seaweedfs_endpoint" {
+  description = "SeaweedFS S3 and IAM endpoint; both APIs share this port. Reachable from the campus LAN only; the host has no WAN leg."
   type        = string
-  default     = "http://10.82.50.100:3903"
+  default     = "http://10.82.50.100:8333"
 }
 
-variable "garage_admin_token" {
-  description = "Garage Admin API bearer token. Exported from secrets/s3-01.yaml by .envrc; never set it by hand."
+variable "seaweedfs_admin_access_key" {
+  description = "Access key of the SeaweedFS admin identity. Exported from secrets/s3-01.yaml by .envrc; never set it by hand."
+  type        = string
+  sensitive   = true
+}
+
+variable "seaweedfs_admin_secret_key" {
+  description = "Secret key of the SeaweedFS admin identity. Exported from secrets/s3-01.yaml by .envrc; never set it by hand."
   type        = string
   sensitive   = true
 }

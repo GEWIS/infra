@@ -1,15 +1,15 @@
-# Media is a `emptyDir`, and Garage cannot fix that
+# Media is a `emptyDir`, and SeaweedFS cannot fix that
 
 authentik stores uploaded application icons, flow backgrounds and avatars in a
-media directory. The obvious move here is the S3 backend pointed at Garage, the
+media directory. The obvious move here is the S3 backend pointed at SeaweedFS, the
 way Loki, Mimir and Tempo work. It does not survive contact with the details.
 
 With `storage.media.backend: s3`, authentik hands the **browser** a presigned URL
-straight to the S3 endpoint. Ours is `http://s3.gewis.nl:3900`: plain HTTP, on a
+straight to the S3 endpoint. Ours is `http://s3.gewis.nl:8333`: plain HTTP, on a
 name only the cluster resolver answers, on a port only the campus LAN can reach.
 Embedded in an HTTPS page that is mixed content, so browsers block it outright,
 and off-LAN it does not resolve at all. `storage.s3.custom_domain` exists for
-exactly this and would need Garage published under a real certificate first.
+exactly this and would need s3-01 published under a real certificate first.
 
 With the file backend, authentik serves media from its own listener —
 `internal/web/static.go` reads `storage.media.file.path` and serves it — which

@@ -1,7 +1,7 @@
 # Storage
 
-One bucket per component, provisioned by `terraform/garage-buckets` — see
-[`garage-buckets.md`](../garage-buckets/index.md).
+One bucket per component, provisioned by `terraform/seaweedfs-buckets` — see
+[`seaweedfs-buckets/index.md`](../seaweedfs-buckets/index.md).
 
 | Component | Bucket | Prefixes | Local disk |
 | --- | --- | --- | --- |
@@ -9,14 +9,14 @@ One bucket per component, provisioned by `terraform/garage-buckets` — see
 | Mimir | `mimir` | `blocks`, `ruler` | 20Gi Longhorn, TSDB head, compactor scratch, store-gateway sync |
 | Tempo | `tempo` | — | 5Gi Longhorn, WAL |
 
-Garage needs the same three things everywhere: path-style addressing
+SeaweedFS needs the same three things everywhere: path-style addressing
 (`s3ForcePathStyle` / `bucket_lookup_type: path` / `forcepathstyle`), `insecure`
-for plain HTTP on port 3900, and region `garage`.
+for plain HTTP on port 8333, and region `us-east-1`.
 
 Retention is **in-app**, 30 days everywhere — `limits_config.retention_period`,
 `compactor_blocks_retention_period` and `tempo.retention`. Not S3 lifecycle
-rules: the `vhco-pro/garage` provider exposes buckets, keys and permissions only,
-so a lifecycle policy is not something this repo can declare.
+rules, and not bucket quotas: buckets are unlimited, for reasons given in
+[SeaweedFS on s3-01](../s3-01/seaweedfs.md#no-bucket-quotas).
 
 Only the two key fields come from OpenBao. Endpoint, region and bucket are not
 secrets and sit in the values. Each component reads the keys as environment

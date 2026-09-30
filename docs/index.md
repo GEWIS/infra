@@ -13,7 +13,7 @@ Kubernetes cluster.
 | [pcgewisc](pcgewisc/index.md) | Bar service PC: SudoSOS POS and Spotify on a touchscreen |
 | [pcgewisd](pcgewisd/index.md) | Service PC: SudoSOS POS on a touchscreen |
 | [pcgewisinfo](pcgewisinfo/index.md) | Info-screen kiosk; DHCP and print server for the booth LAN |
-| [s3-01](s3-01/index.md) | Garage S3 object store, single node |
+| [s3-01](s3-01/index.md) | SeaweedFS S3 object store, single node |
 | [talos](talos/index.md) | 3-node Talos Kubernetes cluster |
 
 What the five service PCs share, and how to install another, is
@@ -27,7 +27,7 @@ What the five service PCs share, and how to install another, is
 | [databases](databases/index.md) | HA Postgres and MariaDB placement and their backup model |
 | [authentik](authentik/index.md) | The identity provider and how it is wired up |
 | [observability](observability/index.md) | The LGTM stack and its tenancy model |
-| [garage-buckets](garage-buckets/index.md) | S3 buckets and the credentials the cluster reads for them |
+| [seaweedfs-buckets](seaweedfs-buckets/index.md) | S3 buckets and the credentials the cluster reads for them |
 
 The repository itself, its layout, and how to work on it are in the
 [README](https://github.com/GEWIS/infra#readme).

@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket = "gewis-tfstate"
-    key    = "garage-buckets/terraform.tfstate"
+    key    = "seaweedfs-buckets/terraform.tfstate"
     region = "nl-ams"
 
     endpoints = {

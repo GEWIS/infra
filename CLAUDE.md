@@ -125,7 +125,7 @@ kubeconfig. Effective order on a fresh cluster:
 2. `talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
    pinned sealing key, and Flux. Uses `.kube/config`.
 3. Flux reconciles `flux/`.
-4. `openbao-config`, `garage-buckets`, `postgres-databases`, `grafana-config`,
+4. `openbao-config`, `seaweedfs-buckets`, `postgres-databases`, `grafana-config`,
    `authentik-config`: configure services now running in the cluster. They need
    `BAO_ADDR` and `TF_VAR_bao_jwt`, which `.envrc` takes from a live `kubectl`.
 

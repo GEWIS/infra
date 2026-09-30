@@ -35,12 +35,12 @@
     content = {
       type = "gpt";
       partitions = {
-        garage = {
+        seaweedfs = {
           size = "100%";
           content = {
             type = "filesystem";
             format = "xfs";
-            mountpoint = "/var/lib/garage";
+            mountpoint = "/var/lib/seaweedfs";
             mountOptions = [ "noatime" ];
           };
         };

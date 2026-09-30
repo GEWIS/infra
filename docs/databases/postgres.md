@@ -118,7 +118,7 @@ three replica-1 Postgres instances place one volume on each.
   is only safe on a disk sized for it.
 
 The real headroom is elsewhere: Loki, Mimir, Tempo and Grafana sit on
-three-replica Longhorn while their data lives in Garage. Moving those four to
+three-replica Longhorn while their data lives in SeaweedFS. Moving those four to
 `longhorn-single` frees roughly 4.7 GiB per node.
 
 ## A killed pod can deadlock the next one's migrations

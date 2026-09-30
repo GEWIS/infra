@@ -3,16 +3,17 @@
 Run these in order; each one gates the next.
 
 ```sh
-bao kv get garage/observability/loki
+bao kv get seaweedfs/observability/loki
 kubectl -n observability get externalsecret
 ```
 
-Then that data actually lands in Garage, which is the part worth proving — Loki
-on Garage is well travelled, Mimir's and Tempo's object clients less so:
+Then that data actually lands in SeaweedFS, which is the part worth proving — the
+buckets start empty at cutover, so anything missing here is the first sign the
+endpoint or the minted credentials are wrong:
 
 ```sh
-aws --endpoint-url http://10.82.50.100:3900 s3 ls s3://loki
-aws --endpoint-url http://10.82.50.100:3900 s3 ls s3://mimir/blocks/
+aws --endpoint-url http://10.82.50.100:8333 s3 ls s3://loki
+aws --endpoint-url http://10.82.50.100:8333 s3 ls s3://mimir/blocks/
 ```
 
 Then tenancy, where the negative results are the interesting ones:

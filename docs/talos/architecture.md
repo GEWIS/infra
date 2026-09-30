@@ -3,7 +3,7 @@
 Talos lives in its own OpenTofu root, `terraform/talos-hosts/`, with its own state
 (`talos/terraform.tfstate`) and its own secret. It shares only the `xcpng-vm`
 module with `s3-01`. The two roots reference nothing of each other's: the
-cluster reaches Garage as an ordinary S3 client over the network, never through
+cluster reaches SeaweedFS as an ordinary S3 client over the network, never through
 tofu. Splitting them means a Talos apply cannot touch `s3-01`, and a Talos plan
 skips `s3-01`'s three-minute closure build.
 

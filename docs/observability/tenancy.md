@@ -47,7 +47,7 @@ tenant inside a single query: `{app="foo", __tenant_id__=~"ABC-.+"}`.
    namespace to the tenant, and one `prometheus.relabel` + `prometheus.remote_write`
    pair in `metrics.yaml`.
 
-Nothing per-tenant is provisioned in Garage. Tenancy is a prefix inside the
+Nothing per-tenant is provisioned in SeaweedFS. Tenancy is a prefix inside the
 shared `loki`, `mimir` and `tempo` buckets, so the bucket layout never changes.
 
 The namespaces the ABC tenants map to **do not exist yet**. That is harmless: a

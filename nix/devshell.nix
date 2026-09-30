@@ -3,6 +3,7 @@ pkgs.mkShellNoCC {
   name = "cbc-infra";
   packages = with pkgs; [
     age
+    awscli2
     jq
     kubectl
     kubeseal

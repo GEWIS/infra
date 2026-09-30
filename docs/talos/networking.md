@@ -40,4 +40,4 @@ The cluster shares `10.82.50.0/24` with everything else deliberately: a firewall
 VLAN would sit at the wrong layer. Cilium masquerades all pod egress to the node
 address, so a VLAN ACL could only ever express per-node rules, never
 per-workload — `CiliumNetworkPolicy` egress does that properly, keyed on pod
-identity, and keeps Garage on the same L2 with no router in the S3 path.
+identity, and keeps s3-01 on the same L2 with no router in the S3 path.

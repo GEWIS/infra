@@ -36,7 +36,7 @@ login still fails because each mapped org was skipped. The accompanying
 on.
 
 So orgs and their datasources are owned by `terraform/grafana-config`, in the
-same style as `garage-buckets` and `openbao-config`. Both chart sidecars are
+same style as `seaweedfs-buckets` and `openbao-config`. Both chart sidecars are
 disabled, so everything org-scoped has exactly one owner.
 
 Dashboards follow the same rule, and the chart's dashboard sidecar is not how they
