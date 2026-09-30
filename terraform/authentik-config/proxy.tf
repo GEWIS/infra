@@ -4,6 +4,10 @@ locals {
       display_name  = "Hubble"
       external_host = "https://hubble.cbc.gewis.nl:8443"
     }
+    flux = {
+      display_name  = "Flux"
+      external_host = "https://flux.cbc.gewis.nl:8443"
+    }
   }
 }
 

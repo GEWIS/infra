@@ -123,7 +123,7 @@ kubeconfig. Effective order on a fresh cluster:
 1. `talos-hosts`: VMs, machine config, etcd bootstrap. Talks to node IPs on
    `10.82.50.0/24`, so it needs the on-site LAN or VPN.
 2. `talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
-   pinned sealing key, and Flux. Uses `.kube/config`.
+   pinned sealing key, and the Flux Operator with its `FluxInstance`. Uses `.kube/config`.
 3. Flux reconciles `flux/`.
 4. `openbao-config`, `seaweedfs-buckets`, `postgres-databases`, `grafana-config`,
    `authentik-config`: configure services now running in the cluster. They need

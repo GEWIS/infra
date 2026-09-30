@@ -20,6 +20,14 @@
       "matchStrings": ["gateway_api_version = \"(?<currentValue>v[^\"]+)\""],
       "depNameTemplate": "kubernetes-sigs/gateway-api",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^flux/clusters/gewis-prod/flux-system/flux-instance\\.yaml$/"],
+      "matchStrings": ["version: \"(?<currentValue>[0-9.]+)\""],
+      "depNameTemplate": "fluxcd/flux2",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
     }
   ],
   "platformAutomerge": true,

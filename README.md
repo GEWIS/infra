@@ -37,7 +37,7 @@ secrets/<host>.yaml    sops-encrypted secrets, one file per host
 terraform/modules/          shared modules (xcpng-vm, nixos-host)
 terraform/s3-01/            OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
 terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
-terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux)
+terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux Operator)
 terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
 terraform/seaweedfs-buckets/ OpenTofu root: SeaweedFS buckets + their credentials in OpenBao
 terraform/grafana-config/   OpenTofu root: Grafana organizations and datasources

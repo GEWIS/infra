@@ -111,6 +111,8 @@ nav:
           - Follow-ups: talos/follow-ups.md
   - Cluster:
       - Overview: cluster/index.md
+      - Flux Operator: cluster/flux-operator.md
+      - Flux Web UI: cluster/flux-web.md
       - Flux layers: cluster/layers.md
       - Gateway API: cluster/gateway-api.md
       - Routing: cluster/routing.md

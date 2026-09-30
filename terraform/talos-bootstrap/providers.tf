@@ -4,11 +4,7 @@ terraform {
   required_providers {
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 2.17"
-    }
-    external = {
-      source  = "hashicorp/external"
-      version = "~> 2.3"
+      version = "~> 3.1"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -30,7 +26,7 @@ locals {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     config_path = local.kubeconfig_path
   }
 }
