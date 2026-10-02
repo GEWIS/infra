@@ -1,16 +1,3 @@
-locals {
-  proxy_clients = {
-    hubble = {
-      display_name  = "Hubble"
-      external_host = "https://hubble.cbc.gewis.nl:8443"
-    }
-    flux = {
-      display_name  = "Flux"
-      external_host = "https://flux.cbc.gewis.nl:8443"
-    }
-  }
-}
-
 data "authentik_service_connection_kubernetes" "local" {
   name = "Local Kubernetes Cluster"
 }

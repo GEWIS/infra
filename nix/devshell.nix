@@ -18,6 +18,7 @@ pkgs.mkShellNoCC {
     ssh-to-age
     talosctl
     (import ./packages/mint-creds.nix { inherit pkgs; })
+    (import ./packages/ssh-login.nix { inherit pkgs; })
     (python3.withPackages (ps: [ ps.mkdocs-material ]))
   ];
 }

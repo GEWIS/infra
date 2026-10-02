@@ -161,3 +161,8 @@ nav:
       - Reading from the cluster: seaweedfs-buckets/reading.md
       - Verifying: seaweedfs-buckets/verifying.md
       - Notes: seaweedfs-buckets/notes.md
+  - SSH certificates:
+      - Overview: ssh-certificates/index.md
+      - The CA and the role: ssh-certificates/ca.md
+      - Hosts: ssh-certificates/hosts.md
+      - Signing and logging in: ssh-certificates/signing.md

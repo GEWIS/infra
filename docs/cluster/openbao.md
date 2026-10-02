@@ -27,3 +27,33 @@ stalling on the API server's dial timeout.
 
 `disable_mlock` is not a valid OpenBao 2.x option; it was removed and is only
 warned about, not rejected.
+
+## People log in through authentik
+
+```sh
+bao login -method=oidc
+```
+
+or **OIDC** on the UI's login screen. The method is split over two roots:
+`40_openbao-config` mounts the bare `auth/oidc`, and `50_authentik-config`
+(`openbao.tf`) creates the `openbao` client in [authentik](../authentik/index.md),
+writes `auth/oidc/config` with its issuer and secret, and owns the roles. The mount has
+no dependencies; its configuration needs the client, so it lives where the client is.
+
+The single role, `authentik`, only accepts members of
+`CBC - Application Hosting Team (ADM)`, through `bound_claims` on the `groups` claim.
+That claim is built from `memberOfFlattened`, so nested membership counts — see
+[the groups claim](../authentik/configuration.md#the-groups-claim-comes-from-the-directory-not-from-authentiks-groups).
+authentik enforces the same group first: an expression policy bound to the `openbao`
+application checks that attribute, so anyone else is refused at authentik and does
+not see the app on their dashboard. A plain group binding would not do, because
+authentik's own groups only hold direct members. Both checks read
+`openbao_login_group` in `locals.tf`. Besides `default`, the role grants only
+`ssh-sign-admin`, which signs [SSH certificates](../ssh-certificates/index.md) and
+reads nothing. Management stays with OpenTofu through the Kubernetes path above.
+
+OpenBao never returns `oidc_client_secret` when the config is read, so the
+`vault_generic_endpoint` sets `ignore_absent_fields` — without it every plan would show
+the secret as changed. It also sets `disable_delete`, because the config endpoint
+cannot be deleted; destroying the method means removing the mount in
+`40_openbao-config`.

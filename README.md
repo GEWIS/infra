@@ -43,6 +43,7 @@ terraform/40_openbao-config/      OpenTofu root: OpenBao mounts and secrets
 terraform/40_postgres-databases/  OpenTofu root: Postgres roles + their credentials in OpenBao
 terraform/40_seaweedfs-buckets/   OpenTofu root: SeaweedFS buckets + their credentials in OpenBao
 terraform/50_authentik-config/    OpenTofu root: authentik's AD source, providers and applications
+terraform/50_ssh-certificates/    OpenTofu root: OpenBao SSH CA, signing role and policy
 terraform/60_grafana-config/      OpenTofu root: Grafana organizations and datasources
 flux/                  Flux GitOps tree, reconciled into the cluster
 docs/                  per-host and cluster operational detail

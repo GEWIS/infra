@@ -1,23 +1,3 @@
-locals {
-  oidc_clients = {
-    grafana = {
-      display_name  = "Grafana"
-      namespace     = "observability"
-      launch_url    = "https://grafana.cbc.gewis.nl:8443/"
-      redirect_uris = ["https://grafana.cbc.gewis.nl:8443/login/generic_oauth"]
-    }
-  }
-
-  oidc_namespaces = toset([for client in local.oidc_clients : client.namespace])
-
-  oidc_namespace_policies = {
-    for namespace in local.oidc_namespaces : namespace => [
-      for name, client in local.oidc_clients :
-      vault_policy.oidc_client_read[name].name if client.namespace == namespace
-    ]
-  }
-}
-
 data "authentik_flow" "authorization" {
   slug = "default-provider-authorization-implicit-consent"
 }
@@ -80,8 +60,9 @@ resource "authentik_provider_oauth2" "client" {
 
   allowed_redirect_uris = [
     for url in each.value.redirect_uris : {
-      matching_mode = "strict"
-      url           = url
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = url
     }
   ]
 }
@@ -130,7 +111,12 @@ resource "vault_policy" "oidc_client_read" {
 }
 
 resource "vault_kubernetes_auth_backend_role" "oidc_namespace" {
-  for_each = local.oidc_namespace_policies
+  for_each = {
+    for namespace in distinct([for client in local.oidc_clients : client.namespace]) : namespace => [
+      for name, client in local.oidc_clients :
+      vault_policy.oidc_client_read[name].name if client.namespace == namespace
+    ]
+  }
 
   backend   = "kubernetes"
   role_name = "authentik-${each.key}"

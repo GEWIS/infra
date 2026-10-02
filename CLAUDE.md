@@ -136,7 +136,9 @@ free number in a gap instead of renumbering. A stage that is not a root, like
 - `40_*`, `50_authentik-config`, `60_grafana-config`: configure services now running in
   the cluster. They need `BAO_ADDR` and `TF_VAR_bao_jwt`, which `.envrc` takes from a
   live `kubectl`. authentik cannot start before `40_postgres-databases` creates its
-  database, and Grafana mounts the OIDC Secret `50_authentik-config` writes.
+  database, `50_authentik-config` configures the `auth/oidc` mount
+  `40_openbao-config` creates, `50_ssh-certificates` configures its `ssh` mount, and
+  Grafana mounts the OIDC Secret `50_authentik-config` writes.
 
 `terraform/modules/xcpng-vm` and `nixos-host` are the shared building blocks.
 

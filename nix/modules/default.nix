@@ -9,6 +9,7 @@
     ./persistence.nix
     ./service-pc
     ./shell.nix
+    ./ssh-user-ca.nix
     ./tmpfs-root.nix
     ./zabbix-agent.nix
   ];

@@ -21,10 +21,6 @@ terraform {
   }
 }
 
-locals {
-  kubeconfig_path = coalesce(var.kubeconfig_path, "${path.module}/../../.kube/config")
-}
-
 provider "kubernetes" {
   config_path = local.kubeconfig_path
 }

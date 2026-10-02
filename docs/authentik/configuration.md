@@ -151,7 +151,10 @@ mappings writes a DN — but nothing about the OIDC claim depends on it any more
 
 ## OIDC clients are a map
 
-Each relying party is one entry in `oidc_clients`:
+Every client the root creates is declared in `locals.tf`, grouped by kind:
+`oidc_clients` for OIDC relying parties that run in the cluster, `proxy_clients` for
+apps behind the [proxy outpost](../cluster/routing.md). `oidc.tf` and `proxy.tf` only
+turn those maps into resources. Each relying party is one entry in `oidc_clients`:
 
 ```hcl
 grafana = {
@@ -169,9 +172,17 @@ auth role for that namespace. The consuming namespace pulls them in with an
 `ExternalSecret`, exactly as it does for SeaweedFS credentials — so the secret is
 generated, stored and consumed without anyone reading it.
 
+OpenBao is not in the map. It is a single fixed client that consumes its secret
+itself rather than through a namespace, so `openbao.tf` spells it out — see
+[OpenBao](../cluster/openbao.md#people-log-in-through-authentik).
+
 **Redirect URIs carry `:8443`.** The gateway is published on that port, it is
 part of the issuer, and `matching_mode = "strict"` means a missing port is a
 failed login with no useful error.
+
+**Each redirect URI sets `redirect_uri_type = "authorization"`.** authentik fills
+the field in when it is left out, and since `allowed_redirect_uris` is a list of
+objects, every plan then shows each entry as removed and re-added.
 
 **`grant_types` must be set explicitly.** authentik's provider model defaults the
 field to an *empty* list (`ArrayField(..., default=list)`), and the Terraform

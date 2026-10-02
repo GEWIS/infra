@@ -5,3 +5,6 @@ nixos-anywhere installs NixOS onto it, and `nix/hosts/s3-01/seaweedfs.nix` runs
 a single `weed server` process — master, volume, filer and S3 in one unit — on
 the second disk. The S3 API and its AWS-compatible IAM API share port `8333`,
 the only port open in the firewall.
+
+Besides root's authorized key, it accepts [SSH certificates](../ssh-certificates/index.md)
+signed by OpenBao.

@@ -28,6 +28,7 @@ What the five service PCs share, and how to install another, is
 | [authentik](authentik/index.md) | The identity provider and how it is wired up |
 | [observability](observability/index.md) | The LGTM stack and its tenancy model |
 | [seaweedfs-buckets](seaweedfs-buckets/index.md) | S3 buckets and the credentials the cluster reads for them |
+| [ssh-certificates](ssh-certificates/index.md) | OpenBao as the CA for short-lived SSH user certificates |
 
 The repository itself, its layout, and how to work on it are in the
 [README](https://github.com/GEWIS/infra#readme).
