@@ -4,7 +4,7 @@ Order matters once, on the first install, because the database and its
 credential are both made outside the cluster.
 
 ```sh
-cd terraform/postgres-databases
+cd terraform/40_postgres-databases
 tofu init
 tofu apply
 ```

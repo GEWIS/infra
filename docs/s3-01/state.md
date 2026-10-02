@@ -121,7 +121,7 @@ unaffected — but that has not been verified against Scaleway.
 Done once. This sequence was rehearsed end to end in a scratch directory.
 
 1. Do the Project, group and policy setup from *Who can touch the state*, then
-   create the bucket named in `terraform/s3-01/backend.tf` in `nl-ams` inside that
+   create the bucket named in `terraform/10_s3-01/backend.tf` in `nl-ams` inside that
    Project, with **versioning** on so a corrupt write is recoverable.
 
    Bucket names are unique **per region across all of Scaleway**, not per
@@ -134,11 +134,11 @@ Done once. This sequence was rehearsed end to end in a scratch directory.
 3. Keep a copy of the current state, which is still plaintext at this point:
 
    ```sh
-   cp terraform/s3-01/terraform.tfstate terraform/s3-01/terraform.tfstate.pre-migration
+   cp terraform/10_s3-01/terraform.tfstate terraform/10_s3-01/terraform.tfstate.pre-migration
    ```
 
 4. Temporarily let tofu read that plaintext state. In the `encryption` block of
-   `terraform/s3-01/backend.tf`, add the unencrypted method and replace the `state`
+   `terraform/10_s3-01/backend.tf`, add the unencrypted method and replace the `state`
    block with a fallback:
 
    ```hcl

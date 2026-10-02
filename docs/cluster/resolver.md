@@ -44,7 +44,7 @@ the answer is local.
 
 One caveat specific to this entry: **s3-01's address is a DHCP reservation, not
 a static address.** `10.82.50.100` is hardcoded here and in
-`terraform/seaweedfs-buckets`, and it holds only as long as the router's static
+`terraform/40_seaweedfs-buckets`, and it holds only as long as the router's static
 lease keeps matching the host — see [s3-01 gotchas](../s3-01/gotchas.md) for the
 two conditions. Buckets are addressed path-style, with no virtual-host domain
 configured in [`s3-01/seaweedfs.md`](../s3-01/seaweedfs.md).

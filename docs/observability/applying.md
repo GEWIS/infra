@@ -3,7 +3,7 @@
 Flux brings up the workloads. The Grafana side is one apply once Grafana answers:
 
 ```sh
-cd terraform/grafana-config
+cd terraform/60_grafana-config
 tofu init
 tofu apply
 ```

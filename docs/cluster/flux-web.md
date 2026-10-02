@@ -24,7 +24,7 @@ The UI has no login of its own in anonymous mode, so it sits behind the authenti
 proxy outpost exactly like [Hubble](../observability/hubble.md):
 `flux/apps/flux-web/httproute.yaml` holds the `ExternalAuth` route and the
 `ReferenceGrant`, and the `flux` proxy client in
-`terraform/authentik-config/proxy.tf` registers the provider with the `cbc`
+`terraform/50_authentik-config/proxy.tf` registers the provider with the `cbc`
 outpost. Like Hubble, any authentik user who can log in can open it.
 
 ## Only the gateway may reach it

@@ -18,7 +18,7 @@ same URL.
 - `TF_VAR_seaweedfs_admin_secret_key` ← `sops -d --extract '["seaweedfs-admin-secret-key"]' secrets/s3-01.yaml`
 - `TF_VAR_bao_jwt` ← `kubectl -n openbao create token openbao-admin --request-timeout=2s`
 
-That JWT is the same ServiceAccount path `terraform/openbao-config` uses; the
+That JWT is the same ServiceAccount path `terraform/40_openbao-config` uses; the
 root logs in at `auth/kubernetes/login` as the `admin` role. The token's TTL is
 an hour, and `.envrc` mints it on directory entry, so a long-idle shell needs a
 `direnv reload` before an apply.

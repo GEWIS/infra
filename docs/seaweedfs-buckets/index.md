@@ -1,6 +1,6 @@
 # seaweedfs-buckets
 
-One OpenTofu root, `terraform/seaweedfs-buckets`, that declares SeaweedFS S3
+One OpenTofu root, `terraform/40_seaweedfs-buckets`, that declares SeaweedFS S3
 buckets and lands their credentials in OpenBao where exactly one Kubernetes
 namespace can read them.
 

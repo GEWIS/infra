@@ -31,7 +31,7 @@ as a federated read:
 | Tempo | `query_frontend.multi_tenant_queries_enabled: true` |
 
 The federated header is `join("|", sort(local.tenants))` in
-`terraform/grafana-config`, never typed by hand. **Tenant IDs are
+`terraform/60_grafana-config`, never typed by hand. **Tenant IDs are
 case-sensitive** and federation enumerates them exactly, so a `cbc` written
 anywhere would be a second, invisible tenant. There is one spelling, `CBC`, and
 it comes from that one list.
@@ -41,7 +41,7 @@ tenant inside a single query: `{app="foo", __tenant_id__=~"ABC-.+"}`.
 
 ## Adding a tenant touches two places
 
-1. `terraform/grafana-config` — one entry in `local.tenants`, then `tofu apply`.
+1. `terraform/60_grafana-config` — one entry in `local.tenants`, then `tofu apply`.
    That creates the org, its three datasources, and widens CBC's federated header.
 2. `flux/apps/observability/alloy/` — one relabel rule in `logs.yaml` mapping the
    namespace to the tenant, and one `prometheus.relabel` + `prometheus.remote_write`

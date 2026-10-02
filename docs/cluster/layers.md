@@ -19,7 +19,7 @@ Three dependencies carry real weight and none is cosmetic:
 - **`controllers` depends on `sealed-secrets`** because it applies `SealedSecret`
   objects, so the CRD and its decryptor must already exist. Gateway API's CRDs need
   no layer of their own: Cilium requires them at startup and runs before Flux, so
-  `terraform/talos-bootstrap` installs them — see [Gateway API](gateway-api.md).
+  `terraform/20_talos-bootstrap` installs them — see [Gateway API](gateway-api.md).
 - **`services` depends on `openbao`** because the observability stack reads its S3
   credentials through an `ExternalSecret`. External Secrets retries until OpenBao
   answers, so this is not a correctness requirement — but with `wait: true` the
@@ -52,4 +52,4 @@ at `Certificate` reconcile.
 
 The `sealed-secrets` **namespace** is created by OpenTofu, not Flux, so the
 sealing key can be pinned and survive a cluster rebuild — see
-`terraform/talos-bootstrap/sealed-secrets.tf`.
+`terraform/20_talos-bootstrap/sealed-secrets.tf`.

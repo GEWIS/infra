@@ -48,6 +48,6 @@ Two constraints make that chain trustworthy:
   plus a few generations is what separates a backup from a copy.
 
 Add a bucket per engine the way the LGTM stack does — an entry in the `buckets`
-map in `terraform/seaweedfs-buckets`, credentials consumed through an
+map in `terraform/40_seaweedfs-buckets`, credentials consumed through an
 `ExternalSecret`. Buckets have no quota, so dump retention is what bounds the
 bucket's size.

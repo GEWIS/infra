@@ -9,7 +9,7 @@ workstation, where campus DNS does not know the name.
 ## The apply converged
 
 ```sh
-cd terraform/seaweedfs-buckets
+cd terraform/40_seaweedfs-buckets
 tofu plan            # must report: No changes.
 tofu output buckets
 ```

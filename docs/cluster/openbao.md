@@ -1,6 +1,6 @@
 # OpenBao
 
-Three-replica Raft, sealed with a static key from a SealedSecret and reached at
+Single-replica Raft, sealed with a static key from a SealedSecret and reached at
 `https://openbao.cbc.gewis.nl:8443`.
 
 It self-initialises. Auto-unseal cannot unseal a barrier that was never
@@ -20,7 +20,7 @@ bao write auth/kubernetes/login role=admin \
   jwt="$(kubectl -n openbao create token openbao-admin)"
 ```
 
-`.envrc` exports that token as `TF_VAR_bao_jwt` for the `openbao-config` root.
+`.envrc` exports that token as `TF_VAR_bao_jwt` for the `40_openbao-config` root.
 It passes `--request-timeout=2s`, so entering the directory without a route to
 `kube.gewis.nl:6443` costs two seconds and leaves the variable unset instead of
 stalling on the API server's dial timeout.

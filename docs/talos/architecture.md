@@ -1,6 +1,6 @@
 # How it fits together
 
-Talos lives in its own OpenTofu root, `terraform/talos-hosts/`, with its own state
+Talos lives in its own OpenTofu root, `terraform/10_talos-hosts/`, with its own state
 (`talos/terraform.tfstate`) and its own secret. It shares only the `xcpng-vm`
 module with `s3-01`. The two roots reference nothing of each other's: the
 cluster reaches SeaweedFS as an ordinary S3 client over the network, never through

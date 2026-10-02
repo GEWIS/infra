@@ -2,7 +2,7 @@
 
 Gateway API is **not** part of Kubernetes and nothing installs it by default —
 not Talos, and not Cilium unless `gatewayAPI.enabled` is set. It comes from
-`terraform/talos-bootstrap`, which applies the upstream `experimental-install.yaml`
+`terraform/20_talos-bootstrap`, which applies the upstream `experimental-install.yaml`
 for a pinned release before the Cilium chart; a Renovate `customManager` bumps
 `gateway_api_version` against GitHub releases.
 

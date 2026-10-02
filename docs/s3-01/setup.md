@@ -9,7 +9,7 @@
    ```
 
    `.envrc.local` reads the private key into `TF_VAR_host_age_key`, which
-   `terraform/s3-01/extra-files.sh` writes to `/var/lib/sops-nix/key.txt` on the target
+   `terraform/10_s3-01/extra-files.sh` writes to `/var/lib/sops-nix/key.txt` on the target
    so sops-nix can decrypt on first boot.
 
 2. **Mint a NetBird setup key** at [nb.gewis.nl](https://nb.gewis.nl) with

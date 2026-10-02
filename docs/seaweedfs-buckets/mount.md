@@ -1,6 +1,6 @@
 # Which mount, and why not `secret`
 
-This root owns its own `seaweedfs` kv-v2 mount. `terraform/openbao-config` owns
+This root owns its own `seaweedfs` kv-v2 mount. `terraform/40_openbao-config` owns
 `secret`; two roots declaring the same `vault_mount` is a state fight, and a
 dedicated mount makes the policy paths
 (`seaweedfs/data/<namespace>/<bucket>`) fall out without prefix gymnastics.

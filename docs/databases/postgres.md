@@ -10,7 +10,7 @@ one and are separated by role and database instead.
 
 ## Adding a database is one map entry
 
-`terraform/postgres-databases` owns every credential *and* the DDL. One entry is
+`terraform/40_postgres-databases` owns every credential *and* the DDL. One entry is
 the whole change:
 
 ```hcl
@@ -66,7 +66,7 @@ managed:
 attributes and leaves the credential alone — and the credential is the one
 CloudNativePG generated at bootstrap, sitting in `postgres-app`. Tofu reads it
 out of the cluster with the `kubernetes` provider, the same shape as
-`grafana-config` reading `grafana-auth`.
+`60_grafana-config` reading `grafana-auth`.
 
 **`login: true` is not redundant, even though `initdb` already created the role
 with it.** A managed role is reconciled to its declared state, and `Login` is a

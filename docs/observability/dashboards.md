@@ -1,6 +1,6 @@
 # Dashboards are owned by tofu, in the CBC org
 
-`terraform/grafana-config/dashboards.tf` imports every dashboard into the CBC
+`terraform/60_grafana-config/dashboards.tf` imports every dashboard into the CBC
 organization, for the reasons in [Grafana orgs](grafana-orgs.md). Two maps, split
 by whether the JSON hardcodes a datasource:
 
@@ -25,7 +25,7 @@ which is what makes an import idempotent.
 entry, so it is fetched raw at a tag. A Renovate `customManager` in
 `renovate.json` matches `cilium/cilium/v…` in `dashboards.tf` and bumps it
 against GitHub releases. It is a **separate PR** from the chart version in
-`terraform/talos-bootstrap`, so land the two together or the dashboard drifts
+`terraform/20_talos-bootstrap`, so land the two together or the dashboard drifts
 from the agent that serves the metrics.
 
 The other dashboards in that directory are not imported:

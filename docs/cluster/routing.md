@@ -3,7 +3,7 @@
 Cilium is the Gateway API implementation (`gatewayClassName: cilium`). It is not a
 Flux controller: Gateway API is part of the CNI and is switched on with
 `gatewayAPI.enabled` in the Cilium Helm values in
-`terraform/talos-bootstrap/main.tf`. Every node then runs an Envoy that eBPF
+`terraform/20_talos-bootstrap/main.tf`. Every node then runs an Envoy that eBPF
 transparently forwards matching traffic into.
 
 The `Gateway` itself is ours, in `flux/config/gateway/` — named `gateway` in the
@@ -36,7 +36,7 @@ Cilium 1.20 added the `ExternalAuth` HTTPRoute filter from
 [GEP-1494](https://gateway-api.sigs.k8s.io/geps/gep-1494/), which delegates the
 allow/deny decision to a service over Envoy's `ext_authz` protocol. The field
 exists only in the experimental channel of the Gateway API CRDs, which is what
-`terraform/talos-bootstrap` installs.
+`terraform/20_talos-bootstrap` installs.
 
 authentik, Grafana and OpenBao each authenticate themselves — Grafana against
 authentik over OIDC — so the filter carries exactly one workload: Hubble UI, which

@@ -1,6 +1,6 @@
 # Storage
 
-One bucket per component, provisioned by `terraform/seaweedfs-buckets` — see
+One bucket per component, provisioned by `terraform/40_seaweedfs-buckets` — see
 [`seaweedfs-buckets/index.md`](../seaweedfs-buckets/index.md).
 
 | Component | Bucket | Prefixes | Local disk |

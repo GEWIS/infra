@@ -1,12 +1,12 @@
 # Configuring authentik
 
-`terraform/authentik-config` owns everything *inside* authentik: the Active
+`terraform/50_authentik-config` owns everything *inside* authentik: the Active
 Directory source today, and the providers, applications and groups that relying
 parties need as they arrive. The Flux tree only deploys the software.
 
 The root has no credential of its own. It reads the bootstrap token out of the
 `authentik-auth` Secret with the `kubernetes` provider and authenticates as
-`akadmin`, exactly as `terraform/grafana-config` reads `grafana-auth`. That
+`akadmin`, exactly as `terraform/60_grafana-config` reads `grafana-auth`. That
 couples the root to the cluster, which costs nothing it was not already paying:
 authentik has to be up and reachable for an apply to do anything.
 
@@ -78,7 +78,7 @@ value as `TF_VAR_ad_bind_password` and says so when it cannot.
 ## Applying
 
 ```sh
-cd terraform/authentik-config
+cd terraform/50_authentik-config
 tofu init
 tofu apply
 ```

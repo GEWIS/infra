@@ -29,16 +29,16 @@ Both are pinned and bumped by Renovate, so every upgrade is a commit:
 
 ## Bootstrap: tofu starts it, Flux owns it
 
-`terraform/talos-bootstrap/flux.tf` uses the upstream
+`terraform/20_talos-bootstrap/flux.tf` uses the upstream
 `controlplaneio-fluxcd/flux-operator-bootstrap` module. It runs a one-shot Job
 that installs the operator chart and applies the `FluxInstance`, both read from
 the files above so bootstrap and steady state never disagree. Both are
 *create-if-missing*: once Flux has adopted them the Job leaves them alone, so a
 later `tofu apply` never fights Flux. Changing either file makes the next
-`talos-bootstrap` apply re-run the Job, which then finds everything adopted and
+`20_talos-bootstrap` apply re-run the Job, which then finds everything adopted and
 does nothing.
 
-The module needs the Helm provider 3.x, which is why `talos-bootstrap` pins
+The module needs the Helm provider 3.x, which is why `20_talos-bootstrap` pins
 `~> 3.1`.
 
 ## Migrating the running cluster
@@ -49,7 +49,7 @@ ownership labels from the controllers and marks them
 `kustomize.toolkit.fluxcd.io/prune: Disabled`, so removing the old `gotk-*.yaml`
 from Git cannot garbage-collect running controllers. Order matters:
 
-1. `tofu apply` in `terraform/talos-bootstrap` — installs the operator and the
+1. `tofu apply` in `terraform/20_talos-bootstrap` — installs the operator and the
    `FluxInstance`; wait for `kubectl -n flux-system get fluxinstance flux` to
    report `Ready`.
 2. Only then push the commit that removes `flux-system/gotk-*.yaml` and

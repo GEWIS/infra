@@ -34,15 +34,16 @@ flake.nix              nixosConfigurations + devShell
 nix/modules/           shared NixOS modules
 nix/hosts/<host>/      per-host configuration
 secrets/<host>.yaml    sops-encrypted secrets, one file per host
-terraform/modules/          shared modules (xcpng-vm, nixos-host)
-terraform/s3-01/            OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
-terraform/talos-hosts/      OpenTofu root: 3-node Talos cluster
-terraform/talos-bootstrap/  OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux Operator)
-terraform/openbao-config/   OpenTofu root: OpenBao mounts and secrets
-terraform/seaweedfs-buckets/ OpenTofu root: SeaweedFS buckets + their credentials in OpenBao
-terraform/grafana-config/   OpenTofu root: Grafana organizations and datasources
-terraform/postgres-databases/ OpenTofu root: Postgres roles + their credentials in OpenBao
-terraform/authentik-config/ OpenTofu root: authentik's AD source, providers and applications
+terraform/modules/                shared modules (xcpng-vm, nixos-host)
+terraform/10_s3-01/               OpenTofu root: XCP-ng VM + nixos-anywhere (s3-01)
+terraform/10_talos-hosts/         OpenTofu root: 3-node Talos cluster
+terraform/20_talos-bootstrap/     OpenTofu root: in-cluster bootstrap (Cilium, sealed-secrets, Flux Operator)
+terraform/30_flux/                stage marker: Flux reconciles flux/
+terraform/40_openbao-config/      OpenTofu root: OpenBao mounts and secrets
+terraform/40_postgres-databases/  OpenTofu root: Postgres roles + their credentials in OpenBao
+terraform/40_seaweedfs-buckets/   OpenTofu root: SeaweedFS buckets + their credentials in OpenBao
+terraform/50_authentik-config/    OpenTofu root: authentik's AD source, providers and applications
+terraform/60_grafana-config/      OpenTofu root: Grafana organizations and datasources
 flux/                  Flux GitOps tree, reconciled into the cluster
 docs/                  per-host and cluster operational detail
 ```
@@ -129,14 +130,14 @@ apply to one cannot touch another. `s3-01` — see
 [`docs/s3-01/`](docs/s3-01/index.md):
 
 ```sh
-cd terraform/s3-01 && tofu apply
+cd terraform/10_s3-01 && tofu apply
 ```
 
 `talos-*` — see [`docs/talos/`](docs/talos/index.md); a Talos template must be
 imported into Xen Orchestra once first, then:
 
 ```sh
-cd terraform/talos-hosts && tofu apply
+cd terraform/10_talos-hosts && tofu apply
 ```
 
 OpenTofu state is remote, in Scaleway Object Storage, locked with native S3

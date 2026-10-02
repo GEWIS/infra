@@ -1,7 +1,7 @@
 # Hubble
 
 Every Cilium agent serves its own flow API on `:4244`; `hubble.enabled` is on by
-default. The Cilium values in `terraform/talos-bootstrap/main.tf` add the two
+default. The Cilium values in `terraform/20_talos-bootstrap/main.tf` add the two
 components that are not:
 
 ```hcl
@@ -37,7 +37,7 @@ the `authentik` namespace. In `flux/config/` it would make the layer that carrie
 
 The auth service is an authentik **proxy provider** in `forward_single` mode, served
 by a dedicated outpost that authentik deploys itself through the
-`Local Kubernetes Cluster` service connection — `terraform/authentik-config/proxy.tf`
+`Local Kubernetes Cluster` service connection — `terraform/50_authentik-config/proxy.tf`
 declares the provider, the application and the outpost, and authentik creates the
 `ak-outpost-cbc` Deployment and Service in its own namespace.
 

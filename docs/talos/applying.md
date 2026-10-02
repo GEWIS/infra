@@ -13,7 +13,7 @@ talosctl -n 10.82.50.101 get disks --insecure
 Then apply:
 
 ```sh
-cd terraform/talos-hosts
+cd terraform/10_talos-hosts
 tofu init
 tofu apply
 ```

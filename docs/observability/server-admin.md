@@ -7,7 +7,7 @@ organization roles and nothing more. Server administration belongs to the local
 
 The login form is therefore **hidden** (`disable_login_form: true`), and the UI is
 GEWISWG-only. That is a deliberate choice, not an oversight: server-level
-administration happens through `terraform/grafana-config`, not by clicking. The
+administration happens through `terraform/60_grafana-config`, not by clicking. The
 local `admin` remains fully usable because `[auth.basic]` is untouched — basic
 auth against the API keeps working, which is exactly how that tofu root
 authenticates.
@@ -21,7 +21,7 @@ If OIDC itself breaks — authentik unreachable, Active Directory down, the clie
 secret rotated out from under the release — there is no interactive way in at
 all. Recovery is to set `disable_login_form: false` in git and let Flux
 reconcile, which takes about as long as a reconcile. The API remains reachable
-with the admin credentials throughout, which is how `terraform/grafana-config`
+with the admin credentials throughout, which is how `terraform/60_grafana-config`
 keeps working while nobody can log in.
 
 That chain is longer than it was under Keycloak: a login now depends on

@@ -45,7 +45,7 @@ the sops-nix secret needs a stable owner to be rendered for. State lives under
 ## One port, two APIs
 
 8333 serves the S3 API *and* an AWS-IAM-compatible API. There is no separate
-admin endpoint: `terraform/seaweedfs-buckets` creates buckets, users, access
+admin endpoint: `terraform/40_seaweedfs-buckets` creates buckets, users, access
 keys and policies over that single port with the ordinary `hashicorp/aws`
 provider, path-style.
 
@@ -88,8 +88,8 @@ owner `seaweedfs`), rendered from `secrets/s3-01.yaml` keys
 unit, which re-runs `s3.configure`.
 
 Buckets and per-bucket keys are **not** managed here. They are declared in
-`terraform/seaweedfs-buckets`, which also mints the credentials into OpenBao —
-see [`seaweedfs-buckets`](../seaweedfs-buckets/index.md). Creating a bucket with
+`terraform/40_seaweedfs-buckets`, which also mints the credentials into OpenBao —
+see [`40_seaweedfs-buckets`](../seaweedfs-buckets/index.md). Creating a bucket with
 `weed shell` puts it outside that state, where the next apply will not see it.
 
 ## No bucket quotas

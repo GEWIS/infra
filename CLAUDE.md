@@ -99,10 +99,10 @@ fragments through root's login shell.
   `GEWIS/infra` `main` and switches the host. **Every push to `main` deploys**, including
   commits that touch nothing of theirs. A config that fails to evaluate just stops updates. root has no ssh,
   so there is no `nixos-rebuild --target-host` fallback.
-- `s3-01`: `terraform/s3-01` creates the XCP-ng VM and runs nixos-anywhere via
+- `s3-01`: `terraform/10_s3-01` creates the XCP-ng VM and runs nixos-anywhere via
   `terraform/modules/nixos-host`; later applies only `nixos-rebuild --switch`. Replace the
   VM resource to force a reinstall.
-- Talos nodes: `terraform/talos-hosts`, then `terraform/talos-bootstrap`, then Flux.
+- Talos nodes: `terraform/10_talos-hosts`, then `terraform/20_talos-bootstrap`, then Flux.
 
 ### Secrets
 
@@ -115,19 +115,28 @@ the admins unless the host sets `adminReadable = false`. Private keys are never 
 ### OpenTofu roots
 
 Each directory under `terraform/` is its own root with its own state object in the
-Scaleway bucket `gewis-tfstate` (`<root>/terraform.tfstate`), locked with S3 conditional
-writes and client-side encrypted with the passphrase from `secrets/tofu.yaml`. Roots never
+Scaleway bucket `gewis-tfstate`, locked with S3 conditional writes and client-side
+encrypted with the passphrase from `secrets/tofu.yaml`. The object is the `key` in the
+root's `backend.tf`, and it does **not** follow the directory name: it has no numeric
+prefix and is sometimes shorter (`10_talos-hosts` → `talos/terraform.tfstate`,
+`40_openbao-config` → `openbao/terraform.tfstate`). Never edit a key to match a
+directory; tofu would start from empty state and plan to recreate everything. Roots never
 read each other's state; they share data only through `.envrc` variables and the minted
-kubeconfig. Effective order on a fresh cluster:
+kubeconfig.
 
-1. `talos-hosts`: VMs, machine config, etcd bootstrap. Talks to node IPs on
-   `10.82.50.0/24`, so it needs the on-site LAN or VPN.
-2. `talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
-   pinned sealing key, and the Flux Operator with its `FluxInstance`. Uses `.kube/config`.
-3. Flux reconciles `flux/`.
-4. `openbao-config`, `seaweedfs-buckets`, `postgres-databases`, `grafana-config`,
-   `authentik-config`: configure services now running in the cluster. They need
-   `BAO_ADDR` and `TF_VAR_bao_jwt`, which `.envrc` takes from a live `kubectl`.
+The two-digit prefix is the apply order on a fresh setup: lower first, roots with the
+same prefix are independent of each other. Prefixes step by 10 so a new stage takes a
+free number in a gap instead of renumbering. A stage that is not a root, like
+`30_flux` (Flux reconciles `flux/`), is an empty directory holding a `.gitkeep`.
+
+- `10_talos-hosts`: VMs, machine config, etcd bootstrap. Talks to node IPs on
+  `10.82.50.0/24`, so it needs the on-site LAN or VPN. `10_s3-01` runs alongside it.
+- `20_talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
+  pinned sealing key, and the Flux Operator with its `FluxInstance`. Uses `.kube/config`.
+- `40_*`, `50_authentik-config`, `60_grafana-config`: configure services now running in
+  the cluster. They need `BAO_ADDR` and `TF_VAR_bao_jwt`, which `.envrc` takes from a
+  live `kubectl`. authentik cannot start before `40_postgres-databases` creates its
+  database, and Grafana mounts the OIDC Secret `50_authentik-config` writes.
 
 `terraform/modules/xcpng-vm` and `nixos-host` are the shared building blocks.
 

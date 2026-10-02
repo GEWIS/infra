@@ -13,7 +13,7 @@ export AWS_ACCESS_KEY_ID="<scaleway access key>"
 export AWS_SECRET_ACCESS_KEY="<scaleway secret key>"
 ```
 
-The XO endpoint itself is hardcoded in `terraform/s3-01/providers.tf`, not read from
+The XO endpoint itself is hardcoded in `terraform/10_s3-01/providers.tf`, not read from
 `XOA_URL`, because a stray trailing newline in that variable trips the
 provider's `malformed ws or wss URL` check.
 

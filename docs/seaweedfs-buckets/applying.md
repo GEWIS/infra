@@ -1,7 +1,7 @@
 # Applying
 
 ```sh
-cd terraform/seaweedfs-buckets
+cd terraform/40_seaweedfs-buckets
 tofu init
 tofu plan
 tofu apply
