@@ -13,8 +13,8 @@ the `observability` namespace with the `kubernetes` provider and authenticates a
 that admin user. The read leaves a copy of the password in this root's encrypted
 state. This couples the root to the cluster, which costs nothing it was not
 already paying: Grafana has to be up and reachable for an apply to do anything at
-all. The kubeconfig defaults to the repository's `.kube/config`, which `.envrc`
-mints.
+all. The kubeconfig defaults to the repository's `.kube/config`; see
+[kubeconfig and talosconfig](../talos/secrets.md#kubeconfig-and-talosconfig-break-glass).
 
 ## When Grafana's database is newer than the state
 

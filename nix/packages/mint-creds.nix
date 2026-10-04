@@ -17,6 +17,13 @@ pkgs.writeShellApplication {
     cluster="cbc"
     endpoint="https://kube.gewis.nl:6443"
     nodes=(10.82.50.101 10.82.50.102 10.82.50.103)
+    who="$(git config user.email)"
+    if [ -z "$who" ]; then
+      echo "mint-creds: set git config user.email; it becomes the certificate's name" >&2
+      exit 1
+    fi
+    not_before="$(date -u -d '-5 minutes' +%Y%m%d%H%M%SZ)"
+    not_after="$(date -u -d '+1 hour' +%Y%m%d%H%M%SZ)"
 
     work="$(mktemp -d)"
     trap 'rm -rf "$work"' EXIT
@@ -28,7 +35,7 @@ pkgs.writeShellApplication {
     ca os key >os.key
     talosctl gen key --name talos >/dev/null
     talosctl gen csr --key talos.key --roles os:admin --ip 127.0.0.1 >/dev/null
-    talosctl gen crt --ca os --csr talos.csr --hours 876000 --name talos >/dev/null
+    talosctl gen crt --ca os --csr talos.csr --hours 1 --name talos >/dev/null
 
     mkdir -p "$(dirname "$talosconfig")"
     {
@@ -43,9 +50,9 @@ pkgs.writeShellApplication {
     ca k8s crt >k8s.crt
     ca k8s key >k8s.key
     openssl genpkey -algorithm ec -pkeyopt ec_paramgen_curve:P-256 -out kube.key
-    openssl req -new -key kube.key -subj "/CN=admin/O=system:masters" -out kube.csr
+    openssl req -new -key kube.key -subj "/CN=$who/O=system:masters" -out kube.csr
     openssl x509 -req -in kube.csr -CA k8s.crt -CAkey k8s.key -CAcreateserial \
-      -not_after 99991231235959Z \
+      -not_before "$not_before" -not_after "$not_after" \
       -extfile <(printf 'keyUsage=critical,digitalSignature\nextendedKeyUsage=clientAuth\n') \
       -out kube.crt
 
@@ -54,11 +61,12 @@ pkgs.writeShellApplication {
       printf 'apiVersion: v1\nkind: Config\ncurrent-context: %s\n' "$cluster"
       printf 'clusters:\n    - name: %s\n      cluster:\n        server: %s\n' "$cluster" "$endpoint"
       printf '        certificate-authority-data: %s\n' "$(base64 -w0 k8s.crt)"
-      printf 'users:\n    - name: admin\n      user:\n'
+      printf 'users:\n    - name: %s\n      user:\n' "$who"
       printf '        client-certificate-data: %s\n        client-key-data: %s\n' \
         "$(base64 -w0 kube.crt)" "$(base64 -w0 kube.key)"
-      printf 'contexts:\n    - name: %s\n      context:\n        cluster: %s\n        user: admin\n' "$cluster" "$cluster"
+      printf 'contexts:\n    - name: %s\n      context:\n        cluster: %s\n        user: %s\n' "$cluster" "$cluster" "$who"
     } >"$kubeconfig"
     chmod 600 "$kubeconfig"
+    echo "mint-creds: $talosconfig and $kubeconfig valid until $not_after for $who" >&2
   '';
 }

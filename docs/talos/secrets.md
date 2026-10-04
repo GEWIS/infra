@@ -13,18 +13,25 @@ are still present during a run, just never written down.
 The provider's `ephemeral talos_machine_secrets` is not an alternative — it has
 no seed input, so every open mints fresh CAs and would orphan a running cluster.
 
-## kubeconfig and talosconfig
+## kubeconfig and talosconfig (break-glass)
 
-Generated locally from the same sops bundle, never through tofu, so no admin
-credential lands in state either:
+`mint-creds` signs both locally from the CA keys in the same sops bundle, never
+through tofu, so no admin credential lands in state:
 
 ```sh
-sops -d secrets/talos.yaml > /tmp/talos-secrets.yaml
-talosctl gen config gewis https://kube.gewis.nl:6443 \
-  --with-secrets /tmp/talos-secrets.yaml --output-types talosconfig -o talosconfig
-talosctl --talosconfig talosconfig --nodes 10.82.50.101 kubeconfig
-rm /tmp/talos-secrets.yaml
+mint-creds
 ```
+
+It writes `.talos/config` and `.kube/config`, which the top-level `.envrc`
+points `TALOSCONFIG` and `KUBECONFIG` at. Both certificates are valid for **one
+hour**. Run it again when they expire; nothing mints them for you.
+
+The kube certificate is `O=system:masters`, so it works even when RBAC or
+every in-cluster identity provider is broken, and it cannot be revoked short of
+rotating the CA. The short lifetime is what bounds it. Its CN is your
+`git config user.email`, so the API server audit log shows who used it. The
+Talos certificate carries only the `os:admin` role; Talos has no per-user
+identity.
 
 `kube.gewis.nl` is the Kubernetes API endpoint only — A records to all three
 nodes on `:6443` — and belongs in the kubeconfig. For `talosctl`, use the
