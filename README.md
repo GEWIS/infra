@@ -100,9 +100,10 @@ is plainly on disk.
 
 ## Secrets
 
-One sops file per host in `secrets/`, plus `secrets/tofu.yaml` for the state
-encryption passphrase. Recipients are declared in `.sops.yaml`, where the
-`admins` group is the one to extend when someone else needs access.
+One sops file per host in `secrets/`, plus admin-only files for the state
+passphrase, the Talos PKI, the sealing key and authentik. Recipients are
+declared in `nix/recipients.nix`; `.sops.yaml` is generated from it with
+`nix run .#sops-config`, and `nix flake check` fails if the two drift.
 
 ```sh
 sops secrets/s3-01.yaml
@@ -113,6 +114,8 @@ sops secrets/pcgewisd.yaml
 sops secrets/pcgewisinfo.yaml
 sops secrets/tofu.yaml
 sops secrets/talos.yaml
+sops secrets/sealed-secrets.yaml
+sops secrets/authentik.yaml
 ```
 
 Private age keys are never committed — `.gitignore` covers `*-age.key` and

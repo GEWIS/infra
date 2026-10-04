@@ -1,7 +1,7 @@
 # State
 
-Remote, in Scaleway Object Storage (`nl-ams`), at
-`tfstate/s3-01/terraform.tfstate`.
+Remote, in Scaleway Object Storage (`nl-ams`), in bucket `gewis-tfstate` under
+key `s3-01/terraform.tfstate`.
 
 | Concern | How |
 | --- | --- |
@@ -30,17 +30,15 @@ Recipients may be **age keys or SSH ed25519 public keys** — sops accepts an
 `~/.ssh`, with no conversion step and nothing to keep in
 `~/.config/sops/age`. Admins are listed that way.
 
-To add an admin, add their public key under `admins` in `.sops.yaml`, then
-re-key every file they should read:
+To add an admin, add their public key under `admins` in `nix/recipients.nix`,
+regenerate `.sops.yaml` with `nix run .#sops-config`, then re-key every file:
 
 ```sh
-sops updatekeys secrets/tofu.yaml
-sops updatekeys secrets/s3-01.yaml
+for f in secrets/*.yaml; do sops updatekeys -y "$f"; done
 ```
 
 `updatekeys` decrypts before re-encrypting, so it only works for files you can
-already read. `secrets/pcgewisinfo.yaml` is not in that list because no admin is
-a recipient yet — see [`pcgewisinfo.md`](../pcgewisinfo/secrets.md).
+already read. Every file has the admins as recipients.
 
 Every root in this repo encrypts its state the same way, deliberately. Deciding
 per root would mean remembering per root, and forgetting is silent — a live
@@ -157,7 +155,7 @@ Done once. This sequence was rehearsed end to end in a scratch directory.
    Scaleway; it runs no plan and touches no infrastructure:
 
    ```sh
-   cd terraform && tofu init -migrate-state
+   cd terraform/10_s3-01 && tofu init -migrate-state
    ```
 
 6. Revert `backend.tf` — drop the `fallback` and the `unencrypted` method,

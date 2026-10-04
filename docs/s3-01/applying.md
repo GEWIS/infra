@@ -1,7 +1,7 @@
 # Applying
 
 ```sh
-cd terraform
+cd terraform/10_s3-01
 tofu init
 tofu plan
 tofu apply

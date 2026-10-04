@@ -41,8 +41,8 @@ whose value is empty, which is why no password appears there.
 `AUTHENTIK_BOOTSTRAP_PASSWORD`, `_TOKEN` and `_EMAIL` are consumed on the very
 first startup and ignored on every one after. The token becomes a long-lived API
 token owned by `akadmin`, and that is what `terraform/50_authentik-config` will
-authenticate with — read back out of the cluster, the way `60_grafana-config` reads
-`grafana-auth`, so the value exists in exactly one place.
+authenticate with, read back out of the cluster the way `60_grafana-config` reads
+`grafana-auth`. The read leaves a copy in that root's encrypted state.
 
 Neither value is printed anywhere. Retrieve the admin password when you need it:
 

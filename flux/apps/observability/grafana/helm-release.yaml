@@ -40,10 +40,6 @@ spec:
       passwordKey: admin-password
 
     extraSecretMounts:
-      - name: auth
-        secretName: grafana-auth
-        mountPath: /etc/secrets/auth
-        readOnly: true
       - name: oidc
         secretName: grafana-oidc
         mountPath: /etc/secrets/oidc

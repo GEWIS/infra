@@ -1,7 +1,8 @@
 # First-time setup
 
-1. **Generate the host age key** and put its public half in `.sops.yaml` as
-   `&s3_01`:
+1. **Generate the host age key**, add its public half as `s3-01` under `hosts`
+   in `nix/recipients.nix`, and regenerate `.sops.yaml` with
+   `nix run .#sops-config`:
 
    ```sh
    age-keygen -o s3-01-age.key
