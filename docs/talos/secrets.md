@@ -3,7 +3,7 @@
 `talos_machine_secrets` would write five CA private keys, the bootstrap token
 and the etcd encryption secrets into the state file. Instead the PKI is minted
 once with `talosctl gen secrets`, stored sops-encrypted in `secrets/talos.yaml`,
-and decrypted by `.envrc` into `TF_VAR_talos_secrets`. `main.tf` remaps its keys
+and decrypted by the root's `.envrc` into `TF_VAR_talos_secrets`. `main.tf` remaps its keys
 into the shape the provider wants and feeds it only through `ephemeral` blocks
 and write-only (`*_wo`) inputs. The state holds resource ids, node addresses and
 a non-secret `machine_configuration_hash` — nothing else. That hash is how the

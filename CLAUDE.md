@@ -34,11 +34,13 @@ cd terraform/<root> && tofu init && tofu plan && tofu apply
 Flakes only see git-tracked files: `git add` a new file before `nix build`, `nix flake
 check` or `tofu plan`, or it is invisible to the build.
 
-The `tofu` roots need `.envrc`: it decrypts `secrets/*.yaml` into `TF_VAR_*`, mints
-`.talos/config` and `.kube/config` from `secrets/talos.yaml` via `mint-creds`, and
-sources a gitignored `.envrc.local` for the operator's Scaleway state-bucket key. Without
-a private age key in `.sops.yaml`'s admin group none of that works and `tofu` cannot
-open state.
+The `tofu` roots need direnv. The top-level `.envrc` exports only what every root needs:
+the state passphrase from `secrets/tofu.yaml`, `BAO_ADDR`, `KUBECONFIG`/`TALOSCONFIG`, and
+a gitignored `.envrc.local` with the operator's Scaleway state-bucket key and XO token.
+A root that needs more has its own `.envrc` that runs `source_up` and then calls
+`sops_export` or `bao_jwt_export`, so a secret is only in your shell inside the root that
+uses it. Each new `.envrc` needs a `direnv allow`. Without an admin SSH key in
+`nix/recipients.nix` none of the sops files decrypt and `tofu` cannot open state.
 
 Commits use conventional prefixes (`feat:`, `fix:`, `chore:`, `refactor:`, `ci:`, `test:`).
 
@@ -121,7 +123,7 @@ root's `backend.tf`, and it does **not** follow the directory name: it has no nu
 prefix and is sometimes shorter (`10_talos-hosts` → `talos/terraform.tfstate`,
 `40_openbao-config` → `openbao/terraform.tfstate`). Never edit a key to match a
 directory; tofu would start from empty state and plan to recreate everything. Roots never
-read each other's state; they share data only through `.envrc` variables and the minted
+read each other's state; they share data only through their `.envrc` variables and the
 kubeconfig.
 
 The two-digit prefix is the apply order on a fresh setup: lower first, roots with the
@@ -133,12 +135,12 @@ free number in a gap instead of renumbering. A stage that is not a root, like
   `10.82.50.0/24`, so it needs the on-site LAN or VPN. `10_s3-01` runs alongside it.
 - `20_talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
   pinned sealing key, and the Flux Operator with its `FluxInstance`. Uses `.kube/config`.
-- `40_*`, `50_authentik-config`, `60_grafana-config`: configure services now running in
-  the cluster. They need `BAO_ADDR` and `TF_VAR_bao_jwt`, which `.envrc` takes from a
-  live `kubectl`. authentik cannot start before `40_postgres-databases` creates its
-  database, `50_authentik-config` configures the `auth/oidc` mount
-  `40_openbao-config` creates, `50_ssh-certificates` configures its `ssh` mount, and
-  Grafana mounts the OIDC Secret `50_authentik-config` writes.
+- `40_*`, `50_*`, `60_grafana-config`: configure services now running in the cluster.
+  The roots with a vault provider (`40_*`, `50_*`) need `TF_VAR_bao_jwt`, which their
+  `.envrc` takes from a live `kubectl`. authentik cannot start before
+  `40_postgres-databases` creates its database, `50_authentik-config` configures the
+  `auth/oidc` mount `40_openbao-config` creates, `50_ssh-certificates` configures its
+  `ssh` mount, and Grafana mounts the OIDC Secret `50_authentik-config` writes.
 
 `terraform/modules/xcpng-vm` and `nixos-host` are the shared building blocks.
 

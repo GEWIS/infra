@@ -12,7 +12,8 @@ AWS-IAM-compatible API on 8333, and 8333 is the only port the host firewall
 opens, so the `aws` provider's `iam`, `s3` and `sts` endpoints all point at the
 same URL.
 
-`.envrc` exports every credential, so there is nothing to pass by hand:
+The root's own `.envrc` exports every credential, so there is nothing to pass by
+hand:
 
 - `TF_VAR_seaweedfs_admin_access_key` ← `sops -d --extract '["seaweedfs-admin-access-key"]' secrets/s3-01.yaml`
 - `TF_VAR_seaweedfs_admin_secret_key` ← `sops -d --extract '["seaweedfs-admin-secret-key"]' secrets/s3-01.yaml`
@@ -20,7 +21,7 @@ same URL.
 
 That JWT is the same ServiceAccount path `terraform/40_openbao-config` uses; the
 root logs in at `auth/kubernetes/login` as the `admin` role. The token's TTL is
-an hour, and `.envrc` mints it on directory entry, so a long-idle shell needs a
+an hour, and the `.envrc` mints it on directory entry, so a long-idle shell needs a
 `direnv reload` before an apply.
 
 ## The admin identity
