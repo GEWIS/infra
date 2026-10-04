@@ -14,7 +14,7 @@
   nix.settings.auto-optimise-store = true;
 
   users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x luuk-blankenstijn@luuk-laptop"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGsY6TN4o1NLfgPejOHzdtiQ2Is1MawOCfgYbJoQ/3WT s3-01-break-glass"
   ];
 
   gewis.sshUserCa.enable = true;

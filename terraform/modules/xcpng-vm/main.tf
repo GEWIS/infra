@@ -64,6 +64,6 @@ resource "xenorchestra_vm" "this" {
   }
 
   lifecycle {
-    ignore_changes = [affinity_host]
+    ignore_changes = [affinity_host, cloud_config]
   }
 }

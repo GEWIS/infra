@@ -23,8 +23,8 @@ one team has the same access everywhere; giving different groups different hosts
 would mean switching to principals that each host maps to its accounts through
 `AuthorizedPrincipalsFile`.
 
-The existing ways in stay: root's authorized key on s3-01 and the `cbc` password on
-the service PCs.
+The other ways in stay: the break-glass key in root's `authorized_keys` on
+s3-01 (see [s3-01](../s3-01/index.md)) and the `cbc` password on the service PCs.
 
 - [The CA and the role](ca.md)
 - [Hosts](hosts.md)
