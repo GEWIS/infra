@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./aurora.nix
+    ./graphics.nix
     ./networking.nix
   ];
 

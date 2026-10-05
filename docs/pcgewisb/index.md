@@ -71,6 +71,19 @@ sudo -u gewis XDG_RUNTIME_DIR=/run/user/1000 wpctl status            # lists the
 sudo -u gewis XDG_RUNTIME_DIR=/run/user/1000 wpctl set-default <id>  # selects one
 ```
 
+## Graphics
+
+The PC has a GeForce GTX 1650 (TU117) next to the onboard Intel HD 530. On
+`nouveau` some pages flickered in Firefox, so `graphics.nix` runs NVIDIA's
+driver with the open kernel modules (`hardware.nvidia.open`), which blacklists
+`nouveau`. `nvidia-x11` is allow-listed as the only unfree package. Check the
+driver after a switch:
+
+```sh
+lspci -nnk -s 01:00.0   # "Kernel driver in use: nvidia"
+nvidia-smi              # lists the GTX 1650 and the driver version
+```
+
 ## Secrets
 
 `secrets/pcgewisb.yaml` carries, besides `cbcPassword`, `rdpPassword` and
