@@ -1,8 +1,8 @@
 # pcgewisb
 
 The bar's Aurora node. A service PC with two screens, each showing one Aurora
-page fullscreen, that also forwards the core's DMX frames to the bar lights
-and plays its audio.
+page fullscreen, that also forwards the core's DMX frames to the bar lights,
+plays its audio and is the bar's Spotify Connect speaker.
 
 | Monitor | What is on it |
 | --- | --- |
@@ -60,6 +60,36 @@ ping -c3 169.254.0.2
 sudo nix run nixpkgs#tcpdump -- -ni enp2s0 udp port 6454   # ~40 packets/s
 ```
 
+## Spotify Connect
+
+`spotifyd.service` is a user unit in the `gewis` session, like the audio
+player, so it plays through the same PipeWire. It shows up in the official
+Spotify apps as **GEWIS Bar**, a speaker.
+
+Phones on the same LAN as `enp0s31f6` find it through mDNS (UDP 5353, opened
+by Avahi) and then connect to its zeroconf server on TCP 5354, which is open on
+`enp0s31f6` only. No account is configured; whoever picks the device plays on
+it, and the last session reconnects after a restart.
+
+Its cache, and the credentials of the last session, live in
+`/home/gewis/.cache/spotifyd`, which survives reboots with the rest of
+`/home/gewis`. To tie it to one account instead, log in once from a terminal in
+the [remote session](../service-pc/remote.md); the login page redirects to
+`localhost:8000`, so the browser has to run on this PC:
+
+```sh
+spotifyd authenticate --cache-path ~/.cache/spotifyd
+systemctl --user restart spotifyd
+```
+
+An `oauth/credentials.json` copied from another spotifyd's cache directory
+into `/home/gewis/.cache/spotifyd/oauth/`, owned by `gewis`, works the same.
+
+```sh
+systemctl --user -M gewis@ status spotifyd
+journalctl --user-unit spotifyd
+```
+
 ## Audio
 
 `services.pipewire` with the PulseAudio shim is enabled for the session, which
@@ -111,11 +141,12 @@ key.
 ## Installing
 
 [Installing](../service-pc/install.md), with the secrets above. After the
-first boot check the Aurora units as well as the session:
+first boot check the Aurora units and spotifyd as well as the session:
 
 ```sh
 systemctl status aurora-lights-proxy
 systemctl --user -M gewis@ status aurora-audio-player
+systemctl --user -M gewis@ status spotifyd
 ```
 
 ## Remote access

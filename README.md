@@ -7,7 +7,7 @@ NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
 | Host | Role | Provisioned by | Updated by |
 | --- | --- | --- | --- |
 | `pcgewisa` | Service PC: Aurora narrowcasting on two screens | nixos-anywhere, by hand | comin, polling `main` |
-| `pcgewisb` | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights and audio | nixos-anywhere, by hand | comin, polling `main` |
+| `pcgewisb` | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights, audio and Spotify Connect | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisc` | Bar service PC: SudoSOS POS and Spotify on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisd` | Service PC: SudoSOS POS on a touchscreen | nixos-anywhere, by hand | comin, polling `main` |
 | `pcgewisinfo` | Info-screen kiosk; also DHCP and print server for the booth LAN | nixos-anywhere, by hand | comin, polling `main` |

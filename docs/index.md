@@ -9,7 +9,7 @@ Kubernetes cluster.
 | Host | Role |
 | --- | --- |
 | [pcgewisa](pcgewisa/index.md) | Service PC: Aurora narrowcasting on two screens |
-| [pcgewisb](pcgewisb/index.md) | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights and audio |
+| [pcgewisb](pcgewisb/index.md) | Bar service PC: Aurora narrowcasting on two screens, DMX to the lights, audio and Spotify Connect |
 | [pcgewisc](pcgewisc/index.md) | Bar service PC: SudoSOS POS and Spotify on a touchscreen |
 | [pcgewisd](pcgewisd/index.md) | Service PC: SudoSOS POS on a touchscreen |
 | [pcgewisinfo](pcgewisinfo/index.md) | Info-screen kiosk; DHCP and print server for the booth LAN |

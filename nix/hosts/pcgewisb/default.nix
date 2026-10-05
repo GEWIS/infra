@@ -8,6 +8,7 @@ in
     ./aurora.nix
     ./graphics.nix
     ./networking.nix
+    ./spotifyd.nix
   ];
 
   networking.hostName = "pcgewisb";
@@ -27,7 +28,7 @@ in
       enable = true;
       device = "/dev/sda";
     };
-    
+
     persistence.extraDirectories = [ "/home/${sessionUser}" ];
 
     servicePc = {
