@@ -6,15 +6,19 @@
 }:
 let
   sessionUser = config.gewis.servicePc.user;
-  zeroconfPort = 5354;
 
   settings = (pkgs.formats.toml { }).generate "spotifyd.conf" {
     global = {
-      device_name = "GEWIS Bar";
+      device_name = "[Use me] GEWIS Speakers";
       device_type = "speaker";
       backend = "pulseaudio";
-      bitrate = 320;
-      zeroconf_port = zeroconfPort;
+      disable_discovery = true;
+      use_mpris = false;
+      no_audio_cache = false;
+      max_cache_size = 1000000000;
+      volume_controller = "none";
+      initial_volume = 0;
+      volume_normalisation = true;
     };
   };
 in
@@ -22,7 +26,10 @@ in
   systemd.user.services.spotifyd = {
     description = "spotifyd, a Spotify Connect speaker";
     wantedBy = [ "default.target" ];
-    unitConfig.ConditionUser = sessionUser;
+    unitConfig = {
+      ConditionUser = sessionUser;
+      ConditionPathExists = "%C/spotifyd/oauth/credentials.json";
+    };
     serviceConfig = {
       ExecStart = "${lib.getExe pkgs.spotifyd} --no-daemon --cache-path %C/spotifyd --config-path ${settings}";
       CacheDirectory = "spotifyd";
@@ -32,6 +39,4 @@ in
   };
 
   environment.systemPackages = [ pkgs.spotifyd ];
-
-  networking.firewall.interfaces.enp0s31f6.allowedTCPPorts = [ zeroconfPort ];
 }

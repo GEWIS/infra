@@ -63,23 +63,28 @@ sudo nix run nixpkgs#tcpdump -- -ni enp2s0 udp port 6454   # ~40 packets/s
 ## Spotify Connect
 
 `spotifyd.service` is a user unit in the `gewis` session, like the audio
-player, so it plays through the same PipeWire. It shows up in the official
-Spotify apps as **GEWIS Bar**, a speaker.
+player, so it plays through the same PipeWire. It is logged in to one Spotify
+account and shows up as the speaker **[Use me] GEWIS Speakers** in the official
+apps of everyone using that account. LAN discovery is off, so it opens no
+ports and is not offered to other accounts.
 
-Phones on the same LAN as `enp0s31f6` find it through mDNS (UDP 5353, opened
-by Avahi) and then connect to its zeroconf server on TCP 5354, which is open on
-`enp0s31f6` only. No account is configured; whoever picks the device plays on
-it, and the last session reconnects after a restart.
+| Setting | Value |
+| --- | --- |
+| Volume control | none: Spotify's volume slider does nothing, set the level with `wpctl` |
+| Normalisation | on |
+| Audio cache | on, at most 1 GB |
+| MPRIS | off |
 
-Its cache, and the credentials of the last session, live in
+The account's credentials and the audio cache live in
 `/home/gewis/.cache/spotifyd`, which survives reboots with the rest of
-`/home/gewis`. To tie it to one account instead, log in once from a terminal in
-the [remote session](../service-pc/remote.md); the login page redirects to
-`localhost:8000`, so the browser has to run on this PC:
+`/home/gewis`. The unit only starts once
+`/home/gewis/.cache/spotifyd/oauth/credentials.json` exists. Log in once from a
+terminal in the [remote session](../service-pc/remote.md); the login page
+redirects to `localhost:8000`, so the browser has to run on this PC:
 
 ```sh
 spotifyd authenticate --cache-path ~/.cache/spotifyd
-systemctl --user restart spotifyd
+systemctl --user start spotifyd
 ```
 
 An `oauth/credentials.json` copied from another spotifyd's cache directory
