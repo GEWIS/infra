@@ -3,7 +3,7 @@
 Two disks, both partitioned by `nix/hosts/s3-01/disko.nix`:
 
 - **`xvda`, 40 GiB** — ESP (512 MiB, vfat) plus ext4 root.
-- **`xvdb`, 100 GiB** — one XFS partition at `/var/lib/seaweedfs`, `noatime`.
+- **`xvdb`, 300 GiB** — one XFS partition at `/var/lib/seaweedfs`, `noatime`.
 
 That mount holds everything SeaweedFS keeps: volume data, the master meta
 folder, and the filer's embedded leveldb2 metadata store inside it. XFS is
@@ -13,7 +13,7 @@ limits bite once many objects are stored. That reasoning is not Garage-specific
 and nothing about SeaweedFS argues for changing it. Nothing here relies on
 filesystem snapshots.
 
-Both disks sit on the same SSD storage repository (`vhost1-ssd2`), so there is
+Both disks sit on the same SSD storage repository (`vhost3-ssd`), so there is
 no SSD/HDD tier to split metadata from data. Filesystems mount by partlabel, not
 device node.
 

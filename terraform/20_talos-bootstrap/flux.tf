@@ -17,5 +17,5 @@ module "flux_operator_bootstrap" {
     }
   }
 
-  depends_on = [kubernetes_secret_v1.sealing_key]
+  depends_on = [kubernetes_secret_v1.sealing_key, helm_release.cilium]
 }

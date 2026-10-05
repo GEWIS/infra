@@ -38,6 +38,13 @@ later `tofu apply` never fights Flux. Changing either file makes the next
 `20_talos-bootstrap` apply re-run the Job, which then finds everything adopted and
 does nothing.
 
+The module depends on `helm_release.cilium`. The Job gets a single attempt
+(`backoffLimit: 0`), and on a fresh cluster it would otherwise start while
+Cilium is still rolling out, with no pod network, and fail the apply. Waiting
+for the Cilium release guarantees the pod network, not that CoreDNS is ready or
+that the first TLS connection to ghcr.io gets through; if the Job still fails,
+`debug_on_failure = true` on the module relays its log into the tofu output.
+
 The module needs the Helm provider 3.x, which is why `20_talos-bootstrap` pins
 `~> 3.1`.
 

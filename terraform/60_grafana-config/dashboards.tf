@@ -16,7 +16,7 @@ locals {
     longhorn     = { url = "https://grafana.com/api/dashboards/17626/revisions/1/download", placeholder = "DS_PROMETHEUS-LONGHORN" }
     cert_manager = { url = "https://grafana.com/api/dashboards/22184/revisions/3/download", placeholder = "DS_PROMETHEUS" }
     openbao      = { url = "https://grafana.com/api/dashboards/23725/revisions/1/download", placeholder = "DS_PROMXY" }
-    cilium       = { url = "https://raw.githubusercontent.com/cilium/cilium/v1.20.0/install/kubernetes/cilium/files/cilium-agent/dashboards/cilium-dashboard.json", placeholder = "DS_PROMETHEUS" }
+    cilium       = { url = "https://raw.githubusercontent.com/cilium/cilium/v1.20.2/install/kubernetes/cilium/files/cilium-agent/dashboards/cilium-dashboard.json", placeholder = "DS_PROMETHEUS" }
   }
 
   sealed_secrets_dashboard_url = "https://raw.githubusercontent.com/bitnami-labs/sealed-secrets/5d360fd400f0d93ac42d123eb81336a2d64d1772/contrib/prometheus-mixin/dashboards/sealed-secrets-controller.json"

@@ -5,7 +5,7 @@ locals {
     pool_name_label     = "GEWISVHOST-Intel"
     template_name_label = "DevVM Ubuntu 24.04 LTS basis"
     network_name_label  = "External"
-    sr_name_label       = "vhost1-ssd2"
+    sr_name_label       = "vhost3-ssd"
     expected_ip_cidr    = "10.82.50.0/24"
   }
 
@@ -15,7 +15,7 @@ locals {
       cpus          = 4
       memory_gib    = 8
       root_disk_gib = 40
-      data_disk_gib = 100
+      data_disk_gib = 300
     }
   }
 }

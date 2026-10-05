@@ -111,7 +111,7 @@ already enforces a stored quota on its own every minute.
 ## Data and metadata
 
 Everything sits under `-dir=/var/lib/seaweedfs`, which is the whole second disk
-`/dev/xvdb` (xfs, ~100 GiB, `noatime`) — see [Disks](disks.md). Volume data and
+`/dev/xvdb` (xfs, ~300 GiB, `noatime`) — see [Disks](disks.md). Volume data and
 the master meta folder share it, and the filer uses its embedded **leveldb2**
 store under that meta folder, so there is no external metadata database to run
 or back up separately.
