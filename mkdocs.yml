@@ -114,6 +114,7 @@ nav:
       - Flux Operator: cluster/flux-operator.md
       - Flux Web UI: cluster/flux-web.md
       - Flux layers: cluster/layers.md
+      - Traefik ingress: cluster/traefik.md
       - Gateway API: cluster/gateway-api.md
       - Routing: cluster/routing.md
       - Certificates: cluster/certificates.md

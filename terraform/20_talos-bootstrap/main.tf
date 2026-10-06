@@ -38,6 +38,13 @@ locals {
 
     prometheus = { enabled = true }
 
+    l2announcements = { enabled = true }
+
+    k8sClientRateLimit = {
+      qps   = 30
+      burst = 60
+    }
+
     hubble = {
       relay = { enabled = true }
       ui    = { enabled = true }

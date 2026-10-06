@@ -1,0 +1,33 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authentik
+  namespace: kube-system
+spec:
+  forwardAuth:
+    address: http://ak-outpost-cbc.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-authentik-username
+      - X-authentik-groups
+      - X-authentik-email
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hubble
+  namespace: kube-system
+  annotations:
+    external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`hubble.cbc.gewis.nl`)
+      kind: Rule
+      middlewares:
+        - name: authentik
+      services:
+        - name: hubble-ui
+          port: 80
+  tls: {}

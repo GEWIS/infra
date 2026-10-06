@@ -1,0 +1,52 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authentik
+  namespace: flux-system
+spec:
+  forwardAuth:
+    address: http://ak-outpost-cbc.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-authentik-username
+      - X-authentik-groups
+      - X-authentik-email
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flux-web
+  namespace: flux-system
+  annotations:
+    external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`flux.cbc.gewis.nl`)
+      kind: Rule
+      middlewares:
+        - name: authentik
+      services:
+        - name: flux-operator
+          port: 9080
+  tls: {}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-web-from-traefik
+  namespace: flux-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+            app.kubernetes.io/name: traefik
+      toPorts:
+        - ports:
+            - port: "9080"
+              protocol: TCP
