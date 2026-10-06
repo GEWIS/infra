@@ -31,7 +31,7 @@ spec:
         - name: mimir
           image: grafana/mimir:3.1.2
           args:
-            - -target=all
+            - -target=all,alertmanager
             - -usage-stats.enabled=false
             - -tenant-federation.enabled=true
             - -activity-tracker.filepath=/data/activity.log
@@ -47,8 +47,14 @@ spec:
             - -blocks-storage.storage-prefix=blocks
             - -blocks-storage.tsdb.dir=/data/tsdb
             - -blocks-storage.bucket-store.sync-dir=/data/tsdb-sync
-            - -ruler-storage.storage-prefix=ruler
+            - -ruler-storage.backend=local
+            - -ruler-storage.local.directory=/etc/mimir/rules
             - -ruler.rule-path=/data/ruler
+            - -ruler.alertmanager-url=http://localhost:8080/alertmanager
+            - -alertmanager-storage.backend=local
+            - -alertmanager-storage.local.path=/etc/mimir/alertmanager
+            - -alertmanager.data-dir=/data/alertmanager
+            - -alertmanager.sharding-ring.replication-factor=1
             - -compactor.data-dir=/data/compactor
             - -compactor.blocks-retention-period=30d
             - -ingester.ring.replication-factor=1
@@ -94,9 +100,21 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
+            - name: rules-cbc
+              mountPath: /etc/mimir/rules/CBC
+              readOnly: true
+            - name: alertmanager
+              mountPath: /etc/mimir/alertmanager
+              readOnly: true
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: rules-cbc
+          configMap:
+            name: mimir-rules-cbc
+        - name: alertmanager
+          configMap:
+            name: mimir-alertmanager
   volumeClaimTemplates:
     - metadata:
         name: data

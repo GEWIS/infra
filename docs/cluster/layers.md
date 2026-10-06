@@ -20,11 +20,14 @@ Three dependencies carry real weight and none is cosmetic:
   objects, so the CRD and its decryptor must already exist. Gateway API's CRDs need
   no layer of their own: Cilium requires them at startup and runs before Flux, so
   `terraform/20_talos-bootstrap` installs them — see [Gateway API](gateway-api.md).
-- **`services` depends on `openbao`** because the observability stack reads its S3
+- **`services` depends on `openbao`** because Postgres reads its backup bucket
   credentials through an `ExternalSecret`. External Secrets retries until OpenBao
   answers, so this is not a correctness requirement — but with `wait: true` the
   layer would otherwise sit un-`Ready` through the whole of OpenBao's first boot,
-  which reads as a broken deploy rather than an ordered one.
+  which reads as a broken deploy rather than an ordered one. On a fresh cluster
+  the same `ExternalSecret` also waits for `terraform/40_seaweedfs-buckets` to
+  write the key, so `services` — and `apps` behind it — are not `Ready` until
+  that root has been applied.
 - **`apps` depends on `services`** for the same reason, one level up. A database
   consumer starts, fails to connect and backs off until its database exists, so
   this is a soft dependency too — but keeping the consumers in the leaf layer

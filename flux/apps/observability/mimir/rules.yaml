@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-rules-cbc
+  namespace: observability
+data:
+  postgres.yaml: |
+    groups:
+      - name: postgres-backups
+        rules:
+          - alert: PostgresBackupTooOld
+            expr: time() - max by (namespace) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) > 26 * 3600
+            for: 15m
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "No Postgres base backup in {{ $labels.namespace }} for more than 26 hours"
+
+          - alert: PostgresBackupFailed
+            expr: max by (namespace) (barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp) > max by (namespace) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp)
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "The latest Postgres base backup in {{ $labels.namespace }} failed"
+
+          - alert: PostgresBackupMetricsMissing
+            expr: absent(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp)
+            for: 30m
+            labels:
+              severity: warning
+              channel: backup
+            annotations:
+              summary: "No Barman backup metrics, so the backup-age alert cannot fire"
+
+          - alert: LastFailedArchiveTime
+            expr: |-
+              (cnpg_pg_stat_archiver_last_failed_time - cnpg_pg_stat_archiver_last_archived_time) > 1
+              and on(namespace, pod) cnpg_pg_replication_in_recovery == 0
+            for: 1m
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "WAL archiving from {{ $labels.pod }} is failing"
+
+      - name: postgres-availability
+        rules:
+          - alert: PostgresInstanceDown
+            expr: cnpg_collector_up == 0
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "Postgres on {{ $labels.pod }} is down"
+
+          - alert: PostgresMetricsMissing
+            expr: absent(cnpg_collector_up{namespace="postgres"})
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "No Postgres instance in the postgres namespace reports metrics"
+
+      - name: cnpg-default
+        rules:
+          - alert: LongRunningTransaction
+            expr: cnpg_backends_max_tx_duration_seconds > 300
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "A query on {{ $labels.pod }} has run for more than 5 minutes"
+
+          - alert: BackendsWaiting
+            expr: cnpg_backends_waiting_total > 300
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "A backend on {{ $labels.pod }} has waited for more than 5 minutes"
+
+          - alert: PGDatabaseXidAge
+            expr: cnpg_pg_database_xid_age > 300000000
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Over 300,000,000 transactions since the frozen XID on {{ $labels.pod }}"
+
+          - alert: PGReplication
+            expr: cnpg_pg_replication_lag > 300
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Standby {{ $labels.pod }} lags the primary by over 5 minutes"
+
+          - alert: DatabaseDeadlockConflicts
+            expr: increase(cnpg_pg_stat_database_deadlocks[1h]) > 10
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Over 10 deadlocks in the last hour on {{ $labels.pod }}"
+
+          - alert: ReplicaFailingReplication
+            expr: cnpg_pg_replication_in_recovery > cnpg_pg_replication_is_wal_receiver_up
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Replica {{ $labels.pod }} is failing to replicate"

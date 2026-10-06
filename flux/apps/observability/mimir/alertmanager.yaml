@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-alertmanager
+  namespace: observability
+data:
+  CBC.yaml: |
+    route:
+      receiver: silent
+      group_by: [alertname, namespace]
+      routes:
+        - matchers: ['channel="infra"']
+          receiver: infra
+        - matchers: ['channel="backup"']
+          receiver: backup
+    receivers:
+      - name: silent
+      - name: infra
+      - name: backup

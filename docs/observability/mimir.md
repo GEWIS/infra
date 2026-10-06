@@ -10,14 +10,13 @@ nodes.
 
 Monolithic mode is one flag, `-target=all`, which runs QueryFrontend,
 QueryScheduler, Querier, Ingester, Distributor, StoreGateway, **Ruler** and
-**Compactor** (`pkg/mimir/modules.go`). Two consequences:
+**Compactor** (`pkg/mimir/modules.go`). Alertmanager is not part of `all`, so the
+target is `all,alertmanager` — see [Alerting](alerting.md).
 
-- Ruler is included, so `ruler_storage` must be configured or the process fails.
-- Alertmanager is not, so alertmanager storage is skipped entirely.
-
-Both live in the one `mimir` bucket, separated by `storage_prefix`. That field
-"may only contain digits and English alphabet letters", so the prefixes are
-`blocks` and `ruler` — a path like `mimir/blocks` is rejected.
+Blocks live in the `mimir` bucket under `storage_prefix: blocks`. That field
+"may only contain digits and English alphabet letters", so a path like
+`mimir/blocks` is rejected. Rules and Alertmanager configuration are not in the
+bucket at all: both read from ConfigMaps on disk.
 
 Monolithic does not forfeit HA. Upstream supports scaling it horizontally, so the
 rings use **memberlist from day one** rather than `inmemory`; going to three
@@ -28,13 +27,14 @@ blocks are already in S3.
 
 ## Mimir is configured entirely by flags, deliberately
 
-There is no ConfigMap. Every setting is a container argument, which means the
+The main configuration has no ConfigMap. Every setting is a container argument, which means the
 configuration *is* the pod spec: Flux applies a change, the StatefulSet's
 template changes, and the pod rolls. A config file in a ConfigMap would be
 applied silently and never restart anything — Mimir has no hot reload for its
 main config — and the usual fix, a hashed `configMapGenerator`, needs a
 `kustomization.yaml` that this tree deliberately does not have, since every layer
-here relies on Flux's recursive scan.
+here relies on Flux's recursive scan. Rules and Alertmanager routing are the
+exception, because Mimir does re-read those from disk on its own poll.
 
 The cost is that the two S3 keys reach the process through `$(VAR)` argument
 expansion, so kubelet writes them into the container's argv. The manifest itself

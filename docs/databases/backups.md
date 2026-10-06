@@ -1,53 +1,76 @@
-# Backups are logical dumps to S3
+# Backups
 
-Backups are **logical dumps** — `pg_dump`/`pg_dumpall` and `mariadb-dump` — landed
-in a SeaweedFS bucket. This is a deliberate fit to how the databases are actually
-used here: the common operation is pulling a dump and browsing it, table by
-table, which a logical dump serves and a physical or snapshot backup cannot. Full
-restores are rare.
+## Postgres: Barman Cloud plugin to SeaweedFS
 
-CNPG's snapshot/WAL machinery and MariaDB physical backups are **not** used. They
-give faster large-scale restore and point-in-time recovery, but neither is
-browseable, and PITR is not what this workload needs.
+CloudNativePG backs up through the **Barman Cloud plugin**, not the in-tree
+`spec.backup.barmanObjectStore`, which is deprecated. Three objects make it up:
 
-## Automate the cadence, keep manual on top
+| Object | File | Does |
+| --- | --- | --- |
+| `ObjectStore` `postgres` | `flux/services/postgres/object-store.yaml` | bucket path, endpoint, credentials, retention, compression |
+| `Cluster.spec.plugins` | `flux/services/postgres/cluster.yaml` | points at the `ObjectStore`, `isWALArchiver: true` for continuous WAL archiving |
+| `ScheduledBackup` `postgres-daily` | `flux/services/postgres/object-store.yaml` | a base backup every day at 03:00, `method: plugin` |
 
-Dumps run on a schedule so the floor is guaranteed; ad-hoc manual dumps layer on
-for the browse workflow. A manual-only backup rots exactly when it is needed.
+Continuous WAL plus daily base backups give point-in-time recovery to any moment
+inside the 30-day `retentionPolicy`. Retention is Barman's job, not a bucket
+lifecycle rule: Barman knows which WAL a base backup still needs, a lifecycle
+rule does not. `immediate: true` takes the first base backup as soon as the
+`ScheduledBackup` exists, because archived WAL is useless without one.
 
-- **Postgres:** CNPG has no native logical dump, so a `CronJob` runs
-  `pg_dumpall --globals-only` plus a per-database `pg_dump -Fc`, piped to S3. It
-  targets the **replica** service, not the primary.
-- **MariaDB:** the mariadb-operator `Backup` CRD does scheduled logical backups to
-  S3 directly. A `CronJob` with `mariadb-dump` is the fallback.
+The plugin runs in `cnpg-system` beside the operator, from the `controllers`
+layer (`flux/controllers/cloudnative-pg/plugin-barman-cloud.yaml`). It talks to
+the operator over mTLS with certificates from cert-manager, so its HelmRelease
+depends on both. The `ObjectStore` CRD it installs therefore exists before
+`services` declares one.
 
-## Get the dump flags right or the dump lies
+### The bucket and its credentials
 
-- `pg_dump` is already transactionally consistent without locking, but a
-  per-database dump **excludes roles, grants and tablespaces** —
-  `pg_dumpall --globals-only` alongside it is required, or a restore comes up with
-  no users.
-- `mariadb-dump` needs `--single-transaction` for a consistent InnoDB snapshot
-  without locking. It only holds if every table is InnoDB and no DDL runs during
-  the dump; without it the dump is torn.
+The `postgres` bucket is one entry in `terraform/40_seaweedfs-buckets`, the same
+flow as the LGTM buckets: OpenBao holds the key at `seaweedfs/postgres/postgres`
+and an `ExternalSecret` syncs it into the `postgres-s3` Secret, region included.
+Nothing secret is in git.
 
-## SeaweedFS is the primary target, the cloud is the real backup
+That makes `services` wait on the root: the `ExternalSecret` is not `Ready`
+until `40_seaweedfs-buckets` has written the key, so on a fresh cluster apply it
+while `services` is reconciling.
 
-SeaweedFS is off-cluster — it survives a full cluster wipe — but it is a single
-node writing to one disk, with no replication, and
+### Details that are easy to get wrong
+
+- **`destinationPath` is the bucket, the server name is the cluster.**
+  `serverName` is left empty, so Barman stores under `s3://postgres/postgres/`.
+  Two clusters archiving to one prefix corrupt each other's WAL timeline, so a
+  cluster restored *from* this one must archive under a new name.
+- **CloudNativePG cron has six fields**, seconds first: `0 0 3 * * *` is 03:00.
+- **Checksums:** current boto3 adds CRC32 checksums to every upload, which
+  non-AWS stores can reject. `instanceSidecarConfiguration.env` sets
+  `AWS_REQUEST_CHECKSUM_CALCULATION` and `AWS_RESPONSE_CHECKSUM_VALIDATION` to
+  `when_required`.
+- **Metrics are renamed** with the plugin, from `cnpg_collector_*` to
+  `barman_cloud_cloudnative_pg_io_*`. Dashboards or alerts written for the
+  in-tree path will not match.
+
+### Longhorn stays out of it
+
+Database volumes carry no Longhorn recurring jobs (see
+[Postgres](postgres.md#database-volumes-opt-out-of-the-recurring-jobs)). A
+Longhorn backup of a running database is only crash-consistent and duplicates
+what Barman already keeps.
+
+### What this does not cover
+
+SeaweedFS is a single node on one disk, and
 [`seaweedfs-buckets/index.md`](../seaweedfs-buckets/index.md) states plainly that
-nothing in it is backed up by being there. The durable copy is s3-01's own backup
-to the cloud.
+nothing in it is backed up by being there. These backups survive a lost cluster,
+not a lost s3-01; an off-site copy of the bucket is what covers that.
 
-Two constraints make that chain trustworthy:
+A backup is only proven by a restore: recover into a throwaway `Cluster` with
+`bootstrap.recovery` and an `externalClusters` entry pointing at the same
+`ObjectStore` through the plugin.
 
-- **Retention on SeaweedFS must outlive the cloud sync cadence.** A dump must not
-  expire on s3-01 before the cloud job has copied it.
-- **The cloud tier must be versioned or object-locked.** A logical dump faithfully
-  captures a `DROP TABLE` or a corrupt export and syncs it upward; immutability
-  plus a few generations is what separates a backup from a copy.
+## MariaDB: logical dumps
 
-Add a bucket per engine the way the LGTM stack does — an entry in the `buckets`
-map in `terraform/40_seaweedfs-buckets`, credentials consumed through an
-`ExternalSecret`. Buckets have no quota, so dump retention is what bounds the
-bucket's size.
+MariaDB is still design only. The plan is logical dumps to a SeaweedFS bucket:
+the mariadb-operator `Backup` CRD does scheduled logical backups to S3, with a
+`mariadb-dump` `CronJob` as the fallback. `mariadb-dump` needs
+`--single-transaction` for a consistent InnoDB snapshot without locking; that only
+holds if every table is InnoDB and no DDL runs during the dump.

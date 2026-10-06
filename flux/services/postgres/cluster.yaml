@@ -9,15 +9,20 @@ spec:
 
   storage:
     storageClass: longhorn-single
-    size: 1Gi
+    size: 50Gi
 
   postgresql:
     parameters:
-      max_wal_size: 256MB
       tcp_keepalives_idle: "60"
       tcp_keepalives_interval: "10"
       tcp_keepalives_count: "3"
       idle_in_transaction_session_timeout: "60000"
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: postgres
 
   bootstrap:
     initdb:

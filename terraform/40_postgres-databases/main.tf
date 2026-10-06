@@ -2,6 +2,8 @@ locals {
   databases = {
     authentik = { namespace = "authentik" }
     grafana   = { namespace = "observability" }
+    netbird   = { namespace = "netbird" }
+    loom      = { namespace = "loom" }
   }
 
   consumer_namespaces = toset([for database in local.databases : database.namespace])

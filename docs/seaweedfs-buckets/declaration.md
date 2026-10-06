@@ -4,9 +4,10 @@ Everything is driven by one map in `main.tf`:
 
 ```hcl
 buckets = {
-  loki  = { namespace = "observability" }
-  mimir = { namespace = "observability" }
-  tempo = { namespace = "observability" }
+  loki     = { namespace = "observability" }
+  mimir    = { namespace = "observability" }
+  tempo    = { namespace = "observability" }
+  postgres = { namespace = "postgres" }
 }
 ```
 

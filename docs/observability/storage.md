@@ -6,7 +6,7 @@ One bucket per component, provisioned by `terraform/40_seaweedfs-buckets` — se
 | Component | Bucket | Prefixes | Local disk |
 | --- | --- | --- | --- |
 | Loki | `loki` | chunks and ruler share it | 10Gi Longhorn, WAL and index staging |
-| Mimir | `mimir` | `blocks`, `ruler` | 20Gi Longhorn, TSDB head, compactor scratch, store-gateway sync |
+| Mimir | `mimir` | `blocks` | 20Gi Longhorn, TSDB head, compactor scratch, store-gateway sync, Alertmanager state |
 | Tempo | `tempo` | — | 5Gi Longhorn, WAL |
 
 SeaweedFS needs the same three things everywhere: path-style addressing

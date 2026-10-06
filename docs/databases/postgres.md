@@ -17,6 +17,8 @@ the whole change:
 databases = {
   authentik = { namespace = "authentik" }
   grafana   = { namespace = "observability" }
+  netbird   = { namespace = "netbird" }
+  loom      = { namespace = "loom" }
 }
 ```
 
@@ -103,23 +105,23 @@ tofu import 'postgresql_role.app["authentik"]' authentik
 tofu import 'postgresql_database.app["authentik"]' authentik
 ```
 
-or delete the `Cluster` and let it rebootstrap empty, which is the cheaper move
-while the databases hold nothing worth keeping.
+or delete the `Cluster` and let it rebootstrap empty — but only after deleting
+its WAL archive under `s3://postgres/postgres/` as well. A freshly initialised
+cluster with the same name finds a non-empty archive, and Barman refuses to
+archive into it. The same holds for a cluster restored from a backup: it needs
+its own `serverName` in the plugin parameters, or it archives on top of the
+timeline it was restored from.
 
-## Two settings the disk forces
+## Sizing
 
-Each node has a 9 GiB Longhorn disk with roughly 7 GiB already scheduled, because
-every other volume here is three-replica. That leaves about 2 GiB per node, and
-three replica-1 Postgres instances place one volume on each.
+Each instance gets a 50 GiB volume, one replica on each node's 300 GiB Longhorn
+disk, so the databases moving over from the old cluster fit with room to spare.
+`longhorn-single` allows volume expansion, so raising `storage.size` grows the
+volumes in place without a rebuild.
 
-- **`storage.size: 1Gi`.** Two would consume the entire remainder.
-- **`max_wal_size: 256MB`.** Postgres defaults to 1 GB. On a 1 GiB volume that is
-  a volume that fills with write-ahead log and stops the database — the default
-  is only safe on a disk sized for it.
-
-The real headroom is elsewhere: Loki, Mimir, Tempo and Grafana sit on
-three-replica Longhorn while their data lives in SeaweedFS. Moving those four to
-`longhorn-single` frees roughly 4.7 GiB per node.
+`max_wal_size` stays at Postgres's 1 GB default. Cap it only on a volume of a
+few GiB, where a full write-ahead log would fill the volume and stop the
+database.
 
 ## A killed pod can deadlock the next one's migrations
 
@@ -162,7 +164,7 @@ Every `RecurringJob` in `flux/config/longhorn/recurring-jobs.yaml` lists `defaul
 in its groups, and Longhorn adds `recurring-job-group.longhorn.io/default:
 enabled` to any volume that carries no recurring-job label at all. Database
 volumes would therefore collect hourly snapshots and weekly backups that
-duplicate the logical dumps.
+duplicate the [Barman backups](backups.md).
 
 Removing the label does not work — `labelRecurringJobDefault` re-adds it on every
 reconcile as long as no *other* job or group label is present. The volume has to

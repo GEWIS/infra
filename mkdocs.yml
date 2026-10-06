@@ -144,6 +144,7 @@ nav:
       - Dashboards: observability/dashboards.md
       - Server administrator: observability/server-admin.md
       - Mimir: observability/mimir.md
+      - Alerting: observability/alerting.md
       - Storage: observability/storage.md
       - Collection: observability/collection.md
       - Hubble: observability/hubble.md

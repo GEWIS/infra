@@ -3,9 +3,10 @@ locals {
   s3_region   = "us-east-1"
 
   buckets = {
-    loki  = { namespace = "observability" }
-    mimir = { namespace = "observability" }
-    tempo = { namespace = "observability" }
+    loki     = { namespace = "observability" }
+    mimir    = { namespace = "observability" }
+    tempo    = { namespace = "observability" }
+    postgres = { namespace = "postgres" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
