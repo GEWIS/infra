@@ -8,6 +8,12 @@ Applications do not get a cluster each. A three-instance cluster per app would
 multiply pods and volumes for no isolation this cluster needs, so consumers share
 one and are separated by role and database instead.
 
+Rolling updates promote an already-updated replica before touching the old
+primary (`primaryUpdateMethod: switchover`), so a restart costs a few seconds of
+refused writes and dropped connections rather than the primary's whole restart.
+The primary moves to another node each time; the `postgres-primary` NodePort
+and `postgres-rw` follow it.
+
 ## Adding a database is one map entry
 
 `terraform/40_postgres-databases` owns every credential *and* the DDL. One entry is
