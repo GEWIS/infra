@@ -153,7 +153,7 @@ mappings writes a DN — but nothing about the OIDC claim depends on it any more
 
 Every client the root creates is declared in `locals.tf`, grouped by kind:
 `oidc_clients` for OIDC relying parties that run in the cluster, `proxy_clients` for
-apps behind the [proxy outpost](../cluster/routing.md). `oidc.tf` and `proxy.tf` only
+apps behind the [proxy outpost](../cluster/traefik.md#authentication-is-forwardauth-to-the-authentik-outpost). `oidc.tf` and `proxy.tf` only
 turn those maps into resources. Each relying party is one entry in `oidc_clients`:
 
 ```hcl
@@ -176,7 +176,7 @@ OpenBao is not in the map. It is a single fixed client that consumes its secret
 itself rather than through a namespace, so `openbao.tf` spells it out — see
 [OpenBao](../cluster/openbao.md#people-log-in-through-authentik).
 
-**Redirect URIs carry `:8443`.** The gateway is published on that port, it is
+**Redirect URIs carry `:8443`.** Ingress is published on that port, it is
 part of the issuer, and `matching_mode = "strict"` means a missing port is a
 failed login with no useful error.
 
@@ -212,7 +212,7 @@ api_url   = https://authentik.cbc.gewis.nl:8443/application/o/userinfo/
 ```
 
 Grafana reaches those from inside the cluster over the public name, which
-hairpins back through the gateway — verified from the pod, and it costs the
+hairpins back through the router and Traefik — verified from the pod, and it costs the
 documented few-second TLS tax on the first connection. Using the in-cluster
 Service instead would work for the token exchange but would make the issuer
 disagree with what the browser sees.

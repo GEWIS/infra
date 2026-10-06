@@ -27,7 +27,7 @@ spec:
             name: cloudflare
             key: api-token
     sources:
-      - gateway-httproute
+      - traefik-proxy
     domainFilters:
       - gewis.nl
     policy: upsert-only

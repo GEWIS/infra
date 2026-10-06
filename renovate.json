@@ -16,13 +16,6 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": ["/^terraform/20_talos-bootstrap/gateway-api\\.tf$/"],
-      "matchStrings": ["gateway_api_version = \"(?<currentValue>v[^\"]+)\""],
-      "depNameTemplate": "kubernetes-sigs/gateway-api",
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
       "managerFilePatterns": ["/^flux/clusters/gewis-prod/flux-system/flux-instance\\.yaml$/"],
       "matchStrings": ["version: \"(?<currentValue>[0-9.]+)\""],
       "depNameTemplate": "fluxcd/flux2",

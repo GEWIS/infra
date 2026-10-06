@@ -1,9 +1,11 @@
 # Certificates
 
-cert-manager issues a single wildcard, `*.cbc.gewis.nl`, into the `gateway`
-namespace, where the Gateway listener references it by name. Same namespace, so
-no `ReferenceGrant` is needed, and `cilium-operator` copies it into
-`cilium-secrets` for Envoy to load over SDS.
+cert-manager issues a single wildcard, `*.cbc.gewis.nl`, from the
+`letsencrypt-prod` ClusterIssuer into the `traefik` namespace
+(`flux/config/cert-manager/wildcard-cbc-certificate.yaml`). Traefik's default
+`TLSStore` names the secret, `wildcard-cbc-gewis-nl-tls`, as its default
+certificate, so every route with `tls: {}` serves it and no app namespace holds a
+copy — see [Ingress](traefik.md).
 
 `--dns01-recursive-nameservers-only` is required on campus, which blocks direct
 queries to authoritative nameservers. It leaves the self-check on the pod's

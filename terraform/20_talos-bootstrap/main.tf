@@ -17,24 +17,8 @@ locals {
       hostRoot  = "/sys/fs/cgroup"
     }
 
-    gatewayAPI = {
-      enabled     = true
-      hostNetwork = { enabled = true }
-    }
-
-    envoy = {
-      enabled = true
-      securityContext = {
-        capabilities = {
-          keepCapNetBindService = true
-          envoy = [
-            "NET_ADMIN",
-            "SYS_ADMIN",
-            "NET_BIND_SERVICE",
-          ]
-        }
-      }
-    }
+    rollOutCiliumPods = true
+    operator          = { rollOutPods = true }
 
     prometheus = { enabled = true }
 
@@ -83,6 +67,4 @@ resource "helm_release" "cilium" {
   namespace  = "kube-system"
 
   values = [yamlencode(local.cilium_values)]
-
-  depends_on = [kubectl_manifest.gateway_api_crds]
 }

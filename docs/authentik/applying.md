@@ -33,7 +33,7 @@ honest readiness signal. Log in at `/if/flow/default-authentication-flow/` as
 
 ## The port is part of the issuer
 
-The gateway is published on **8443**, not 443. Everything OIDC therefore carries
+Ingress is published on **8443**, not 443. Everything OIDC therefore carries
 the port — the issuer is
 `https://authentik.cbc.gewis.nl:8443/application/o/<slug>/`, and every redirect
 URI registered in authentik and in the relying party has to match it exactly. A

@@ -11,8 +11,9 @@ never through the node — the loop the campus resolver would otherwise close. A
 contend with Talos's own host DNS resolver.
 
 The namespace is labelled `pod-security.kubernetes.io/enforce: privileged`
-because baseline forbids hostPort. Ingress needs no such label — its Envoy is
-part of Cilium and runs in `kube-system`, which Talos leaves unenforced.
+because baseline forbids hostPort. Ingress needs no such label — Traefik is
+reached through a LoadBalancer Service rather than host ports, so the `traefik`
+namespace stays on the baseline default.
 
 ## Adding a record by hand
 

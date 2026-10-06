@@ -79,6 +79,7 @@ in
             "-master.port=${toString masterPort}"
             "-volume.port=${toString volumePort}"
             "-volume.max=0"
+            "-master.volumeSizeLimitMB=1024"
             "-filer"
             "-filer.port=${toString filerPort}"
             "-s3"

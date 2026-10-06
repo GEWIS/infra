@@ -5,7 +5,7 @@ Both endpoints are reachable directly, no tunnels:
 | Endpoint | Default | Notes |
 | --- | --- | --- |
 | SeaweedFS S3 + IAM | `http://10.82.50.100:8333` | One port for both APIs; campus LAN only, the host has no WAN leg |
-| OpenBao | `https://openbao.cbc.gewis.nl:8443` | Through the cluster gateway |
+| OpenBao | `https://openbao.cbc.gewis.nl:8443` | Through the router and [Traefik](../cluster/traefik.md) |
 
 There is no separate admin port. SeaweedFS serves the S3 API and an
 AWS-IAM-compatible API on 8333, and 8333 is the only port the host firewall

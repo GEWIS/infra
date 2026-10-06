@@ -5,7 +5,7 @@ a single systemd unit, configured in `nix/hosts/s3-01/seaweedfs.nix`:
 
 ```sh
 weed server -dir=/var/lib/seaweedfs -ip=127.0.0.1 -ip.bind=127.0.0.1 \
-  -master.port=9333 -volume.port=8080 -volume.max=0 \
+  -master.port=9333 -volume.port=8080 -volume.max=0 -master.volumeSizeLimitMB=1024 \
   -filer -filer.port=8888 \
   -s3 -s3.ip.bind=0.0.0.0 -s3.port=8333 -s3.port.iceberg=0 -s3.iam.readOnly=false
 ```
@@ -23,9 +23,17 @@ they are unreachable off-host regardless of the firewall. Only the S3 gateway
 overrides that, with `-s3.ip.bind=0.0.0.0`; 8333 is also the only port in
 `networking.firewall.allowedTCPPorts`.
 
-`-volume.max=0` lets the volume server grow volumes on demand instead of
-pre-allocating a fixed count, and `-s3.port.iceberg=0` switches off the Iceberg
-REST catalog listener 4.40 would otherwise open.
+`-volume.max=0` sizes the number of volume slots from the free disk instead of a
+fixed count, and `-s3.port.iceberg=0` switches off the Iceberg REST catalog
+listener 4.40 would otherwise open.
+
+**Volumes are 1 GiB, not the 30 GB default.** With `-volume.max=0` the number of
+volume slots is the free disk divided by the volume size, and every bucket is its
+own collection that grows **seven** volumes at once. At 30 GB a 300 GiB disk
+has ten slots: the filer's own collection takes seven and the first bucket three,
+and every other bucket fails with *"No writable volumes and no free volumes
+left"*, which S3 clients see as `InternalError`. At 1 GiB there are a few hundred
+slots. `volume.list` in `weed shell` shows `free:` per disk.
 
 ## One unit, not four
 

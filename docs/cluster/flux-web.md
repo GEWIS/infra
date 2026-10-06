@@ -22,22 +22,23 @@ Secrets are deliberately absent from `flux-web-viewer`.
 
 The UI has no login of its own in anonymous mode, so it sits behind the authentik
 proxy outpost exactly like [Hubble](../observability/hubble.md):
-`flux/apps/flux-web/httproute.yaml` holds the `ExternalAuth` route and the
-`ReferenceGrant`, and the `flux` proxy client in
-`terraform/50_authentik-config/proxy.tf` registers the provider with the `cbc`
-outpost. Like Hubble, any authentik user who can log in can open it.
+`flux/apps/flux-web/ingressroute.yaml` holds the route and its `forwardAuth`
+Middleware (see [Ingress](traefik.md#authentication-is-forwardauth-to-the-authentik-outpost)),
+and the `flux` proxy client in `terraform/50_authentik-config/proxy.tf` registers
+the provider with the `cbc` outpost. Like Hubble, any authentik user who can log
+in can open it.
 
-## Only the gateway may reach it
+## Only Traefik may reach it
 
 The `FluxInstance` sets `networkPolicy: true`, which isolates `flux-system` from
 other namespaces. The chart's NetworkPolicy would open `:9080` to every pod in
 the cluster, skipping authentik entirely, so it is disabled
-(`web.networkPolicy.create: false`). Instead a `CiliumNetworkPolicy` admits only
-the `ingress` entity — the identity Cilium gives traffic from its Gateway API
-Envoy. A plain NetworkPolicy cannot express that: a `namespaceSelector` matches
-pods, and the gateway's traffic belongs to no namespace.
+(`web.networkPolicy.create: false`). Instead the `CiliumNetworkPolicy`
+`flux-web-from-traefik`, in the same file, admits on `:9080` only pods labelled
+`app.kubernetes.io/name: traefik` in the `traefik` namespace. Matching on both
+keeps a pod that merely borrows the label elsewhere out.
 
-To look at it without the gateway:
+To look at it without Traefik:
 
 ```sh
 kubectl -n flux-system port-forward svc/flux-operator 9080:9080

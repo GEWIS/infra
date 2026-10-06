@@ -8,18 +8,18 @@ sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ app
 | Layer | Path | Holds |
 | --- | --- | --- |
 | `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/controllers/` | cert-manager, external-dns, longhorn, external-secrets, cloudnative-pg |
-| `config` | `flux/config/` | ClusterIssuer, wildcard Certificate, the Gateway, Longhorn jobs and storage classes, the kube-system Corefile |
-| `openbao` | `flux/openbao/` | OpenBao, its HTTPRoute, its seal secret |
+| `controllers` | `flux/controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg |
+| `config` | `flux/config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile |
+| `openbao` | `flux/openbao/` | OpenBao, its IngressRoute, its seal secret |
 | `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
 | `apps` | `flux/apps/` | authentik, the LGTM stack, the Hubble and Flux UI routes |
 
 Three dependencies carry real weight and none is cosmetic:
 
 - **`controllers` depends on `sealed-secrets`** because it applies `SealedSecret`
-  objects, so the CRD and its decryptor must already exist. Gateway API's CRDs need
-  no layer of their own: Cilium requires them at startup and runs before Flux, so
-  `terraform/20_talos-bootstrap` installs them — see [Gateway API](gateway-api.md).
+  objects, so the CRD and its decryptor must already exist. Traefik's CRDs need
+  no layer of their own: the chart installs them (`crds: CreateReplace`) in
+  `controllers`, so every later layer can carry `IngressRoute`s.
 - **`services` depends on `openbao`** because Postgres reads its backup bucket
   credentials through an `ExternalSecret`. External Secrets retries until OpenBao
   answers, so this is not a correctness requirement — but with `wait: true` the
