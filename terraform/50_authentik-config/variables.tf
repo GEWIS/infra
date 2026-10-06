@@ -5,7 +5,7 @@ variable "state_passphrase" {
 }
 
 variable "authentik_url" {
-  description = "authentik base URL. The gateway is published on 8443, and the port is part of the OIDC issuer, so it belongs here."
+  description = "authentik base URL. Ingress is published on 8443, and the port is part of the OIDC issuer, so it belongs here."
   type        = string
   default     = "https://authentik.cbc.gewis.nl:8443"
 }

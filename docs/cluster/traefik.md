@@ -80,11 +80,18 @@ needs only the Middleware on its route.
 If the outpost is unreachable, the `forwardAuth` request fails and Traefik
 refuses the request rather than serving it.
 
-## The outpost's own Ingress logs TLS errors
+## The outpost publishes nothing itself
 
-authentik's outpost controller creates an `Ingress` of its own, `ak-outpost-cbc`,
-carrying only the `/outpost.goauthentik.io` paths for the protected hosts and a
-TLS secret, `authentik-outpost-tls`, that does not exist. With no class set it
-falls to the default class, so Traefik serves it and logs an error about the
-missing secret. It is harmless: those paths already reach the outpost through
-`outpost-callback`, and the wildcard from the default store covers the hosts.
+authentik's outpost controller would create its own routing objects for the
+protected hosts: an `Ingress`, an `HTTPRoute` and a Traefik `Middleware`. The
+`cbc` outpost disables all three with `kubernetes_disabled_components` in
+`terraform/50_authentik-config/proxy.tf`, so it runs only its Deployment and
+Service. The `Ingress` in particular would land on the default class and make
+Traefik log errors about its TLS secret, which does not exist; the
+`outpost-callback` route already covers those paths.
+
+Disabling a component stops authentik from reconciling it; an object it already
+created stays until it is deleted by hand.
+
+The provider sends `config` as a whole, replacing what authentik stored, so
+that block carries the outpost's complete configuration, not just the change.

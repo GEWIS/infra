@@ -198,6 +198,16 @@ spec:
               server_name = "kubernetes.default.svc"
             }
 
+            forward_to = [prometheus.relabel.apiserver.receiver]
+          }
+
+          prometheus.relabel "apiserver" {
+            rule {
+              source_labels = ["__name__"]
+              regex         = "(apiserver|etcd)_.+_bucket"
+              action        = "drop"
+            }
+
             forward_to = [prometheus.relabel.tenant_cbc.receiver]
           }
 

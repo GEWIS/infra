@@ -25,3 +25,13 @@ not the place for that.
 
 `CBC` is the fallback: log lines from unmapped namespaces get `CBC`, and the CBC
 metrics path drops anything whose `namespace` label belongs to a tenant.
+
+## API server histograms are dropped
+
+The `apiserver` job keeps `_count` and `_sum` but drops every `_bucket` series of
+`apiserver_*` and `etcd_*` metrics (`prometheus.relabel "apiserver"`). Three API
+servers expose high-resolution histograms per resource and verb, about 110,000
+series on their own, which together with everything else exceeds Mimir's default per-tenant limit of
+150,000 active series and makes Mimir refuse every new series for `CBC`. Rates and
+averages (`_sum / _count`) still work; percentiles for the API server and etcd do
+not. To keep one histogram, exclude it from the regex.
