@@ -53,7 +53,7 @@ spec:
             - -ruler.alertmanager-url=http://localhost:8080/alertmanager
             - -alertmanager-storage.backend=local
             - -alertmanager-storage.local.path=/etc/mimir/alertmanager
-            - -alertmanager.data-dir=/data/alertmanager
+            - -alertmanager.storage.path=/data/alertmanager
             - -alertmanager.sharding-ring.replication-factor=1
             - -compactor.data-dir=/data/compactor
             - -compactor.blocks-retention-period=30d
