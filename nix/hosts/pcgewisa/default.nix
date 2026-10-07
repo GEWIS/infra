@@ -30,6 +30,7 @@ in
       enable = true;
       uid = 1000;
       multiMonitor = true;
+      shutdownAt = null;
 
       browsers.left = {
         urlFile = config.sops.secrets.leftScreenURL.path;
