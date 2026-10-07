@@ -157,10 +157,15 @@ sealed-secrets → controllers → config ─┬→ services → apps
 `controllers` holds operators (cert-manager, external-dns, longhorn, external-secrets,
 cloudnative-pg), `config` their cluster-wide objects (issuers, Gateway, storage classes,
 Corefile), `services` things others consume (resolver, Postgres, node exporter), `apps` the
-consumers (authentik, LGTM, Hubble). Put new things in the layer matching that split.
+consumers (authentik, LGTM, Kite, Hubble). Put new things in the layer matching that split.
 SealedSecrets sit next to the chart that uses them, but never in a layer that depends on
 the layer consuming them, or the deploy deadlocks. `docs/cluster/layers.md` explains
 why each edge exists.
+
+Each layer's directory is `flux/<prefix>_<name>`, with the same two-digit rule as the
+OpenTofu roots: lower reconciles first, equal prefixes are independent. The prefix follows
+`dependsOn`, it does not drive it. The `Kustomization` names carry no prefix; never rename
+one, because its parent prunes the old object and that deletes everything it applied.
 
 Renovate automerges minor and patch bumps across `flux/` and pinned versions in
 `terraform/`.

@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kite-plugins
+  namespace: kite
+data:
+  plugins.json: |
+    [
+      {
+        "id": "resource-map",
+        "version": "0.1.0"
+      }
+    ]
+  apply.py: |
+    import json
+    import os
+    import urllib.request
+
+    KITE = "http://kite.kite.svc:8080"
+    PLUGINS = json.load(open("/config/plugins.json"))
+
+
+    def call(method, path, body=None, cookie=None):
+        request = urllib.request.Request(KITE + path, method=method)
+        request.add_header("Content-Type", "application/json")
+        if cookie:
+            request.add_header("Cookie", cookie)
+        data = json.dumps(body).encode() if body is not None else None
+        with urllib.request.urlopen(request, data, timeout=120) as response:
+            return response.headers, json.loads(response.read() or b"null")
+
+
+    headers, _ = call("POST", "/api/auth/login/password",
+                      {"username": "admin", "password": os.environ["KITE_ADMIN_PASSWORD"]})
+    token = next(c.split(";")[0] for c in headers.get_all("Set-Cookie") if c.startswith("auth_token="))
+
+    _, installed = call("GET", "/api/v1/admin/plugins", cookie=token)
+    current = {p["id"]: p for p in installed["plugins"]}
+    for plugin in PLUGINS:
+        have = current.get(plugin["id"])
+        if have is None or have["version"] != plugin["version"]:
+            call("POST", "/api/v1/admin/plugins", {**plugin, "enabled": True}, cookie=token)
+            print(f"installed {plugin['id']} {plugin['version']}")
+        elif not have["enabled"]:
+            call("PATCH", f"/api/v1/admin/plugins/{plugin['id']}", {"enabled": True}, cookie=token)
+            print(f"enabled {plugin['id']}")
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kite-plugins
+  namespace: kite
+spec:
+  schedule: '*/15 * * * *'
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+          - name: apply
+            image: python:3.13-alpine
+            command:
+            - python
+            - /config/apply.py
+            env:
+            - name: KITE_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kite-admin
+                  key: password
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+            volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+          volumes:
+          - name: config
+            configMap:
+              name: kite-plugins

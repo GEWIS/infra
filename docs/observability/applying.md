@@ -44,7 +44,8 @@ let the next apply rebuild them:
 ```sh
 tofu state rm grafana_organization.tenant \
   grafana_data_source.loki grafana_data_source.mimir grafana_data_source.tempo \
-  grafana_data_source.loki_live grafana_dashboard.cbc \
+  grafana_data_source.loki_live grafana_data_source.mimir_alerting \
+  grafana_data_source.mimir_alertmanager grafana_dashboard.cbc \
   grafana_dashboard.cbc_pinned_datasource grafana_dashboard.cbc_sealed_secrets
 tofu apply
 ```

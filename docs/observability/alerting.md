@@ -7,8 +7,8 @@ work unchanged on anything Prometheus-compatible.
 
 | Piece | File | Mimir flags |
 | --- | --- | --- |
-| Rules | `flux/apps/observability/mimir/rules.yaml` | `-ruler-storage.backend=local`, `-ruler-storage.local.directory=/etc/mimir/rules` |
-| Routing and receivers | `flux/apps/observability/mimir/alertmanager.yaml` | `-target=all,alertmanager`, `-alertmanager-storage.backend=local`, `-alertmanager-storage.local.path=/etc/mimir/alertmanager` |
+| Rules | `flux/50_apps/observability/mimir/rules.yaml` | `-ruler-storage.backend=local`, `-ruler-storage.local.directory=/etc/mimir/rules` |
+| Routing and receivers | `flux/50_apps/observability/mimir/alertmanager.yaml` | `-target=all,alertmanager`, `-alertmanager-storage.backend=local`, `-alertmanager-storage.local.path=/etc/mimir/alertmanager` |
 
 Both are ConfigMaps mounted read-only, and Mimir re-reads them on its own poll,
 so a change lands without a restart. The local backends cannot be written
@@ -68,3 +68,21 @@ The backup metrics come from the Barman Cloud plugin
 (`barman_cloud_cloudnative_pg_io_*`); WAL archiving uses CloudNativePG's own
 `cnpg_pg_stat_archiver_*`, since the plugin exports nothing for it. See
 [Backups](../databases/backups.md).
+
+## Seeing alerts in Grafana
+
+Mimir's ruler and Alertmanager APIs serve one tenant per request; a federated
+`X-Scope-OrgID` such as CBC's `ABC-CRM|…|CBC` gets *"no valid org id found"*. The
+CBC org therefore has two datasources pinned to `CBC` alone, defined in
+`terraform/60_grafana-config/main.tf`:
+
+| Datasource | Shows |
+| --- | --- |
+| `Mimir (CBC only, alerting)` | the rule groups and their state |
+| `Mimir Alertmanager (CBC)` | firing alerts and silences |
+
+The federated `Mimir` datasource has `manageAlerts` off, so Grafana does not try
+the ruler through it. Queries and dashboards keep using the federated one.
+
+Every Loki datasource has `manageAlerts` off as well. No Loki rules exist, and
+the federated CBC one would fail on the ruler API the same way.

@@ -7,9 +7,9 @@ CloudNativePG backs up through the **Barman Cloud plugin**, not the in-tree
 
 | Object | File | Does |
 | --- | --- | --- |
-| `ObjectStore` `postgres` | `flux/services/postgres/object-store.yaml` | bucket path, endpoint, credentials, retention, compression |
-| `Cluster.spec.plugins` | `flux/services/postgres/cluster.yaml` | points at the `ObjectStore`, `isWALArchiver: true` for continuous WAL archiving |
-| `ScheduledBackup` `postgres-daily` | `flux/services/postgres/object-store.yaml` | a base backup every day at 03:00, `method: plugin` |
+| `ObjectStore` `postgres` | `flux/40_services/postgres/object-store.yaml` | bucket path, endpoint, credentials, retention, compression |
+| `Cluster.spec.plugins` | `flux/40_services/postgres/cluster.yaml` | points at the `ObjectStore`, `isWALArchiver: true` for continuous WAL archiving |
+| `ScheduledBackup` `postgres-daily` | `flux/40_services/postgres/object-store.yaml` | a base backup every day at 03:00, `method: plugin` |
 
 Continuous WAL plus daily base backups give point-in-time recovery to any moment
 inside the 30-day `retentionPolicy`. Retention is Barman's job, not a bucket
@@ -18,7 +18,7 @@ rule does not. `immediate: true` takes the first base backup as soon as the
 `ScheduledBackup` exists, because archived WAL is useless without one.
 
 The plugin runs in `cnpg-system` beside the operator, from the `controllers`
-layer (`flux/controllers/cloudnative-pg/plugin-barman-cloud.yaml`). It talks to
+layer (`flux/20_controllers/cloudnative-pg/plugin-barman-cloud.yaml`). It talks to
 the operator over mTLS with certificates from cert-manager, so its HelmRelease
 depends on both. The `ObjectStore` CRD it installs therefore exists before
 `services` declares one.

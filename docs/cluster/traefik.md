@@ -1,7 +1,7 @@
 # Ingress is Traefik
 
 Traefik is the cluster's front door for HTTPS. It is a Flux controller in
-`flux/controllers/traefik/`, and every public hostname is an `IngressRoute`
+`flux/20_controllers/traefik/`, and every public hostname is an `IngressRoute`
 served by it.
 
 ## Reached on a LoadBalancer IP
@@ -42,9 +42,9 @@ URL in the OpenTofu roots and Grafana carries `:8443`.
 ## Routes are IngressRoutes
 
 Every published service has an `IngressRoute` on the `websecure` entry point,
-next to the workload it serves: `flux/openbao/`, `flux/apps/authentik/`,
-`flux/apps/observability/grafana/`, `flux/apps/hubble/` and
-`flux/apps/flux-web/`, each in an `ingressroute.yaml`. `web` (`:80`) only
+next to the workload it serves: `flux/30_openbao/`, `flux/50_apps/authentik/`,
+`flux/50_apps/observability/grafana/`, `flux/50_apps/hubble/` and
+`flux/50_apps/flux-web/`, each in an `ingressroute.yaml`. `web` (`:80`) only
 redirects to HTTPS. The `traefik` IngressClass is the cluster default, so a plain
 `Ingress` also lands here.
 

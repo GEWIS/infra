@@ -10,6 +10,12 @@ locals {
       launch_url    = "https://grafana.cbc.gewis.nl:8443/"
       redirect_uris = ["https://grafana.cbc.gewis.nl:8443/login/generic_oauth"]
     }
+    kite = {
+      display_name  = "Kite"
+      namespace     = "kite"
+      launch_url    = "https://kite.cbc.gewis.nl:8443/"
+      redirect_uris = ["https://kite.cbc.gewis.nl:8443/api/auth/callback"]
+    }
   }
 
   proxy_clients = {

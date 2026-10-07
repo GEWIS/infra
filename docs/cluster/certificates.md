@@ -2,7 +2,7 @@
 
 cert-manager issues a single wildcard, `*.cbc.gewis.nl`, from the
 `letsencrypt-prod` ClusterIssuer into the `traefik` namespace
-(`flux/config/cert-manager/wildcard-cbc-certificate.yaml`). Traefik's default
+(`flux/30_config/cert-manager/wildcard-cbc-certificate.yaml`). Traefik's default
 `TLSStore` names the secret, `wildcard-cbc-gewis-nl-tls`, as its default
 certificate, so every route with `tls: {}` serves it and no app namespace holds a
 copy — see [Ingress](traefik.md).

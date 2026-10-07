@@ -166,7 +166,7 @@ interrupt them.
 
 ## Database volumes opt out of the recurring jobs
 
-Every `RecurringJob` in `flux/config/longhorn/recurring-jobs.yaml` lists `default`
+Every `RecurringJob` in `flux/30_config/longhorn/recurring-jobs.yaml` lists `default`
 in its groups, and Longhorn adds `recurring-job-group.longhorn.io/default:
 enabled` to any volume that carries no recurring-job label at all. Database
 volumes would therefore collect hourly snapshots and weekly backups that

@@ -47,3 +47,11 @@ the empty `Main Org.` that no role maps into. Enabling it would provision every
 silently. Pointing it at CBC instead would hardcode a tofu-assigned,
 auto-incremented org ID into a HelmRelease. So dashboards sit beside the
 datasources in the tofu root — see [Dashboards](dashboards.md).
+
+## Membership belongs to the login, not to tofu
+
+Org membership and roles are set by the OIDC org mapping each time someone logs
+in. `grafana_organization` would otherwise read those members back and remove
+them on every apply, since the config lists none, so it ignores `admins`,
+`editors`, `viewers` and `users_without_access`. That also keeps a plan with no
+config changes empty.

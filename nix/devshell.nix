@@ -6,6 +6,7 @@ pkgs.mkShellNoCC {
     awscli2
     jq
     kubectl
+    kubectl-cnpg
     kubeseal
     fluxcd
     k9s

@@ -22,6 +22,10 @@ resource "grafana_organization" "tenant" {
   for_each = local.tenants
 
   name = each.value
+
+  lifecycle {
+    ignore_changes = [admins, editors, viewers, users_without_access]
+  }
 }
 
 resource "grafana_data_source" "loki" {
@@ -36,6 +40,10 @@ resource "grafana_data_source" "loki" {
   http_headers = {
     "X-Scope-OrgID" = local.scope[each.value]
   }
+
+  json_data_encoded = jsonencode({
+    manageAlerts = false
+  })
 }
 
 resource "grafana_data_source" "mimir" {
@@ -55,6 +63,7 @@ resource "grafana_data_source" "mimir" {
   json_data_encoded = jsonencode({
     httpMethod     = "POST"
     prometheusType = "Mimir"
+    manageAlerts   = each.value != "CBC"
   })
 }
 
@@ -94,4 +103,43 @@ resource "grafana_data_source" "loki_live" {
   http_headers = {
     "X-Scope-OrgID" = "CBC"
   }
+
+  json_data_encoded = jsonencode({
+    manageAlerts = false
+  })
+}
+
+resource "grafana_data_source" "mimir_alerting" {
+  org_id = grafana_organization.tenant["CBC"].org_id
+  type   = "prometheus"
+  name   = "Mimir (CBC only, alerting)"
+  uid    = "mimir-cbc-alerting"
+  url    = local.mimir_url
+
+  http_headers = {
+    "X-Scope-OrgID" = "CBC"
+  }
+
+  json_data_encoded = jsonencode({
+    httpMethod      = "POST"
+    prometheusType  = "Mimir"
+    manageAlerts    = true
+    alertmanagerUid = grafana_data_source.mimir_alertmanager.uid
+  })
+}
+
+resource "grafana_data_source" "mimir_alertmanager" {
+  org_id = grafana_organization.tenant["CBC"].org_id
+  type   = "alertmanager"
+  name   = "Mimir Alertmanager (CBC)"
+  uid    = "mimir-cbc-alertmanager"
+  url    = "http://mimir.observability.svc.cluster.local:8080"
+
+  http_headers = {
+    "X-Scope-OrgID" = "CBC"
+  }
+
+  json_data_encoded = jsonencode({
+    implementation = "mimir"
+  })
 }

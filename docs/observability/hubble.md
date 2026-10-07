@@ -25,7 +25,7 @@ cilium hubble port-forward &          # then: hubble observe --follow
 ## The UI authenticates through authentik, not itself
 
 Hubble UI has no login of its own, so its `IngressRoute` in
-`flux/apps/hubble/ingressroute.yaml` runs every request through a `forwardAuth`
+`flux/50_apps/hubble/ingressroute.yaml` runs every request through a `forwardAuth`
 Middleware in `kube-system`, described in
 [Ingress](../cluster/traefik.md#authentication-is-forwardauth-to-the-authentik-outpost).
 Traefik asks the auth service before it forwards anything, and a request without a

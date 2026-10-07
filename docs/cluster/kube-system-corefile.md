@@ -1,6 +1,6 @@
 # The kube-system Corefile is ours now
 
-`flux/config/coredns/corefile.yaml` is a verbatim copy of the Corefile Talos
+`flux/30_config/coredns/corefile.yaml` is a verbatim copy of the Corefile Talos
 generates, with the `forward` replaced by two stanzas:
 
 ```

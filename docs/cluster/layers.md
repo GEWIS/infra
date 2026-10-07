@@ -5,14 +5,19 @@ sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ app
                                 └→ openbao ┘
 ```
 
+The two-digit prefix on each directory mirrors the graph: lower reconciles first,
+layers with the same prefix are independent. Only the directory carries it — the
+`Kustomization` names stay bare, and renaming one would make its parent prune it
+together with everything it applied.
+
 | Layer | Path | Holds |
 | --- | --- | --- |
-| `sealed-secrets` | `flux/sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg |
-| `config` | `flux/config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile |
-| `openbao` | `flux/openbao/` | OpenBao, its IngressRoute, its seal secret |
-| `services` | `flux/services/` | the resolver, the node exporter, the Postgres cluster |
-| `apps` | `flux/apps/` | authentik, the LGTM stack, the Hubble and Flux UI routes |
+| `sealed-secrets` | `flux/10_sealed-secrets/` | the sealed-secrets controller |
+| `controllers` | `flux/20_controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg |
+| `config` | `flux/30_config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile, `cluster-admin` for `CBC - Application Hosting Team (ADM)` |
+| `openbao` | `flux/30_openbao/` | OpenBao, its IngressRoute, its seal secret |
+| `services` | `flux/40_services/` | the resolver, the node exporter, the Postgres cluster |
+| `apps` | `flux/50_apps/` | authentik, the LGTM stack, Kite, the Hubble and Flux UI routes |
 
 Three dependencies carry real weight and none is cosmetic:
 
@@ -33,7 +38,7 @@ Three dependencies carry real weight and none is cosmetic:
   this is a soft dependency too — but keeping the consumers in the leaf layer
   means their flapping never holds up the substrate below them.
 
-The split between the last two layers is worth stating plainly, because it is
+The split between `services` and `apps` is worth stating plainly, because it is
 not about ordering. What a layer buys, once CRDs and secrets are accounted for,
 is the blast radius of `wait: true`: a Kustomization is un-`Ready` until every
 object in it is healthy. `services` holds what other things consume, `apps`

@@ -10,7 +10,7 @@ the workloads they deploy. It is published at `flux.cbc.gewis.nl`, and it is
 The UI never acts with its own permissions. `helm-release.yaml` sets
 `authentication.type: Anonymous` with the username `flux-web-viewer`, so every
 request is made by impersonating that user, and
-`flux/apps/flux-web/rbac.yaml` binds it to a ClusterRole with only `get`, `list`
+`flux/50_apps/flux-web/rbac.yaml` binds it to a ClusterRole with only `get`, `list`
 and `watch` on the Flux APIs, workloads, pods, services, namespaces and events.
 Any action the UI offers is refused by the API server.
 
@@ -22,7 +22,7 @@ Secrets are deliberately absent from `flux-web-viewer`.
 
 The UI has no login of its own in anonymous mode, so it sits behind the authentik
 proxy outpost exactly like [Hubble](../observability/hubble.md):
-`flux/apps/flux-web/ingressroute.yaml` holds the route and its `forwardAuth`
+`flux/50_apps/flux-web/ingressroute.yaml` holds the route and its `forwardAuth`
 Middleware (see [Ingress](traefik.md#authentication-is-forwardauth-to-the-authentik-outpost)),
 and the `flux` proxy client in `terraform/50_authentik-config/proxy.tf` registers
 the provider with the `cbc` outpost. Like Hubble, any authentik user who can log

@@ -22,4 +22,4 @@ observability entries and no entry belonging to another namespace.
 The Kubernetes auth backend itself is **not** declared here. The OpenBao Helm
 release bootstraps `auth/kubernetes`, the `admin` policy and the `admin` role
 through its `initialize` stanza; this root only adds roles underneath it. So
-`flux/openbao` must be reconciled before the first apply.
+`flux/30_openbao` must be reconciled before the first apply.

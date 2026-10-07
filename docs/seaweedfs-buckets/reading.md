@@ -1,10 +1,10 @@
 # Reading it from the cluster
 
 External Secrets Operator runs in the `controllers` layer
-(`flux/controllers/external-secrets/`). It has no deploy-time dependency on
+(`flux/20_controllers/external-secrets/`). It has no deploy-time dependency on
 OpenBao — it only talks to it when an `ExternalSecret` reconciles, and retries
 until it answers. Each consuming namespace ships its own `ServiceAccount` +
-`SecretStore` + `ExternalSecret` alongside the app in `flux/apps/<app>/`. A
+`SecretStore` + `ExternalSecret` alongside the app in `flux/50_apps/<app>/`. A
 `SecretStore` is namespaced, and that is the point: a `ClusterSecretStore` would
 authenticate as one identity for everyone and dissolve the per-namespace
 boundary this root builds.
@@ -72,7 +72,7 @@ must set `force_path_style` (boto3: `addressing_style = "path"`) with region
 `us-east-1`.
 
 The `endpoint` stored in KV is `http://s3.gewis.nl:8333`, a name the cluster
-resolver answers from the `hosts` block in `flux/services/dns/corefile.yaml`. It
+resolver answers from the `hosts` block in `flux/40_services/dns/corefile.yaml`. It
 is deliberately not the raw address: s3-01 holds a DHCP lease, and every
 consumer reading this KV entry runs inside the cluster. The
 `seaweedfs_endpoint` default used by `tofu` stays an address, because it runs on

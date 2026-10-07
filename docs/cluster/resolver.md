@@ -17,7 +17,7 @@ namespace stays on the baseline default.
 
 ## Adding a record by hand
 
-Static records go in the `hosts` block of `flux/services/dns/corefile.yaml`, one
+Static records go in the `hosts` block of `flux/40_services/dns/corefile.yaml`, one
 per line, address first:
 
 ```

@@ -45,7 +45,13 @@ terraform/40_seaweedfs-buckets/   OpenTofu root: SeaweedFS buckets + their crede
 terraform/50_authentik-config/    OpenTofu root: authentik's AD source, providers and applications
 terraform/50_ssh-certificates/    OpenTofu root: OpenBao SSH CA, signing role and policy
 terraform/60_grafana-config/      OpenTofu root: Grafana organizations and datasources
-flux/                  Flux GitOps tree, reconciled into the cluster
+flux/clusters/gewis-prod/  one Flux Kustomization per layer, entrypoint of the GitOps tree
+flux/10_sealed-secrets/    Flux layer: sealed-secrets controller
+flux/20_controllers/       Flux layer: operators (cert-manager, Traefik, longhorn, …)
+flux/30_config/            Flux layer: cluster-wide objects of those operators
+flux/30_openbao/           Flux layer: OpenBao
+flux/40_services/          Flux layer: resolver, node exporter, Postgres
+flux/50_apps/              Flux layer: authentik, LGTM stack, UI routes
 docs/                  per-host and cluster operational detail
 ```
 

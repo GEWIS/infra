@@ -22,7 +22,7 @@ credential CloudNativePG generated at bootstrap — see [Postgres](../databases/
 Once Flux has reconciled:
 
 ```sh
-kubectl -n postgres get cluster postgres
+kubectl -n postgres get clusters.postgresql.cnpg.io postgres
 kubectl -n authentik get externalsecret,pods
 curl -sSf https://authentik.cbc.gewis.nl:8443/-/health/ready/
 ```
