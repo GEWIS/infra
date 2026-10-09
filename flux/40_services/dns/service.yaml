@@ -14,3 +14,23 @@ spec:
     - name: dns-tcp
       port: 53
       protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-lan
+  namespace: dns
+  annotations:
+    lbipam.cilium.io/ips: 10.82.50.201
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector:
+    app.kubernetes.io/name: dns
+  ports:
+    - name: dns
+      port: 53
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
