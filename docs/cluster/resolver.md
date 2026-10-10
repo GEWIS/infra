@@ -4,8 +4,8 @@ A second CoreDNS lives in the `dns` namespace as a DaemonSet on **hostPort 53**,
 udp and tcp: every node answers on `10.82.50.10x:53`, so LAN hosts can use it
 directly. In-cluster it is also a Service pinned to `10.96.0.53`.
 
-The `dns-lan` Service publishes the same pods on **`10.82.50.11:53`**, a
-LoadBalancer IP that Cilium announces over L2 exactly like
+The `dns-lan` Service publishes the same pods on **`10.82.50.11:53`**
+(`dns.net.gewis.nl`), a LoadBalancer IP that Cilium announces over L2 exactly like
 [Traefik's](traefik.md). It is the one address to hand out to resolvers outside
 the cluster, such as a NetBird nameserver group: it does not change when a node
 is replaced. `externalTrafficPolicy: Local` keeps the client address in the
