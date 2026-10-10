@@ -13,10 +13,10 @@ together with everything it applied.
 | Layer | Path | Holds |
 | --- | --- | --- |
 | `sealed-secrets` | `flux/10_sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/20_controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg |
+| `controllers` | `flux/20_controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg, mariadb-operator with the `ServiceMonitor` CRDs |
 | `config` | `flux/30_config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile, `cluster-admin` for `CBC - Application Hosting Team (ADM)` |
 | `openbao` | `flux/30_openbao/` | OpenBao, its IngressRoute, its seal secret |
-| `services` | `flux/40_services/` | the resolver, the node exporter, the Postgres cluster |
+| `services` | `flux/40_services/` | the resolver, the node exporter, the Postgres and MariaDB clusters |
 | `apps` | `flux/50_apps/` | authentik, the LGTM stack, Kite, the Hubble and Flux UI routes |
 
 Three dependencies carry real weight and none is cosmetic:
@@ -25,8 +25,8 @@ Three dependencies carry real weight and none is cosmetic:
   objects, so the CRD and its decryptor must already exist. Traefik's CRDs need
   no layer of their own: the chart installs them (`crds: CreateReplace`) in
   `controllers`, so every later layer can carry `IngressRoute`s.
-- **`services` depends on `openbao`** because Postgres reads its backup bucket
-  credentials through an `ExternalSecret`. External Secrets retries until OpenBao
+- **`services` depends on `openbao`** because Postgres and MariaDB read their
+  backup bucket credentials through `ExternalSecret`s. External Secrets retries until OpenBao
   answers, so this is not a correctness requirement — but with `wait: true` the
   layer would otherwise sit un-`Ready` through the whole of OpenBao's first boot,
   which reads as a broken deploy rather than an ordered one. On a fresh cluster

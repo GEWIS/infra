@@ -23,6 +23,8 @@ the subnet. The pool and the `CiliumL2AnnouncementPolicy` live in
 | --- | --- |
 | `10.82.50.10` | Traefik |
 | `10.82.50.11` | the cluster [resolver](../cluster/resolver.md), `dns-lan` |
+| `10.82.50.12` | the [Postgres](../databases/postgres.md) primary, `postgres-lan` |
+| `10.82.50.13` | the [MariaDB](../databases/mariadb.md) primary, `mariadb-primary` |
 
 ## The router forwards `:8443` to `:443`
 

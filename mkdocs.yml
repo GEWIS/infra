@@ -125,6 +125,7 @@ nav:
   - Databases:
       - Overview: databases/index.md
       - Postgres: databases/postgres.md
+      - MariaDB: databases/mariadb.md
       - Replication model: databases/replication.md
       - The stack: databases/stack.md
       - Backups: databases/backups.md

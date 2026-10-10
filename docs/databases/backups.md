@@ -67,10 +67,41 @@ A backup is only proven by a restore: recover into a throwaway `Cluster` with
 `bootstrap.recovery` and an `externalClusters` entry pointing at the same
 `ObjectStore` through the plugin.
 
-## MariaDB: logical dumps
+## MariaDB: physical backups and binlog archiving
 
-MariaDB is still design only. The plan is logical dumps to a SeaweedFS bucket:
-the mariadb-operator `Backup` CRD does scheduled logical backups to S3, with a
-`mariadb-dump` `CronJob` as the fallback. `mariadb-dump` needs
-`--single-transaction` for a consistent InnoDB snapshot without locking; that only
-holds if every table is InnoDB and no DDL runs during the dump.
+mariadb-operator gives the same shape as Barman: a base backup plus a continuous
+log archive, both in SeaweedFS. All of it is in
+`flux/40_services/mariadb/backup.yaml`:
+
+| Object | Does |
+| --- | --- |
+| `PhysicalBackup` `mariadb-daily` | a `mariadb-backup` base backup every day at 03:00, `immediate: true`, from a replica when one is ready, kept 30 days (`maxRetention: 720h`) |
+| `PhysicalBackup` `mariadb-replica` | never scheduled; the template the operator uses to rebuild or add a replica, written under `replica/` |
+| `PointInTimeRecovery` `mariadb` | binary log archiving, referenced from the `MariaDB` by `pointInTimeRecoveryRef` |
+
+The agent sidecar on the primary uploads each closed binary log. `max_binlog_size`
+is 128M so a quiet database still closes logs often; the RPO is the time until
+the current log closes or the next archive cycle. Recovery bootstraps a new
+`MariaDB` with `bootstrapFrom.pointInTimeRecoveryRef` and a `targetRecoveryTime`.
+
+All of them write to the `mariadb` bucket, under `base/`, `replica/` and `binlog/`. The `PhysicalBackup`s pass `--disable-ssl-verify-server-cert` to `mariadb-backup`, see [MariaDB](mariadb.md#tls). The bucket is an
+entry in `terraform/40_seaweedfs-buckets`; its key reaches the `mariadb-s3`
+Secret through an `ExternalSecret`, like `postgres-s3`.
+
+### Details that are easy to get wrong
+
+- **The binlog prefix must be empty when archiving starts.** A cluster restored
+  from these backups must archive to a different prefix, or it writes on top of
+  the timeline it came from.
+- **Compression is fixed** once binary logs are archived: `gzip` for both
+  objects.
+- **Archive state is not a metric.** It is in `.status.pointInTimeRecovery` of the
+  `MariaDB`:
+
+  ```sh
+  kubectl -n mariadb get mariadb mariadb -o jsonpath='{.status.pointInTimeRecovery}'
+  ```
+
+  The backup alerts watch the backup Jobs; nothing alerts on a stalled binlog
+  archive.
+- **The operator's cron has five fields**, unlike CloudNativePG's six.

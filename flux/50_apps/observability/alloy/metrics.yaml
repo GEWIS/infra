@@ -338,6 +338,11 @@ spec:
             forward_to      = [prometheus.relabel.tenant_cbc.receiver]
           }
 
+          prometheus.operator.servicemonitors "mariadb" {
+            namespaces = ["mariadb"]
+            forward_to = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
           prometheus.scrape "kube_state_metrics" {
             job_name        = "kube-state-metrics"
             targets         = discovery.relabel.kube_state_metrics.output

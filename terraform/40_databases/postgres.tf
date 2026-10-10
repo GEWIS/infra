@@ -1,38 +1,36 @@
 locals {
-  databases = {
+  postgres_databases = {
     authentik = { namespace = "authentik" }
     grafana   = { namespace = "observability" }
     netbird   = { namespace = "netbird" }
     loom      = { namespace = "loom" }
   }
 
-  consumer_namespaces = toset([for database in local.databases : database.namespace])
-
-  namespace_policies = {
-    for namespace in local.consumer_namespaces : namespace => [
-      for name, database in local.databases :
-      vault_policy.database_read[name].name if database.namespace == namespace
+  postgres_namespace_policies = {
+    for namespace in toset([for database in local.postgres_databases : database.namespace]) : namespace => [
+      for name, database in local.postgres_databases :
+      vault_policy.postgres[name].name if database.namespace == namespace
     ]
   }
 }
 
-resource "random_password" "role" {
-  for_each = local.databases
+resource "random_password" "postgres" {
+  for_each = local.postgres_databases
 
   length  = 32
   special = false
 }
 
 resource "postgresql_role" "app" {
-  for_each = local.databases
+  for_each = local.postgres_databases
 
   name     = each.key
   login    = true
-  password = random_password.role[each.key].result
+  password = random_password.postgres[each.key].result
 }
 
 resource "postgresql_database" "app" {
-  for_each = local.databases
+  for_each = local.postgres_databases
 
   name  = each.key
   owner = postgresql_role.app[each.key].name
@@ -44,23 +42,23 @@ resource "vault_mount" "postgres" {
   description = "Postgres role credentials, one path per consuming namespace."
 }
 
-resource "vault_kv_secret_v2" "credentials" {
-  for_each = local.databases
+resource "vault_kv_secret_v2" "postgres" {
+  for_each = local.postgres_databases
 
   mount = vault_mount.postgres.path
   name  = "${each.value.namespace}/${each.key}"
 
   data_json = jsonencode({
     username = postgresql_role.app[each.key].name
-    password = random_password.role[each.key].result
+    password = random_password.postgres[each.key].result
     dbname   = postgresql_database.app[each.key].name
-    host     = "postgres-rw.postgres.svc.cluster.local"
-    port     = "5432"
+    host     = var.postgres_host
+    port     = tostring(var.postgres_port)
   })
 }
 
-resource "vault_policy" "database_read" {
-  for_each = local.databases
+resource "vault_policy" "postgres" {
+  for_each = local.postgres_databases
 
   name = "postgres-${each.value.namespace}-${each.key}"
 
@@ -75,8 +73,8 @@ resource "vault_policy" "database_read" {
   EOT
 }
 
-resource "vault_kubernetes_auth_backend_role" "consumer" {
-  for_each = local.namespace_policies
+resource "vault_kubernetes_auth_backend_role" "postgres" {
+  for_each = local.postgres_namespace_policies
 
   backend   = "kubernetes"
   role_name = "postgres-${each.key}"

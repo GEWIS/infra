@@ -114,3 +114,71 @@ data:
               severity: warning
             annotations:
               summary: "Replica {{ $labels.pod }} is failing to replicate"
+  mariadb.yaml: |
+    groups:
+      - name: mariadb-backups
+        rules:
+          - alert: MariaDBBackupTooOld
+            expr: time() - max by (namespace) (kube_job_status_completion_time{namespace="mariadb", job_name=~"mariadb-daily-.+"}) > 26 * 3600
+            for: 15m
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "No MariaDB physical backup in {{ $labels.namespace }} for more than 26 hours"
+
+          - alert: MariaDBBackupFailed
+            expr: |-
+              max by (namespace) (kube_job_created{namespace="mariadb", job_name=~"mariadb-daily-.+"} and on(namespace, job_name) (kube_job_status_failed > 0))
+              > max by (namespace) (kube_job_status_completion_time{namespace="mariadb", job_name=~"mariadb-daily-.+"})
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "The latest MariaDB physical backup in {{ $labels.namespace }} failed"
+
+          - alert: MariaDBBackupMetricsMissing
+            expr: absent(kube_job_status_completion_time{namespace="mariadb", job_name=~"mariadb-daily-.+"})
+            for: 30m
+            labels:
+              severity: warning
+              channel: backup
+            annotations:
+              summary: "No completed MariaDB backup Job is visible, so the backup-age alert cannot fire"
+
+      - name: mariadb-availability
+        rules:
+          - alert: MariaDBInstanceDown
+            expr: mysql_up{namespace="mariadb"} == 0
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "MariaDB on {{ $labels.target }} is down"
+
+          - alert: MariaDBMetricsMissing
+            expr: absent(mysql_up{namespace="mariadb"})
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "No MariaDB instance in the mariadb namespace reports metrics"
+
+          - alert: MariaDBReplicationStopped
+            expr: (mysql_slave_status_slave_io_running{namespace="mariadb"} == 0) or (mysql_slave_status_slave_sql_running{namespace="mariadb"} == 0)
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "Replica {{ $labels.target }} is not replicating"
+
+          - alert: MariaDBReplicationLag
+            expr: mysql_slave_status_seconds_behind_master{namespace="mariadb"} > 300
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Replica {{ $labels.target }} lags the primary by over 5 minutes"

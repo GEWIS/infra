@@ -56,6 +56,10 @@ must be edited alongside `nix/modules/service-pc/options.nix`.
 In your reply, always say whether the docs needed a change and what you did, even when
 the answer is "no docs change needed".
 
+What is very important for the docs is that they should describe the (desired) state of
+the repo, not step to get there or stuff like that. So not a list of commands to run, order
+that have been run, but only the end result.
+
 ## Architecture
 
 Three independent planes share one repo: NixOS hosts (`nix/`), OpenTofu roots
@@ -139,7 +143,7 @@ free number in a gap instead of renumbering. A stage that is not a root, like
 - `40_*`, `50_*`, `60_grafana-config`: configure services now running in the cluster.
   The roots with a vault provider (`40_*`, `50_*`) need `TF_VAR_bao_jwt`, which their
   `.envrc` takes from a live `kubectl`. authentik cannot start before
-  `40_postgres-databases` creates its database, `50_authentik-config` configures the
+  `40_databases` creates its database, `50_authentik-config` configures the
   `auth/oidc` mount `40_openbao-config` creates, `50_ssh-certificates` configures its
   `ssh` mount, and Grafana mounts the OIDC Secret `50_authentik-config` writes.
 
@@ -155,8 +159,8 @@ sealed-secrets → controllers → config ─┬→ services → apps
 ```
 
 `controllers` holds operators (cert-manager, external-dns, longhorn, external-secrets,
-cloudnative-pg), `config` their cluster-wide objects (issuers, Gateway, storage classes,
-Corefile), `services` things others consume (resolver, Postgres, node exporter), `apps` the
+cloudnative-pg, mariadb-operator), `config` their cluster-wide objects (issuers, Gateway, storage classes,
+Corefile), `services` things others consume (resolver, Postgres, MariaDB, node exporter), `apps` the
 consumers (authentik, LGTM, Kite, Hubble). Put new things in the layer matching that split.
 SealedSecrets sit next to the chart that uses them, but never in a layer that depends on
 the layer consuming them, or the deploy deadlocks. `docs/cluster/layers.md` explains

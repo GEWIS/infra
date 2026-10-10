@@ -36,6 +36,13 @@ The chart's own Secret still contains its default `AUTHENTIK_POSTGRESQL__HOST` o
 `authentik-postgresql`. It is overridden and never used; the chart omits keys
 whose value is empty, which is why no password appears there.
 
+TLS to the database is set in `global.env`, not in the Secret:
+`AUTHENTIK_POSTGRESQL__SSLMODE=verify-full` and
+`AUTHENTIK_POSTGRESQL__SSLROOTCERT=system`, which makes libpq verify
+`postgres.cbc.gewis.nl` against the system CA store. authentik's own default is
+`sslmode: disable`, which the cluster refuses — see
+[Postgres](../databases/postgres.md#tls-is-required-and-verified).
+
 ## The bootstrap secret is read exactly once
 
 `AUTHENTIK_BOOTSTRAP_PASSWORD`, `_TOKEN` and `_EMAIL` are consumed on the very

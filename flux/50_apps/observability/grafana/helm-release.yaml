@@ -60,7 +60,7 @@ spec:
 
       database:
         type: postgres
-        ssl_mode: require
+        ssl_mode: verify-full
 
       analytics:
         reporting_enabled: false

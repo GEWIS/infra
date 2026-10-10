@@ -8,6 +8,7 @@ buckets = {
   mimir    = { namespace = "observability" }
   tempo    = { namespace = "observability" }
   postgres = { namespace = "postgres" }
+  mariadb  = { namespace = "mariadb" }
 }
 ```
 

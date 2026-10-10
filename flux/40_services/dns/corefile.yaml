@@ -15,12 +15,9 @@ data:
 
         hosts {
             10.82.50.100 s3.gewis.nl
+            10.82.50.12 postgres.cbc.gewis.nl
+            10.82.50.13 mariadb.cbc.gewis.nl
             fallthrough
-        }
-
-        rewrite stop {
-            name exact postgres.cbc.gewis.nl kube.gewis.nl
-            answer auto
         }
 
         cache {

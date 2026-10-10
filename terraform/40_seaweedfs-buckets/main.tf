@@ -7,6 +7,7 @@ locals {
     mimir    = { namespace = "observability" }
     tempo    = { namespace = "observability" }
     postgres = { namespace = "postgres" }
+    mariadb  = { namespace = "mariadb" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])

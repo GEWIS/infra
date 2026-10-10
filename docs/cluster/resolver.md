@@ -60,31 +60,31 @@ lease keeps matching the host — see [s3-01 gotchas](../s3-01/gotchas.md) for t
 two conditions. Buckets are addressed path-style, with no virtual-host domain
 configured in [`s3-01/seaweedfs.md`](../s3-01/seaweedfs.md).
 
-## Aliasing one name onto another
+## The database names
 
-`hosts` only maps names to addresses. To point a name at another *name* — where
-the target already resolves and may move — use `rewrite` instead:
+`postgres.cbc.gewis.nl` and `mariadb.cbc.gewis.nl` are `hosts` entries for the
+LoadBalancer addresses of the two primaries, `10.82.50.12` and `10.82.50.13`.
+Their server certificates carry only these names, so every database client —
+pods, off-cluster applications and tofu — connects by name and needs this
+resolver to answer. See [Postgres](../databases/postgres.md) and
+[MariaDB](../databases/mariadb.md).
 
-```
-rewrite stop {
-    name exact postgres.cbc.gewis.nl kube.gewis.nl
-    answer auto
-}
-```
+## Off-cluster clients resolve through NetBird
 
-`postgres.cbc.gewis.nl` is how in-cluster clients reach the Postgres NodePort.
-`kube.gewis.nl` is a public record carrying all three node addresses, so the
-alias tracks the nodes instead of pinning one, and the resolver can follow it
-through its normal upstreams.
+Campus DNS has never heard of these names. Machines outside the cluster reach
+them through a NetBird nameserver group, configured by hand in the NetBird
+dashboard:
 
-**`answer auto` is not optional.** Without it the reply carries `kube.gewis.nl`
-as the owner name of the A records while the client asked for
-`postgres.cbc.gewis.nl`, and stub resolvers are entitled to discard the mismatch.
-`answer auto` rewrites the owner names back on the way out.
+| Field | Value |
+| --- | --- |
+| Nameserver | `10.82.50.11`, port 53 (`dns-lan`) |
+| Match domains | `postgres.cbc.gewis.nl`, `mariadb.cbc.gewis.nl`, `s3.gewis.nl` |
+| Distribution groups | the admins and the off-cluster database clients |
 
-This is resolver-only, exactly like `s3.gewis.nl`: a workstation resolving
-through campus DNS gets NXDOMAIN. Anything running off-cluster — `tofu`, for one
-— has to use `kube.gewis.nl` directly.
+The match domains list single names, not `cbc.gewis.nl`: the web hostnames under
+it keep resolving through public DNS while the cluster is down. A peer resolves
+these names only while NetBird runs, and reaches the addresses only with its route
+to `10.82.50.0/24`.
 
 ## DNS4EU first, Quad9 behind it
 

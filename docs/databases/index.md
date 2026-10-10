@@ -3,7 +3,8 @@
 How HA Postgres and MariaDB are placed on this cluster, why the redundancy lives
 where it does, and how they are backed up.
 
-Postgres is deployed: one CloudNativePG cluster in the `postgres` namespace,
-reconciled by the `services` layer, with per-application roles and databases
-declared beside it. MariaDB is still design only — the pages on replication,
-backups and the tradeoff describe both engines and the build follows them.
+Both engines are deployed and reconciled by the `services` layer: one
+CloudNativePG cluster in the `postgres` namespace and one mariadb-operator cluster
+in the `mariadb` namespace. Applications get a role or user and a database each
+from one OpenTofu root, `terraform/40_databases`, and reach the primary by name
+over verified TLS.

@@ -7,6 +7,14 @@ cert-manager issues a single wildcard, `*.cbc.gewis.nl`, from the
 certificate, so every route with `tls: {}` serves it and no app namespace holds a
 copy — see [Ingress](traefik.md).
 
+The databases get certificates of their own from the same issuer, for exactly one
+name each, so the wildcard key never leaves `traefik`:
+
+| Certificate | Namespace | Name | Used by |
+| --- | --- | --- | --- |
+| `postgres-tls` | `postgres` | `postgres.cbc.gewis.nl` | [Postgres](../databases/postgres.md#tls-is-required-and-verified) |
+| `mariadb-tls` | `mariadb` | `mariadb.cbc.gewis.nl` | [MariaDB](../databases/mariadb.md#tls) |
+
 `--dns01-recursive-nameservers-only` is required on campus, which blocks direct
 queries to authoritative nameservers. It leaves the self-check on the pod's
 `/etc/resolv.conf`, which resolves to `kube-dns` — correct only because the cluster

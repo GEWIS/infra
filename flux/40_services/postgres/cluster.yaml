@@ -12,12 +12,18 @@ spec:
     storageClass: longhorn-single
     size: 50Gi
 
+  certificates:
+    serverTLSSecret: postgres-tls
+    serverCASecret: postgres-server-ca
+
   postgresql:
     parameters:
       tcp_keepalives_idle: "60"
       tcp_keepalives_interval: "10"
       tcp_keepalives_count: "3"
       idle_in_transaction_session_timeout: "60000"
+    pg_hba:
+      - hostnossl all all all reject
 
   plugins:
     - name: barman-cloud.cloudnative-pg.io
@@ -36,6 +42,16 @@ spec:
         login: true
         createdb: true
         createrole: true
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: postgres-lan
+              annotations:
+                lbipam.cilium.io/ips: 10.82.50.12
+            spec:
+              type: LoadBalancer
 
   inheritedMetadata:
     annotations:

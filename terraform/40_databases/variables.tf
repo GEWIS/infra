@@ -23,15 +23,27 @@ variable "bao_jwt" {
 }
 
 variable "postgres_host" {
-  description = "Postgres endpoint reachable from where tofu runs. Defaults to the round-robin node name; postgres.cbc.gewis.nl is the same address through the cluster resolver."
+  description = "Name of the Postgres primary, for tofu and every client. Its certificate is issued for this name, and it resolves only through the cluster resolver."
   type        = string
-  default     = "kube.gewis.nl"
+  default     = "postgres.cbc.gewis.nl"
 }
 
 variable "postgres_port" {
-  description = "NodePort the Postgres primary is published on."
+  description = "Port of the Postgres primary on its LoadBalancer address."
   type        = number
-  default     = 30432
+  default     = 5432
+}
+
+variable "mariadb_host" {
+  description = "Name of the MariaDB primary, for tofu and every client. Its certificate is issued for this name, and it resolves only through the cluster resolver."
+  type        = string
+  default     = "mariadb.cbc.gewis.nl"
+}
+
+variable "mariadb_port" {
+  description = "Port of the MariaDB primary on its LoadBalancer address."
+  type        = number
+  default     = 3306
 }
 
 variable "kubeconfig_path" {

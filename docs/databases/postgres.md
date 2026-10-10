@@ -11,16 +11,16 @@ one and are separated by role and database instead.
 Rolling updates promote an already-updated replica before touching the old
 primary (`primaryUpdateMethod: switchover`), so a restart costs a few seconds of
 refused writes and dropped connections rather than the primary's whole restart.
-The primary moves to another node each time; the `postgres-primary` NodePort
-and `postgres-rw` follow it.
+The primary moves to another node each time; `postgres-rw` and the `postgres-lan`
+LoadBalancer follow it.
 
 ## Adding a database is one map entry
 
-`terraform/40_postgres-databases` owns every credential *and* the DDL. One entry is
-the whole change:
+`terraform/40_databases` owns every credential *and* the DDL, for Postgres and
+[MariaDB](mariadb.md) alike. One entry in `postgres.tf` is the whole change:
 
 ```hcl
-databases = {
+postgres_databases = {
   authentik = { namespace = "authentik" }
   grafana   = { namespace = "observability" }
   netbird   = { namespace = "netbird" }
@@ -32,22 +32,52 @@ That mints a password, writes it to OpenBao at `postgres/<namespace>/<database>`
 and issues the `CREATE ROLE` and `CREATE DATABASE` itself through the
 `cyrilgdn/postgresql` provider. Nothing per-application exists in the `postgres`
 namespace; the consuming namespace reads its own credential with an
-`ExternalSecret`, and that is the only Kubernetes object involved.
+`ExternalSecret`, and that is the only Kubernetes object involved. The
+credential's `host` is `postgres.cbc.gewis.nl`.
 
-## How tofu reaches a cluster with no public address
+The root's state key is `postgres-databases/terraform.tfstate`; like every
+root's key it does not follow the directory name.
 
-A `NodePort` Service publishes the primary on **30432**, selecting
-`cnpg.io/instanceRole: primary`. Cilium forwards from any node to wherever that
-pod currently is, and CNPG relabels on failover, so the address survives a
-primary change. `hostPort` — how the resolver is exposed — is not an
-option here: the `Cluster` CRD has no field for it, and it would bind on all
-three nodes with only one of them writable.
+## Reached on a LoadBalancer IP
 
-The endpoint is `kube.gewis.nl:30432`, which round-robins the node addresses.
-`postgres.cbc.gewis.nl` is the same thing through the cluster resolver, which
-rewrites it onto `kube.gewis.nl`; use it from inside the cluster, and the node
-name from a workstation, which resolves through campus DNS and has never heard
-of the resolver's private names.
+A CNPG-managed Service, `postgres-lan`, publishes the primary on
+**`10.82.50.12:5432`**. It is a `managed.services.additional` entry with
+`selectorType: rw`, so CloudNativePG keeps it on the primary across failovers, and
+Cilium announces the address over L2 like [Traefik's](../cluster/traefik.md).
+
+`postgres.cbc.gewis.nl` resolves to that address through the
+[cluster resolver](../cluster/resolver.md). Every client, tofu included, connects
+by that name, because the server certificate carries only that name; off-cluster
+machines resolve it through a NetBird nameserver group pointing at the resolver.
+
+## TLS is required and verified
+
+The server presents a Let's Encrypt certificate for `postgres.cbc.gewis.nl`, so
+clients verify it against their system CA store and need no CA file.
+
+| Piece | Where |
+| --- | --- |
+| `Certificate` `postgres-tls`, issued by `letsencrypt-prod` | `flux/40_services/postgres/certificate.yaml` |
+| `certificates.serverTLSSecret: postgres-tls` | `cluster.yaml` |
+| `certificates.serverCASecret: postgres-server-ca`, the Let's Encrypt roots | `server-ca.yaml` |
+| `pg_hba: hostnossl all all all reject` | `cluster.yaml` |
+
+- **Replicas need the roots.** They connect to the primary with
+  `sslmode=verify-ca` against `serverCASecret`, which checks the issuer but not
+  the name. `server-ca.yaml` holds ISRG Root X1, X2, YR and YE, the roots Let's
+  Encrypt issues under; a certificate from a root missing there stops replication.
+  These are public certificates, which is why the Secret is in git.
+- **The certificate Secret carries `cnpg.io/reload`.** CloudNativePG reloads a
+  server certificate it did not create only when its Secret has that label,
+  which `secretTemplate` sets on every renewal.
+- **Plaintext is refused for every TCP client.** User `pg_hba` rules come before
+  CloudNativePG's default `host all all all scram-sha-256`. The operator itself
+  connects over the Unix socket, and replication matches the fixed
+  `hostssl … cert` rules, so neither is affected.
+- **Clients set `verify-full`** and connect by name. libpq needs
+  `sslrootcert=system` (libpq 16 and later) to use the system store; authentik sets
+  it with `AUTHENTIK_POSTGRESQL__SSLROOTCERT`. Go clients — Grafana, tofu — use the
+  system store when no root certificate is given.
 
 ## Tofu connects as `provisioner`, not as a superuser
 

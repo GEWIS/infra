@@ -1,0 +1,18 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: mariadb-operator
+  namespace: mariadb-operator
+spec:
+  type: oci
+  interval: 24h
+  url: oci://ghcr.io/mariadb-operator/charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: prometheus-community
+  namespace: mariadb-operator
+spec:
+  interval: 24h
+  url: https://prometheus-community.github.io/helm-charts

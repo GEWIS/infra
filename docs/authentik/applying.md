@@ -4,7 +4,7 @@ Order matters once, on the first install, because the database and its
 credential are both made outside the cluster.
 
 ```sh
-cd terraform/40_postgres-databases
+cd terraform/40_databases
 tofu init
 tofu apply
 ```
@@ -18,6 +18,8 @@ it just looks like a failed deploy in the meantime.
 
 That apply is a single command; the provisioner credential it logs in with is a
 credential CloudNativePG generated at bootstrap — see [Postgres](../databases/postgres.md).
+The root also reads the MariaDB provisioner Secret, so the MariaDB cluster must
+exist too.
 
 Once Flux has reconciled:
 

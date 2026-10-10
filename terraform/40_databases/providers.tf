@@ -14,6 +14,10 @@ terraform {
       source  = "cyrilgdn/postgresql"
       version = "~> 1.25"
     }
+    mysql = {
+      source  = "petoju/mysql"
+      version = "~> 3.0"
+    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 3.2"
@@ -29,10 +33,17 @@ provider "kubernetes" {
   config_path = local.kubeconfig_path
 }
 
-data "kubernetes_secret_v1" "provisioner" {
+data "kubernetes_secret_v1" "postgres_provisioner" {
   metadata {
     name      = "postgres-app"
     namespace = "postgres"
+  }
+}
+
+data "kubernetes_secret_v1" "mariadb_provisioner" {
+  metadata {
+    name      = "mariadb-provisioner"
+    namespace = "mariadb"
   }
 }
 
@@ -51,9 +62,16 @@ provider "vault" {
 provider "postgresql" {
   host            = var.postgres_host
   port            = var.postgres_port
-  username        = data.kubernetes_secret_v1.provisioner.data["username"]
-  password        = data.kubernetes_secret_v1.provisioner.data["password"]
-  sslmode         = "require"
+  username        = data.kubernetes_secret_v1.postgres_provisioner.data["username"]
+  password        = data.kubernetes_secret_v1.postgres_provisioner.data["password"]
+  sslmode         = "verify-full"
   superuser       = false
   connect_timeout = 15
+}
+
+provider "mysql" {
+  endpoint = "${var.mariadb_host}:${var.mariadb_port}"
+  username = "provisioner"
+  password = data.kubernetes_secret_v1.mariadb_provisioner.data["password"]
+  tls      = "true"
 }

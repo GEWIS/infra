@@ -36,6 +36,11 @@ spec:
       podAnnotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9300"
+      env:
+        - name: AUTHENTIK_POSTGRESQL__SSLMODE
+          value: verify-full
+        - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
+          value: system
       envFrom:
         - secretRef:
             name: authentik-db

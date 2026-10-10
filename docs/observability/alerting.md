@@ -69,6 +69,27 @@ The backup metrics come from the Barman Cloud plugin
 `cnpg_pg_stat_archiver_*`, since the plugin exports nothing for it. See
 [Backups](../databases/backups.md).
 
+## The MariaDB rules
+
+`mariadb.yaml` in the same ConfigMap:
+
+| Alert | Channel | Fires when |
+| --- | --- | --- |
+| `MariaDBBackupTooOld` | `backup` | no `mariadb-daily-*` Job completed for 26 hours |
+| `MariaDBBackupFailed` | `backup` | the newest failed backup Job is newer than the newest completed one |
+| `MariaDBBackupMetricsMissing` | `backup` | no completed backup Job is visible, which would keep the age alert from ever firing |
+| `MariaDBInstanceDown` | `infra` | the exporter reports a pod down (`mysql_up == 0`) |
+| `MariaDBMetricsMissing` | `infra` | no exporter metrics from `mariadb` at all |
+| `MariaDBReplicationStopped` | `infra` | a replica's IO or SQL thread stopped |
+| `MariaDBReplicationLag` | — | a replica lags the primary by over 5 minutes |
+
+The operator exports nothing about backups, so the backup rules read the
+`PhysicalBackup` Jobs through kube-state-metrics. Binary log archiving has no
+metric and no alert; its state is in the `MariaDB` status, see
+[Backups](../databases/backups.md#mariadb-physical-backups-and-binlog-archiving).
+The instance metrics come from the operator's mysqld-exporter, scraped through its
+`ServiceMonitor` — see [MariaDB](../databases/mariadb.md#metrics).
+
 ## Seeing alerts in Grafana
 
 Mimir's ruler and Alertmanager APIs serve one tenant per request; a federated
