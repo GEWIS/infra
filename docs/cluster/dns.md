@@ -32,7 +32,7 @@ cluster wrote it.
 The DNS target is the `external-dns.alpha.kubernetes.io/target` annotation on
 **each `IngressRoute`**, set to `router02.net.gewis.nl`. The target is a
 hostname, so records are CNAMEs onto the router, which owns the public address;
-Traefik's own address, `10.82.50.200`, is private and useless from outside. A new
+Traefik's own address, `10.82.50.10`, is private and useless from outside. A new
 route that forgets the annotation gets no usable record.
 
 `--cloudflare-record-comment` tags every managed record; ownership itself is

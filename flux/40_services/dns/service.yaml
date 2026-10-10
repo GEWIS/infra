@@ -21,7 +21,7 @@ metadata:
   name: dns-lan
   namespace: dns
   annotations:
-    lbipam.cilium.io/ips: 10.82.50.201
+    lbipam.cilium.io/ips: 10.82.50.11
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local

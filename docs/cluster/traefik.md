@@ -6,21 +6,21 @@ served by it.
 
 ## Reached on a LoadBalancer IP
 
-Traefik's Service is a `LoadBalancer` pinned to **`10.82.50.200`** with the
+Traefik's Service is a `LoadBalancer` pinned to **`10.82.50.10`** with the
 `lbipam.cilium.io/ips` annotation. Cilium hands it out and answers ARP for it:
 
 | Piece | Where |
 | --- | --- |
 | `l2announcements.enabled`, raised `k8sClientRateLimit` | Cilium values in `terraform/20_talos-bootstrap/main.tf` |
-| `CiliumLoadBalancerIPPool` `default`, `10.82.50.200`–`229` | `terraform/20_talos-bootstrap/load-balancer.tf` |
+| `CiliumLoadBalancerIPPool` `default`, `10.82.50.10`–`50` | `terraform/20_talos-bootstrap/load-balancer.tf` |
 | `CiliumL2AnnouncementPolicy` `default`, LoadBalancer IPs on every node | same file |
 
 The pool and policy live in OpenTofu next to Cilium rather than in Flux. Flux
 installs the Traefik chart and waits for it, and a `LoadBalancer` Service is not
 ready until it has an address; a pool in a later Flux layer would never arrive,
-because that layer waits for this one. The pool sits outside the router's DHCP
-range and next to the old cluster's MetalLB pool (`.150`–`.199`), which stays in
-use until that cluster is gone.
+because that layer waits for this one. The pool stays clear of router02, the
+other low addresses and the old cluster's MetalLB pool (`.150`–`.199`), which stays in use until
+that cluster is gone.
 
 Every announced IP holds a Kubernetes lease that its node renews every few
 seconds, which is what the raised client rate limit is for. Which node holds it,
@@ -36,7 +36,7 @@ survives into Traefik. With `Local`, Cilium only announces from a node that runs
 Traefik pod; the DaemonSet puts one on every node, so any node can take over the
 IP when another dies.
 
-router02 forwards public `:8443` to `10.82.50.200:443`, which is why every public
+router02 forwards public `:8443` to `10.82.50.10:443`, which is why every public
 URL in the OpenTofu roots and Grafana carries `:8443`.
 
 ## Routes are IngressRoutes

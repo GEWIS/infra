@@ -4,7 +4,7 @@ resource "kubectl_manifest" "lb_ip_pool" {
     kind       = "CiliumLoadBalancerIPPool"
     metadata   = { name = "default" }
     spec = {
-      blocks = [{ start = "10.82.50.200", stop = "10.82.50.229" }]
+      blocks = [{ start = "10.82.50.10", stop = "10.82.50.50" }]
     }
   })
 
