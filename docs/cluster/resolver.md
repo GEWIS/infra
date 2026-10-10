@@ -32,7 +32,7 @@ per line, address first:
 
 ```
 hosts {
-    10.82.50.100 s3.gewis.nl
+    10.82.50.100 s3.net.gewis.nl
     fallthrough
 }
 ```
@@ -42,12 +42,12 @@ for *everything* it is asked and NXDOMAINs every name not listed — the entire
 internet included. With it, only listed names are answered here and the rest
 continue to the forwarders.
 
-Reverse lookups come for free: `dig -x 10.82.50.100` returns `s3.gewis.nl`.
+Reverse lookups come for free: `dig -x 10.82.50.100` returns `s3.net.gewis.nl`.
 A listed name is also answered for LAN clients, not just pods, since they hit the
 same resolver. `reload` picks up a new entry without a restart, though allow ~60s
 for the ConfigMap to reach every node.
 
-`s3.gewis.nl` is a name that exists nowhere else — the public `gewis.nl` zone has
+`s3.net.gewis.nl` is a name that exists nowhere else — the public `gewis.nl` zone has
 no address for it — so this creates a name rather than shadowing one. Overriding a
 *public* name is equally possible and considerably easier to regret: it applies to
 every pod and every LAN client pointed here, and nothing upstream will hint that
@@ -62,7 +62,7 @@ configured in [`s3-01/seaweedfs.md`](../s3-01/seaweedfs.md).
 
 ## The database names
 
-`postgres.cbc.gewis.nl` and `mariadb.cbc.gewis.nl` are `hosts` entries for the
+`postgres.net.gewis.nl` and `mariadb.net.gewis.nl` are `hosts` entries for the
 LoadBalancer addresses of the two primaries, `10.82.50.12` and `10.82.50.13`.
 Their server certificates carry only these names, so every database client —
 pods, off-cluster applications and tofu — connects by name and needs this
@@ -78,10 +78,10 @@ dashboard:
 | Field | Value |
 | --- | --- |
 | Nameserver | `10.82.50.11`, port 53 (`dns-lan`) |
-| Match domains | `postgres.cbc.gewis.nl`, `mariadb.cbc.gewis.nl`, `s3.gewis.nl` |
+| Match domains | `postgres.net.gewis.nl`, `mariadb.net.gewis.nl`, `s3.net.gewis.nl` |
 | Distribution groups | the admins and the off-cluster database clients |
 
-The match domains list single names, not `cbc.gewis.nl`: the web hostnames under
+The match domains list single names, not `net.gewis.nl`: the router names under
 it keep resolving through public DNS while the cluster is down. A peer resolves
 these names only while NetBird runs, and reaches the addresses only with its route
 to `10.82.50.0/24`.

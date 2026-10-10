@@ -5,7 +5,7 @@ media directory. The obvious move here is the S3 backend pointed at SeaweedFS, t
 way Loki, Mimir and Tempo work. It does not survive contact with the details.
 
 With `storage.media.backend: s3`, authentik hands the **browser** a presigned URL
-straight to the S3 endpoint. Ours is `http://s3.gewis.nl:8333`: plain HTTP, on a
+straight to the S3 endpoint. Ours is `http://s3.net.gewis.nl:8333`: plain HTTP, on a
 name only the cluster resolver answers, on a port only the campus LAN can reach.
 Embedded in an HTTPS page that is mixed content, so browsers block it outright,
 and off-LAN it does not resolve at all. `storage.s3.custom_domain` exists for

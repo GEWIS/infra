@@ -34,7 +34,7 @@ provider "aws" {
 
 All three endpoints are the same URL because SeaweedFS serves S3 and IAM on the
 one port. Path-style is mandatory: there is no wildcard DNS for
-`<bucket>.s3.gewis.nl`. The four `skip_*` flags stop the provider from calling
+`<bucket>.s3.net.gewis.nl`. The four `skip_*` flags stop the provider from calling
 STS, the EC2 metadata service or the AWS region list — none of which exist here;
 without them every plan fails before it reaches a resource. `us-east-1` is a
 placeholder that clients must echo back, not a location.

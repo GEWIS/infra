@@ -57,7 +57,7 @@ spec:
   retentionPolicy: "30d"
   configuration:
     destinationPath: s3://postgres/
-    endpointURL: http://s3.gewis.nl:8333
+    endpointURL: http://s3.net.gewis.nl:8333
     s3Credentials:
       accessKeyId:
         name: postgres-s3

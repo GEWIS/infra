@@ -33,7 +33,7 @@ and issues the `CREATE ROLE` and `CREATE DATABASE` itself through the
 `cyrilgdn/postgresql` provider. Nothing per-application exists in the `postgres`
 namespace; the consuming namespace reads its own credential with an
 `ExternalSecret`, and that is the only Kubernetes object involved. The
-credential's `host` is `postgres.cbc.gewis.nl`.
+credential's `host` is `postgres.net.gewis.nl`.
 
 The root's state key is `postgres-databases/terraform.tfstate`; like every
 root's key it does not follow the directory name.
@@ -45,14 +45,14 @@ A CNPG-managed Service, `postgres-lan`, publishes the primary on
 `selectorType: rw`, so CloudNativePG keeps it on the primary across failovers, and
 Cilium announces the address over L2 like [Traefik's](../cluster/traefik.md).
 
-`postgres.cbc.gewis.nl` resolves to that address through the
+`postgres.net.gewis.nl` resolves to that address through the
 [cluster resolver](../cluster/resolver.md). Every client, tofu included, connects
 by that name, because the server certificate carries only that name; off-cluster
 machines resolve it through a NetBird nameserver group pointing at the resolver.
 
 ## TLS is required and verified
 
-The server presents a Let's Encrypt certificate for `postgres.cbc.gewis.nl`, so
+The server presents a Let's Encrypt certificate for `postgres.net.gewis.nl`, so
 clients verify it against their system CA store and need no CA file.
 
 | Piece | Where |

@@ -10,3 +10,9 @@ spec:
     kind: ClusterIssuer
   dnsNames:
     - "*.cbc.gewis.nl"
+    - gewis.nl
+    - "*.gewis.nl"
+    - "*.test.gewis.nl"
+    - "*.personal.gewis.nl"
+    - gew.is
+    - "*.gew.is"

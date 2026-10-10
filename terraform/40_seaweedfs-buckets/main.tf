@@ -1,5 +1,5 @@
 locals {
-  s3_endpoint = "http://s3.gewis.nl:8333"
+  s3_endpoint = "http://s3.net.gewis.nl:8333"
   s3_region   = "us-east-1"
 
   buckets = {

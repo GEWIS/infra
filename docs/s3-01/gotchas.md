@@ -11,7 +11,7 @@
       *waiting* while the host draws a dynamic address from the pool. This is
       why `ClientIdentifier = "mac"` once looked like it did not work.
 
-  The corefile entry for `s3.gewis.nl` and the `40_seaweedfs-buckets` endpoint
+  The corefile entry for `s3.net.gewis.nl` and the `40_seaweedfs-buckets` endpoint
   default both hardcode `.100`. After fixing a mismatch, delete the host's
   dynamic lease and run `networkctl reconfigure enX0` (or reboot): a plain
   `renew` just extends the lease the host already holds.

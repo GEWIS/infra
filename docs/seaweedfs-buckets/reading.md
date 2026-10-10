@@ -71,7 +71,7 @@ Buckets are addressed **path-style** — `endpoint` carries no bucket, and clien
 must set `force_path_style` (boto3: `addressing_style = "path"`) with region
 `us-east-1`.
 
-The `endpoint` stored in KV is `http://s3.gewis.nl:8333`, a name the cluster
+The `endpoint` stored in KV is `http://s3.net.gewis.nl:8333`, a name the cluster
 resolver answers from the `hosts` block in `flux/40_services/dns/corefile.yaml`. It
 is deliberately not the raw address: s3-01 holds a DHCP lease, and every
 consumer reading this KV entry runs inside the cluster. The

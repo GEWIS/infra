@@ -37,7 +37,7 @@ spec:
             - -activity-tracker.filepath=/data/activity.log
             - -memberlist.join=mimir-headless.observability.svc.cluster.local:7946
             - -common.storage.backend=s3
-            - -common.storage.s3.endpoint=s3.gewis.nl:8333
+            - -common.storage.s3.endpoint=s3.net.gewis.nl:8333
             - -common.storage.s3.region=us-east-1
             - -common.storage.s3.bucket-name=mimir
             - -common.storage.s3.insecure=true

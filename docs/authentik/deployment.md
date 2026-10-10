@@ -39,7 +39,7 @@ whose value is empty, which is why no password appears there.
 TLS to the database is set in `global.env`, not in the Secret:
 `AUTHENTIK_POSTGRESQL__SSLMODE=verify-full` and
 `AUTHENTIK_POSTGRESQL__SSLROOTCERT=system`, which makes libpq verify
-`postgres.cbc.gewis.nl` against the system CA store. authentik's own default is
+`postgres.net.gewis.nl` against the system CA store. authentik's own default is
 `sslmode: disable`, which the cluster refuses — see
 [Postgres](../databases/postgres.md#tls-is-required-and-verified).
 

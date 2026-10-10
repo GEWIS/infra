@@ -14,9 +14,9 @@ data:
         prometheus :9153
 
         hosts {
-            10.82.50.100 s3.gewis.nl
-            10.82.50.12 postgres.cbc.gewis.nl
-            10.82.50.13 mariadb.cbc.gewis.nl
+            10.82.50.100 s3.net.gewis.nl
+            10.82.50.12 postgres.net.gewis.nl
+            10.82.50.13 mariadb.net.gewis.nl
             fallthrough
         }
 

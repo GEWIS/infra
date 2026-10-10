@@ -41,13 +41,13 @@ kubectl -n mariadb patch mariadb mariadb --type merge \
 The operator's `mariadb-primary` Service is a `LoadBalancer` on
 **`10.82.50.13:3306`**, announced over L2 by Cilium like
 [Traefik](../cluster/traefik.md). The operator points its selector at the current
-primary pod and moves it on failover. `mariadb.cbc.gewis.nl` resolves to that
+primary pod and moves it on failover. `mariadb.net.gewis.nl` resolves to that
 address through the [cluster resolver](../cluster/resolver.md); every client,
 inside the cluster or not, connects by that name.
 
 ## TLS
 
-The server presents a Let's Encrypt certificate for `mariadb.cbc.gewis.nl`, issued
+The server presents a Let's Encrypt certificate for `mariadb.net.gewis.nl`, issued
 by cert-manager (`certificate.yaml`) and mounted from the `mariadb-tls` Secret.
 Clients verify it against their system CA store; nobody needs a CA file.
 
@@ -82,7 +82,11 @@ MariaDB reads its certificate at startup. cert-manager renews the Secret 30 days
 before expiry and the mounted files follow, but the server keeps serving the old
 certificate until it runs `FLUSH SSL`. The `tls-reload` CronJob
 (`tls-reload.yaml`) runs that on every pod daily at 04:30, as root, using the
-operator-generated `mariadb-root` Secret.
+operator-generated `mariadb-root` Secret. To load a new certificate right away:
+
+```sh
+kubectl -n mariadb create job --from=cronjob/tls-reload tls-reload-now
+```
 
 ## Adding a database is one map entry
 
@@ -99,7 +103,7 @@ That mints a password, creates the user with `REQUIRE SSL`, the database and a
 grant of the database-level privileges, writes the credential to OpenBao at
 `mariadb/<namespace>/<database>`, and creates the OpenBao role `mariadb-<namespace>`
 that namespace's `ExternalSecret` logs in with. The credential's `host` is
-`mariadb.cbc.gewis.nl`.
+`mariadb.net.gewis.nl`.
 
 ## Tofu connects as `provisioner`
 

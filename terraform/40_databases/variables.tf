@@ -25,7 +25,7 @@ variable "bao_jwt" {
 variable "postgres_host" {
   description = "Name of the Postgres primary, for tofu and every client. Its certificate is issued for this name, and it resolves only through the cluster resolver."
   type        = string
-  default     = "postgres.cbc.gewis.nl"
+  default     = "postgres.net.gewis.nl"
 }
 
 variable "postgres_port" {
@@ -37,7 +37,7 @@ variable "postgres_port" {
 variable "mariadb_host" {
   description = "Name of the MariaDB primary, for tofu and every client. Its certificate is issued for this name, and it resolves only through the cluster resolver."
   type        = string
-  default     = "mariadb.cbc.gewis.nl"
+  default     = "mariadb.net.gewis.nl"
 }
 
 variable "mariadb_port" {
