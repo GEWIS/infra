@@ -25,11 +25,14 @@ name each, so the wildcard key never leaves `traefik`:
 | `postgres-tls` | `postgres` | `postgres.net.gewis.nl` | [Postgres](../databases/postgres.md#tls-is-required-and-verified) |
 | `mariadb-tls` | `mariadb` | `mariadb.net.gewis.nl` | [MariaDB](../databases/mariadb.md#tls) |
 
-`--dns01-recursive-nameservers-only` is required on campus, which blocks direct
-queries to authoritative nameservers. It leaves the self-check on the pod's
-`/etc/resolv.conf`, which resolves to `kube-dns` — correct only because the cluster
-is [single-stack](../talos/networking.md). A second family in `resolv.conf` sends
-the check to a ClusterIP the nodes cannot route and the challenge never validates.
+cert-manager checks that a challenge record is visible before asking Let's
+Encrypt to validate it. `--dns01-recursive-nameservers-only` is required on
+campus, which blocks direct queries to authoritative nameservers.
+`--dns01-recursive-nameservers` sends that check over DoH to Cloudflare's
+resolvers, `1.1.1.1` and `1.0.0.1`, which serve the Cloudflare-hosted zones
+fresh. The check does not go through kube-dns or the
+[cluster resolver](resolver.md), whose caches keep the `NODATA` answer from the
+first check, before the record exists, for the zone's SOA minimum (1800 s).
 
 The old cluster issues the same `gewis.nl` and `gew.is` names from the same
 Cloudflare zones, so both cert-managers write `_acme-challenge.gewis.nl` and
@@ -38,11 +41,15 @@ one name, Let's Encrypt accepts any of them, and cert-manager's cleanup deletes 
 record only when its content matches its own token. The Cloudflare API token
 needs DNS edit rights on both the `gewis.nl` and `gew.is` zones.
 
-Expect the first issue to be slow. cert-manager's self-check queries the campus
-resolver, which caches the pre-creation `NODATA` answer for the zone's SOA
-minimum (1800 s). The challenge sits in `pending` with *"not yet propagated"* for
-up to 30 minutes and then completes on its own. `presented=true` on the Challenge
-with no Cloudflare API errors means the record was written and the wait is purely
-cache expiry.
+A challenge passes the self-check within a minute or two. The two names that
+share a TXT name with their wildcard, `gewis.nl` and `gew.is`, are presented only
+after the wildcard's challenge is done, so they add one more round. A challenge
+stuck in `pending` with *"not yet propagated"* while `presented=true` and no
+Cloudflare API errors means the record is written but `1.1.1.1` does not see it
+yet:
+
+```sh
+dig +short @1.1.1.1 TXT _acme-challenge.gewis.nl
+```
 
 Let's Encrypt caps duplicate certificates at 5/week for an identical name set.
