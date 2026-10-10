@@ -58,6 +58,7 @@ Clients verify it against their system CA store; nobody needs a CA file.
 | TLS required | per user: `REQUIRE SSL` on every application user, set by tofu |
 | Replication | `master_ssl_verify_server_cert = 0` in `myCnf` |
 | Physical backups, replica rebuilds | `--disable-ssl-verify-server-cert` in the `PhysicalBackup` `args` |
+| `tls-reload` CronJob | `--disable-ssl-verify-server-cert` on its `mariadb` call |
 
 Everything the operator runs connects by the pod's internal name, which the
 certificate does not carry:
@@ -66,7 +67,8 @@ certificate does not carry:
 | --- | --- |
 | Replication | off: encrypted, but the replica does not authenticate the primary; Cilium's WireGuard also encrypts the hop between nodes |
 | `mariadb-backup` in `PhysicalBackup` Jobs | off, through `args` |
-| `mariadb` client (`FLUSH SSL`, point-in-time replay) | passes through the client library's fingerprint check, derived from the password of a `mysql_native_password` user |
+| `FLUSH SSL` in the `tls-reload` CronJob | off, through `--disable-ssl-verify-server-cert` |
+| `mariadb` client in point-in-time replay | the client library's fingerprint check, derived from the password of a `mysql_native_password` user; untested against this setup |
 | Operator, agent, exporter | no TLS |
 
 Application users get `REQUIRE SSL`; the server-wide `require_secure_transport`

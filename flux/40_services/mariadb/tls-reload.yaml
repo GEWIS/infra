@@ -33,7 +33,7 @@ spec:
                 - -c
                 - |
                   for address in $(getent ahostsv4 mariadb-internal.mariadb.svc.cluster.local | awk '{print $1}' | sort -u); do
-                    mariadb --host="$address" --user=root --execute='FLUSH SSL'
+                    mariadb --host="$address" --user=root --disable-ssl-verify-server-cert --execute='FLUSH SSL'
                     echo "reloaded TLS on $address"
                   done
               securityContext:

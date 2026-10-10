@@ -41,9 +41,10 @@ one name, Let's Encrypt accepts any of them, and cert-manager's cleanup deletes 
 record only when its content matches its own token. The Cloudflare API token
 needs DNS edit rights on both the `gewis.nl` and `gew.is` zones.
 
-A challenge passes the self-check within a minute or two. The two names that
-share a TXT name with their wildcard, `gewis.nl` and `gew.is`, are presented only
-after the wildcard's challenge is done, so they add one more round. A challenge
+The two names that share a TXT name with their wildcard, `gewis.nl` and
+`gew.is`, are presented only after the wildcard's challenge is done, and
+`1.1.1.1` may still hold the TXT answer that carried only the wildcard's token
+until its TTL runs out, so those two take longer than the rest. A challenge
 stuck in `pending` with *"not yet propagated"* while `presented=true` and no
 Cloudflare API errors means the record is written but `1.1.1.1` does not see it
 yet:
