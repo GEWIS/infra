@@ -13,11 +13,11 @@ together with everything it applied.
 | Layer | Path | Holds |
 | --- | --- | --- |
 | `sealed-secrets` | `flux/10_sealed-secrets/` | the sealed-secrets controller |
-| `controllers` | `flux/20_controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg, mariadb-operator with the `ServiceMonitor` CRDs |
-| `config` | `flux/30_config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile, `cluster-admin` for `CBC - Application Hosting Team (ADM)` |
+| `controllers` | `flux/20_controllers/` | cert-manager, external-dns, Traefik, longhorn, external-secrets, cloudnative-pg, mariadb-operator with the `ServiceMonitor` CRDs, the NetBird operator |
+| `config` | `flux/30_config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile, `cluster-admin` for `CBC - Application Hosting Team (ADM)`, the NetBird `NetworkRouter` |
 | `openbao` | `flux/30_openbao/` | OpenBao, its IngressRoute, its seal secret |
 | `services` | `flux/40_services/` | the resolver, the node exporter, the Postgres and MariaDB clusters |
-| `apps` | `flux/50_apps/` | authentik, the LGTM stack, Kite, the Hubble and Flux UI routes |
+| `apps` | `flux/50_apps/` | authentik, the LGTM stack, Kite, the Hubble and Flux UI routes, the external proxy for gewiscontainer and gewismail |
 
 Three dependencies carry real weight and none is cosmetic:
 

@@ -89,9 +89,10 @@ Every published service has an `IngressRoute` on the `websecure` entry point,
 next to the workload it serves: `flux/30_openbao/`, `flux/50_apps/authentik/`,
 `flux/50_apps/observability/grafana/`, `flux/50_apps/hubble/`,
 `flux/50_apps/flux-web/`, `flux/50_apps/longhorn/` and `flux/50_apps/netbird/`,
-each in an `ingressroute.yaml`. `web` (`:80`) only
-redirects to HTTPS. The `traefik` IngressClass is the cluster default, so a plain
-`Ingress` also lands here.
+each in an `ingressroute.yaml`. Routes to hosts outside the cluster live in
+`flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md). `web`
+(`:80`) only redirects to HTTPS. The `traefik` IngressClass is the cluster
+default, so a plain `Ingress` also lands here.
 
 TLS comes from the default TLS store: `wildcard-cbc-gewis-nl-tls` in the
 `traefik` namespace, issued by its own [`Certificate`](certificates.md). A route
@@ -104,10 +105,10 @@ router02.net.gewis.nl`, the CNAME target for its hostname — see [DNS](dns.md).
 Middlewares in its own namespace, so an app namespace cannot publish another
 namespace's Service.
 
-`allowExternalNameServices` is on for both the CRD and the Ingress provider, so a
-route can point at a `type: ExternalName` Service for a host outside the cluster.
-The host has to be reachable from the nodes; Traefik resolves the name through
-the cluster's DNS.
+`allowExternalNameServices` stays off as well, so a route cannot publish an
+arbitrary host by name. Hosts outside the cluster are reached through a NetBird
+`NetworkEgress`, which is an ordinary Service — see
+[External proxy](external-proxy.md).
 
 ## Authentication is ForwardAuth to the authentik outpost
 

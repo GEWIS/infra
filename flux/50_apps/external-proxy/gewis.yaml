@@ -1,0 +1,86 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: gewisweb-cors
+  namespace: external-proxy
+spec:
+  headers:
+    accessControlAllowOriginListRegex:
+      - "^https?://(.*\\.)?gewis\\.nl$"
+      - "^https?://(.*\\.)?win\\.tue\\.nl$"
+      - "^https?://localhost:8080$"
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - OPTIONS
+      - DELETE
+      - PUT
+    accessControlAllowCredentials: true
+    accessControlAllowHeaders:
+      - User-Agent
+      - Keep-Alive
+      - Content-Type
+    customResponseHeaders:
+      Access-Control-Allow-Origin: ""
+      Access-Control-Allow-Methods: ""
+      Access-Control-Allow-Credentials: ""
+      Access-Control-Allow-Headers: ""
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-corporateidentity-logo
+  namespace: external-proxy
+spec:
+  redirectRegex:
+    regex: "^https://gewis\\.nl/corporateidentity/public/logo/(.*)"
+    replacement: "https://static.gewis.nl/logo/${1}"
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-www-gewis
+  namespace: external-proxy
+spec:
+  redirectRegex:
+    regex: "^https://www\\.gewis\\.nl(.*)"
+    replacement: "https://gewis.nl${1}"
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gewis
+  namespace: external-proxy
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`gewis.nl`) && PathPrefix(`/corporateidentity/public/logo`)
+      middlewares:
+        - name: redirect-corporateidentity-logo
+      services:
+        - name: gewiscontainer
+          port: 9210
+    - kind: Rule
+      match: Host(`gewis.nl`)
+      middlewares:
+        - name: gewisweb-cors
+      services:
+        - name: gewiscontainer
+          port: 9210
+    - kind: Rule
+      match: Host(`www.gewis.nl`)
+      middlewares:
+        - name: redirect-www-gewis
+      services:
+        - name: gewiscontainer
+          port: 9210
+    - kind: Rule
+      match: Host(`images.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9211
+  tls: {}

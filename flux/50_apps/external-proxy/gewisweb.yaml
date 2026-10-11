@@ -1,0 +1,33 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkEgress
+metadata:
+  name: gewisweb
+  namespace: external-proxy
+spec:
+  networkRouterRef:
+    name: lan
+    namespace: netbird-operator
+  target:
+    fqdn:
+      hostname: gewisweb.net.nb.gewis.nl
+  ports:
+    - name: phpmyadmin
+      port: 8081
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gewisweb
+  namespace: external-proxy
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`phpmyadmin.gewis.nl`)
+      middlewares:
+        - name: tue-only
+      services:
+        - name: gewisweb
+          port: 8081
+  tls: {}

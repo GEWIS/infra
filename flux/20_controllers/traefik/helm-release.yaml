@@ -35,11 +35,6 @@ spec:
           moduleName: github.com/gewis/traefik-real-ip
           mountPath: /plugins-local/src/github.com/gewis/traefik-real-ip
           volumeName: real-ip-plugin
-    providers:
-      kubernetesCRD:
-        allowExternalNameServices: true
-      kubernetesIngress:
-        allowExternalNameServices: true
     service:
       annotations:
         lbipam.cilium.io/ips: 10.82.50.10

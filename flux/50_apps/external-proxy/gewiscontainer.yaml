@@ -1,0 +1,162 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkEgress
+metadata:
+  name: gewiscontainer
+  namespace: external-proxy
+spec:
+  networkRouterRef:
+    name: lan
+    namespace: netbird-operator
+  target:
+    fqdn:
+      hostname: gewiscontainer.net.nb.gewis.nl
+  ports:
+    - name: gewisweb
+      port: 9210
+    - name: gewisweb-images
+      port: 9211
+    - name: gewisweb-test
+      port: 9200
+    - name: ivv
+      port: 9851
+    - name: aliaslookup
+      port: 9404
+    - name: wiki
+      port: 9676
+    - name: sharelatex
+      port: 9195
+    - name: stirlingpdf
+      port: 9860
+    - name: supremum
+      port: 9501
+    - name: docker
+      port: 9000
+    - name: pgadmin
+      port: 9411
+    - name: analytics
+      port: 9212
+    - name: analytics-test
+      port: 9202
+    - name: xoa
+      port: 9405
+    - name: planka
+      port: 9825
+    - name: vaultwarden
+      port: 9401
+    - name: pkg
+      port: 9001
+    - name: registry
+      port: 9101
+    - name: registry-abc
+      port: 9102
+    - name: registry-board
+      port: 9103
+    - name: registry-cbc
+      port: 9104
+    - name: registry-supr
+      port: 9107
+    - name: registry-avico
+      port: 9108
+    - name: registry-cel
+      port: 9110
+    - name: registry-pdf
+      port: 9111
+    - name: registry-ivv
+      port: 9112
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gewiscontainer
+  namespace: external-proxy
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`ivv.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9851
+    - kind: Rule
+      match: Host(`mail-api.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9404
+    - kind: Rule
+      match: Host(`wiki.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9676
+    - kind: Rule
+      match: Host(`gewiki.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9676
+    - kind: Rule
+      match: Host(`latex.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9195
+    - kind: Rule
+      match: Host(`pdf.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9860
+    - kind: Rule
+      match: Host(`supremum.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9501
+    - kind: Rule
+      match: Host(`docker.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9000
+    - kind: Rule
+      match: Host(`pgadmin.gewis.nl`)
+      middlewares:
+        - name: tue-only
+      services:
+        - name: gewiscontainer
+          port: 9411
+    - kind: Rule
+      match: Host(`analytics.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9212
+    - kind: Rule
+      match: Host(`analytics.test.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9202
+    - kind: Rule
+      match: Host(`xoa.gewis.nl`)
+      middlewares:
+        - name: tue-only
+      services:
+        - name: gewiscontainer
+          port: 9405
+    - kind: Rule
+      match: Host(`planka.gewis.nl`)
+      middlewares:
+        - name: planka-headers
+      services:
+        - name: gewiscontainer
+          port: 9825
+    - kind: Rule
+      match: Host(`vault.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9401
+    - kind: Rule
+      match: Host(`pkg.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9001
+    - kind: Rule
+      match: Host(`test.gewis.nl`)
+      services:
+        - name: gewiscontainer
+          port: 9200
+  tls: {}

@@ -59,3 +59,21 @@ that name and the pod picks it up; until it exists, the pod waits in
 Images are pinned (`netbird-server` and `reverse-proxy` `0.78.2`, dashboard
 `v2.92.0`); the server migrates the database schema on startup, so a bump is a
 one-way step.
+
+## Operator and network router
+
+`flux/20_controllers/netbird-operator/` installs the NetBird operator (chart
+`0.8.0`) into `netbird-operator`, talking to `https://nb.gewis.nl` with the API
+key in SealedSecret `netbird-mgmt-api-key` and registering as cluster `gewis`,
+the Talos cluster name. It must differ from the previous cluster's operator,
+which registers as `gewis-prod`: the name prefixes the networks and resources the
+operator creates in NetBird, so two operators sharing it would manage each
+other's objects. `flux/30_config/netbird-operator/` holds the `NetworkRouter` `lan`,
+which publishes resources under the NetBird DNS zone `k8s.gewis.nl`; that zone
+must exist in NetBird before the router reconciles.
+
+The router pod the operator creates runs its `netbird` container with
+`privileged: true` and `NET_ADMIN`, `SYS_ADMIN`, `SYS_RESOURCE`. Talos enforces the
+`baseline` Pod Security level by default, so the `netbird-operator` namespace is
+labelled `pod-security.kubernetes.io/enforce: privileged`; without it the
+Deployment's ReplicaSet is refused and no router pod appears.

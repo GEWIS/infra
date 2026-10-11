@@ -1,0 +1,8 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: lan
+  namespace: netbird-operator
+spec:
+  dnsZoneRef:
+    name: k8s.gewis.nl

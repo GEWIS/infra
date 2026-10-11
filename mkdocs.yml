@@ -122,6 +122,7 @@ nav:
       - kube-system Corefile: cluster/kube-system-corefile.md
       - OpenBao: cluster/openbao.md
       - NetBird: cluster/netbird.md
+      - External proxy: cluster/external-proxy.md
       - Failure notes: cluster/failures.md
   - Databases:
       - Overview: databases/index.md
