@@ -5,7 +5,7 @@ metadata:
   namespace: external-proxy
 spec:
   networkRouterRef:
-    name: lan
+    name: k8s-cluster
     namespace: netbird-operator
   target:
     fqdn:
