@@ -21,6 +21,11 @@ data:
             fallthrough
         }
 
+        rewrite stop {
+            name regex ^.+\.docker-registry\.gewis\.nl\.$ router02.net.gewis.nl.
+            answer auto
+        }
+
         cache {
             serve_stale 1h verify
         }
