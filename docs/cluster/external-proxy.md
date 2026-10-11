@@ -52,12 +52,10 @@ The gewismail HTTPS backend has a self-signed certificate; `ServersTransport`
 `pgadmin`, `xoa` and `phpmyadmin` carry the `tue-only` Middleware: the TU/e range
 and `100.64.0.0/10`, minus the WAF's `131.155.10.0/27` and `131.155.10.128/27`, so
 a request relayed by the WAF is refused. The Middleware checks the connecting
-address, which is the real client thanks to the PROXY header from the previous
-cluster — see [Client addresses](traefik.md#client-addresses).
+address, which router02 passes through unchanged — see
+[Client addresses](traefik.md#client-addresses).
 
 None of the routes carries the external-dns annotation. Every hostname already
 has a record, pointing at the WAF, router02 or the host itself, which external-dns
-does not own. Public traffic arrives here only once the previous cluster's
-passthrough lists the hostname — see
-[Ingress](../talos/ingress.md#public-443-arrives-through-the-previous-cluster).
+does not own; they all reach router02, which forwards `:443` here.
 `mail.gewis.nl` resolves straight to gewismail, so it never passes either cluster.

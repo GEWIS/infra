@@ -26,18 +26,6 @@ on `:8443`, which terminates TLS itself with the `*.gewis.nl` certificate
 `netbird-reverse-proxy-tls` and does its own SSO. Every exposed host must be its
 own `HostSNI` match; a wildcard SNI would capture every other `*.gewis.nl` route.
 
-## Interim: public 443 still lands on the previous cluster
-
-Public `nb.gewis.nl` and `print.gewis.nl` reach this cluster through the previous
-cluster's Traefik, like every other hostname here — see
-[Ingress](../talos/ingress.md#public-443-arrives-through-the-previous-cluster).
-
-The previous cluster's `apps` Kustomization, which still holds the old NetBird
-manifests, stays suspended with `flux suspend ks apps`. A `kubectl patch` of
-`spec.suspend` does not hold: the parent `flux-system` Kustomization's apply strips
-fields owned by kubectl, `apps` resumes, and it puts the old routes back in front
-of the passthrough.
-
 ## State
 
 | What | Where |

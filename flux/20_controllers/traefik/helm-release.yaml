@@ -57,11 +57,6 @@ spec:
         http:
           middlewares:
             - traefik-real-ip@kubernetescrd
-        proxyProtocol:
-          trustedIPs:
-            - 10.82.50.201
-            - 10.82.50.202
-            - 10.82.50.203
         forwardedHeaders:
           trustedIPs:
             - 131.155.10.134
