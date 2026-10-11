@@ -44,8 +44,8 @@ URL in the OpenTofu roots and Grafana carries `:8443`.
 Every published service has an `IngressRoute` on the `websecure` entry point,
 next to the workload it serves: `flux/30_openbao/`, `flux/50_apps/authentik/`,
 `flux/50_apps/observability/grafana/`, `flux/50_apps/hubble/`,
-`flux/50_apps/flux-web/` and `flux/50_apps/longhorn/`, each in an
-`ingressroute.yaml`. `web` (`:80`) only
+`flux/50_apps/flux-web/`, `flux/50_apps/longhorn/` and `flux/50_apps/netbird/`,
+each in an `ingressroute.yaml`. `web` (`:80`) only
 redirects to HTTPS. The `traefik` IngressClass is the cluster default, so a plain
 `Ingress` also lands here.
 

@@ -121,6 +121,7 @@ nav:
       - Internal resolver: cluster/resolver.md
       - kube-system Corefile: cluster/kube-system-corefile.md
       - OpenBao: cluster/openbao.md
+      - NetBird: cluster/netbird.md
       - Failure notes: cluster/failures.md
   - Databases:
       - Overview: databases/index.md

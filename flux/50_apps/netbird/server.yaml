@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: netbird
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: netbird-server
+  template:
+    metadata:
+      labels:
+        app: netbird-server
+    spec:
+      containers:
+        - name: server
+          image: netbirdio/netbird-server:0.78.2
+          args:
+            - "--config=/etc/netbird/config.yaml"
+          ports:
+            - containerPort: 80
+            - containerPort: 3478
+              protocol: UDP
+          envFrom:
+            - secretRef:
+                name: netbird-db
+          env:
+            - name: NETBIRD_STORE_ENGINE_POSTGRES_DSN
+              value: "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=verify-full"
+          volumeMounts:
+            - mountPath: /etc/netbird
+              name: netbird-config
+            - mountPath: /var/lib/netbird
+              name: netbird-data
+      volumes:
+        - name: netbird-config
+          secret:
+            secretName: netbird-config
+        - name: netbird-data
+          persistentVolumeClaim:
+            claimName: netbird-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbird-service
+  namespace: netbird
+spec:
+  selector:
+    app: netbird-server
+  ports:
+    - name: http
+      port: 80
+    - name: grpc
+      port: 81
+      targetPort: 80
+      appProtocol: kubernetes.io/h2c
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbird-stun
+  namespace: netbird
+  annotations:
+    lbipam.cilium.io/ips: 10.82.50.14
+spec:
+  type: LoadBalancer
+  selector:
+    app: netbird-server
+  ports:
+    - name: stun
+      port: 3478
+      protocol: UDP
