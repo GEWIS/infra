@@ -12,7 +12,7 @@ weed server -dir=/var/lib/seaweedfs -ip=127.0.0.1 -ip.bind=127.0.0.1 \
 
 | Component | Port | Reachable from |
 | --- | --- | --- |
-| S3 API **and** IAM API | `:8333` | The mesh and `10.82.50.0/24`. The only port in `networking.firewall.allowedTCPPorts`. |
+| S3 API **and** IAM API | `:8333` | The mesh and `10.82.50.0/24`. The only port in `networking.firewall.allowedTCPPorts`. Named `s3.net.gewis.nl` on the LAN; the S3 API alone is public as [`https://s3.gewis.nl`](../cluster/s3.md). |
 | Filer | `:8888` | Bound to loopback. Used by `seaweedfs-admin.service` and `weed shell`. |
 | Master | `:9333` | Bound to loopback. |
 | Volume | `:8080` | Bound to loopback. |

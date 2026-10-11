@@ -12,8 +12,8 @@ buckets start empty at cutover, so anything missing here is the first sign the
 endpoint or the minted credentials are wrong:
 
 ```sh
-aws --endpoint-url http://10.82.50.100:8333 s3 ls s3://loki
-aws --endpoint-url http://10.82.50.100:8333 s3 ls s3://mimir/blocks/
+aws --endpoint-url https://s3.gewis.nl s3 ls s3://loki
+aws --endpoint-url https://s3.gewis.nl s3 ls s3://mimir/blocks/
 ```
 
 Then tenancy, where the negative results are the interesting ones:

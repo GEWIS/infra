@@ -33,6 +33,7 @@ per line, address first:
 ```
 hosts {
     10.82.50.100 s3.net.gewis.nl
+    10.82.50.10 s3.gewis.nl
     fallthrough
 }
 ```
@@ -47,18 +48,21 @@ A listed name is also answered for LAN clients, not just pods, since they hit th
 same resolver. `reload` picks up a new entry without a restart, though allow ~60s
 for the ConfigMap to reach every node.
 
-`s3.net.gewis.nl` is a name that exists nowhere else — the public `gewis.nl` zone has
-no address for it — so this creates a name rather than shadowing one. Overriding a
+Most entries are names that exist nowhere else — the public `gewis.nl` zone has
+no address for them — so they create a name rather than shadow one. Overriding a
 *public* name is equally possible and considerably easier to regret: it applies to
 every pod and every LAN client pointed here, and nothing upstream will hint that
 the answer is local.
 
-One caveat specific to this entry: **s3-01's address is a DHCP reservation, not
-a static address.** `10.82.50.100` is hardcoded here and in
-`terraform/40_seaweedfs-buckets`, and it holds only as long as the router's static
-lease keeps matching the host — see [s3-01 gotchas](../s3-01/gotchas.md) for the
-two conditions. Buckets are addressed path-style, with no virtual-host domain
-configured in [`s3-01/seaweedfs.md`](../s3-01/seaweedfs.md).
+`s3.gewis.nl` is the one deliberate override. It points at Traefik's
+`10.82.50.10`, the same Traefik its public CNAME reaches through router02, so the
+answer differs but the destination does not — see [S3](s3.md). A side effect:
+`dig -x 10.82.50.10` returns `s3.gewis.nl`.
+
+`s3.net.gewis.nl` is s3-01 itself, for IAM and admin access. **s3-01's address is
+a DHCP reservation, not a static address**, and `10.82.50.100` is hardcoded here
+and in `flux/40_services/s3/service.yaml` — see
+[s3-01 gotchas](../s3-01/gotchas.md) for the two conditions that keep it.
 
 ## The database names
 

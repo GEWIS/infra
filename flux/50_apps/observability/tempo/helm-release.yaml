@@ -42,11 +42,10 @@ spec:
           backend: s3
           s3:
             bucket: tempo
-            endpoint: s3.net.gewis.nl:8333
+            endpoint: s3.gewis.nl
             region: us-east-1
             access_key: ${S3_ACCESS_KEY_ID}
             secret_key: ${S3_SECRET_ACCESS_KEY}
-            insecure: true
             forcepathstyle: true
           wal:
             path: /var/tempo/wal

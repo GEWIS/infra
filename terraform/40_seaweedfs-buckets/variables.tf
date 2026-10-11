@@ -5,9 +5,9 @@ variable "state_passphrase" {
 }
 
 variable "seaweedfs_endpoint" {
-  description = "SeaweedFS S3 and IAM endpoint; both APIs share this port. Reachable from the campus LAN only; the host has no WAN leg."
+  description = "LAN-internal SeaweedFS endpoint for S3 and IAM; s3.gewis.nl refuses IAM. Resolves through the cluster resolver, so NetBird DNS or the LAN."
   type        = string
-  default     = "http://10.82.50.100:8333"
+  default     = "http://s3.net.gewis.nl:8333"
 }
 
 variable "seaweedfs_admin_access_key" {

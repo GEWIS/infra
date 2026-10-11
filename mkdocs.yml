@@ -123,6 +123,7 @@ nav:
       - OpenBao: cluster/openbao.md
       - NetBird: cluster/netbird.md
       - External proxy: cluster/external-proxy.md
+      - S3 (s3.gewis.nl): cluster/s3.md
       - Failure notes: cluster/failures.md
   - Databases:
       - Overview: databases/index.md

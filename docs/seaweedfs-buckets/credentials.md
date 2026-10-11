@@ -4,13 +4,13 @@ Both endpoints are reachable directly, no tunnels:
 
 | Endpoint | Default | Notes |
 | --- | --- | --- |
-| SeaweedFS S3 + IAM | `http://10.82.50.100:8333` | One port for both APIs; campus LAN only, the host has no WAN leg |
+| SeaweedFS S3 + IAM | `http://s3.net.gewis.nl:8333` | Straight to s3-01; LAN, pods and NetBird peers using NetBird DNS |
 | OpenBao | `https://openbao.gewis.nl` | Through the router and [Traefik](../cluster/traefik.md) |
 
 There is no separate admin port. SeaweedFS serves the S3 API and an
-AWS-IAM-compatible API on 8333, and 8333 is the only port the host firewall
-opens, so the `aws` provider's `iam`, `s3` and `sts` endpoints all point at the
-same URL.
+AWS-IAM-compatible API on 8333, so the `aws` provider's `iam`, `s3` and `sts`
+endpoints all point at the same URL. It is the LAN-internal name on purpose:
+the public `https://s3.gewis.nl` refuses IAM, see [S3](../cluster/s3.md).
 
 The root's own `.envrc` exports every credential, so there is nothing to pass by
 hand:

@@ -71,10 +71,6 @@ Buckets are addressed **path-style** — `endpoint` carries no bucket, and clien
 must set `force_path_style` (boto3: `addressing_style = "path"`) with region
 `us-east-1`.
 
-The `endpoint` stored in KV is `http://s3.net.gewis.nl:8333`, a name the cluster
-resolver answers from the `hosts` block in `flux/40_services/dns/corefile.yaml`. It
-is deliberately not the raw address: s3-01 holds a DHCP lease, and every
-consumer reading this KV entry runs inside the cluster. The
-`seaweedfs_endpoint` default used by `tofu` stays an address, because it runs on
-a workstation that resolves through campus DNS, which knows nothing about that
-name.
+The `endpoint` stored in KV is `https://s3.gewis.nl`, the URL every client uses,
+inside the cluster or not. Admin access and tofu use `http://s3.net.gewis.nl:8333`
+instead — see [S3](../cluster/s3.md).

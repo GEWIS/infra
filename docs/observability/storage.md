@@ -9,9 +9,10 @@ One bucket per component, provisioned by `terraform/40_seaweedfs-buckets` — se
 | Mimir | `mimir` | `blocks` | 20Gi Longhorn, TSDB head, compactor scratch, store-gateway sync, Alertmanager state |
 | Tempo | `tempo` | — | 5Gi Longhorn, WAL |
 
-SeaweedFS needs the same three things everywhere: path-style addressing
-(`s3ForcePathStyle` / `bucket_lookup_type: path` / `forcepathstyle`), `insecure`
-for plain HTTP on port 8333, and region `us-east-1`.
+SeaweedFS needs the same three things everywhere: endpoint
+[`s3.gewis.nl`](../cluster/s3.md) over HTTPS, path-style addressing
+(`s3ForcePathStyle` / `bucket_lookup_type: path` / `forcepathstyle`), and region
+`us-east-1`.
 
 Retention is **in-app**, 30 days everywhere — `limits_config.retention_period`,
 `compactor_blocks_retention_period` and `tempo.retention`. Not S3 lifecycle

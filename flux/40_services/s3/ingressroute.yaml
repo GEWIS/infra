@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: s3
+  namespace: s3
+  annotations:
+    external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`s3.gewis.nl`) && !(Method(`POST`) && Path(`/`))
+      services:
+        - name: s3-01
+          port: 8333
+  tls: {}

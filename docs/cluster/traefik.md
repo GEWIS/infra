@@ -84,12 +84,13 @@ with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
 ## Routes are IngressRoutes
 
 Every published service has an `IngressRoute` on the `websecure` entry point,
-next to the workload it serves: `flux/30_openbao/`, `flux/50_apps/authentik/`,
-`flux/50_apps/observability/grafana/`, `flux/50_apps/hubble/`,
-`flux/50_apps/flux-web/`, `flux/50_apps/longhorn/`, `flux/50_apps/netbird/` and
-`flux/50_apps/keycloak/`,
+next to the workload it serves: `flux/30_openbao/`, `flux/40_services/s3/`,
+`flux/50_apps/authentik/`, `flux/50_apps/observability/grafana/`,
+`flux/50_apps/hubble/`, `flux/50_apps/flux-web/`, `flux/50_apps/longhorn/`,
+`flux/50_apps/netbird/` and `flux/50_apps/keycloak/`,
 each in an `ingressroute.yaml`. Routes to hosts outside the cluster live in
-`flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md). `web`
+`flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md); S3 is the
+exception, see [S3](s3.md). `web`
 (`:80`) only redirects to HTTPS. The `traefik` IngressClass is the cluster
 default, so a plain `Ingress` also lands here.
 
