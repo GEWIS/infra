@@ -15,7 +15,7 @@ hubble = {
 covers the cluster rather than one node. `ui` is the flow map and service
 dependency graph on top of relay.
 
-The UI is published at `hubble.cbc.gewis.nl`, and `hubble observe` runs over a
+The UI is published at `hubble.gewis.nl`, and `hubble observe` runs over a
 port-forward:
 
 ```sh

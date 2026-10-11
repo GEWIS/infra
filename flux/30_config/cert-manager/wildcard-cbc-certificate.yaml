@@ -9,7 +9,6 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - "*.cbc.gewis.nl"
     - gewis.nl
     - "*.gewis.nl"
     - "*.test.gewis.nl"

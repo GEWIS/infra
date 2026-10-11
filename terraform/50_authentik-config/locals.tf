@@ -7,29 +7,29 @@ locals {
     grafana = {
       display_name  = "Grafana"
       namespace     = "observability"
-      launch_url    = "https://grafana.cbc.gewis.nl:8443/"
-      redirect_uris = ["https://grafana.cbc.gewis.nl:8443/login/generic_oauth"]
+      launch_url    = "https://grafana.gewis.nl/"
+      redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
     }
     kite = {
       display_name  = "Kite"
       namespace     = "kite"
-      launch_url    = "https://kite.cbc.gewis.nl:8443/"
-      redirect_uris = ["https://kite.cbc.gewis.nl:8443/api/auth/callback"]
+      launch_url    = "https://kite.gewis.nl/"
+      redirect_uris = ["https://kite.gewis.nl/api/auth/callback"]
     }
   }
 
   proxy_clients = {
     hubble = {
       display_name  = "Hubble"
-      external_host = "https://hubble.cbc.gewis.nl:8443"
+      external_host = "https://hubble.gewis.nl"
     }
     flux = {
       display_name  = "Flux"
-      external_host = "https://flux.cbc.gewis.nl:8443"
+      external_host = "https://flux.gewis.nl"
     }
     longhorn = {
       display_name  = "Longhorn"
-      external_host = "https://longhorn.cbc.gewis.nl:8443"
+      external_host = "https://longhorn.gewis.nl"
     }
   }
 

@@ -56,7 +56,7 @@ spec:
 
     grafana.ini:
       server:
-        root_url: https://grafana.cbc.gewis.nl:8443
+        root_url: https://grafana.gewis.nl
 
       database:
         type: postgres
@@ -68,7 +68,7 @@ spec:
 
       auth:
         disable_login_form: true
-        signout_redirect_url: "https://authentik.cbc.gewis.nl:8443/application/o/grafana/end-session/"
+        signout_redirect_url: "https://authentik.gewis.nl/application/o/grafana/end-session/"
 
       auth.generic_oauth:
         enabled: true
@@ -77,9 +77,9 @@ spec:
         client_id: "$__file{/etc/secrets/oidc/client_id}"
         client_secret: "$__file{/etc/secrets/oidc/client_secret}"
         scopes: "openid,email,profile,offline_access"
-        auth_url: "https://authentik.cbc.gewis.nl:8443/application/o/authorize/"
-        token_url: "https://authentik.cbc.gewis.nl:8443/application/o/token/"
-        api_url: "https://authentik.cbc.gewis.nl:8443/application/o/userinfo/"
+        auth_url: "https://authentik.gewis.nl/application/o/authorize/"
+        token_url: "https://authentik.gewis.nl/application/o/token/"
+        api_url: "https://authentik.gewis.nl/application/o/userinfo/"
         use_refresh_token: true
 
         email_attribute_path: "email"

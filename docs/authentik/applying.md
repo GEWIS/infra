@@ -26,18 +26,17 @@ Once Flux has reconciled:
 ```sh
 kubectl -n postgres get clusters.postgresql.cnpg.io postgres
 kubectl -n authentik get externalsecret,pods
-curl -sSf https://authentik.cbc.gewis.nl:8443/-/health/ready/
+curl -sSf https://authentik.gewis.nl/-/health/ready/
 ```
 
 `/-/health/ready/` returns 200 only after the migrations finish, so it is the
 honest readiness signal. Log in at `/if/flow/default-authentication-flow/` as
 `akadmin` with the password from the sealed secret.
 
-## The port is part of the issuer
+## The host is part of the issuer
 
-Ingress is published on **8443**, not 443. Everything OIDC therefore carries
-the port — the issuer is
-`https://authentik.cbc.gewis.nl:8443/application/o/<slug>/`, and every redirect
-URI registered in authentik and in the relying party has to match it exactly. A
-mismatch surfaces as an opaque login failure rather than anything that names the
-port, so it is worth getting right the first time.
+The issuer is `https://authentik.gewis.nl/application/o/<slug>/`, and every
+redirect URI registered in authentik and in the relying party has to match it
+exactly, scheme, host, port and path. A mismatch surfaces as an opaque login
+failure rather than anything that names the URL, so it is worth getting right
+the first time.

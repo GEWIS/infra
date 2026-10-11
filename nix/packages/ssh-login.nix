@@ -8,7 +8,7 @@ pkgs.writeShellApplication {
     gnugrep
   ];
   text = ''
-    export BAO_ADDR="''${BAO_ADDR:-https://openbao.cbc.gewis.nl:8443}"
+    export BAO_ADDR="''${BAO_ADDR:-https://openbao.gewis.nl}"
 
     key="''${1:-$HOME/.ssh/id_ed25519}"
     public_key="$key.pub"

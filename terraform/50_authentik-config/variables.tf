@@ -5,9 +5,9 @@ variable "state_passphrase" {
 }
 
 variable "authentik_url" {
-  description = "authentik base URL. Ingress is published on 8443, and the port is part of the OIDC issuer, so it belongs here."
+  description = "authentik base URL. It is part of every OIDC issuer authentik hands out."
   type        = string
-  default     = "https://authentik.cbc.gewis.nl:8443"
+  default     = "https://authentik.gewis.nl"
 }
 
 variable "kubeconfig_path" {
@@ -19,7 +19,7 @@ variable "kubeconfig_path" {
 variable "bao_address" {
   description = "OpenBao API address."
   type        = string
-  default     = "https://openbao.cbc.gewis.nl:8443"
+  default     = "https://openbao.gewis.nl"
 }
 
 variable "bao_role" {

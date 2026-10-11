@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`authentik.cbc.gewis.nl`)
+    - match: Host(`authentik.gewis.nl`)
       kind: Rule
       services:
         - name: authentik-server

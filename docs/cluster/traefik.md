@@ -36,8 +36,8 @@ survives into Traefik. With `Local`, Cilium only announces from a node that runs
 Traefik pod; the DaemonSet puts one on every node, so any node can take over the
 IP when another dies.
 
-router02 forwards public `:8443` to `10.82.50.10:443`, which is why every public
-URL in the OpenTofu roots and Grafana carries `:8443`.
+How public `:443` reaches this address while the previous cluster still holds it
+is in [Ingress](../talos/ingress.md#public-443-arrives-through-the-previous-cluster).
 
 ## Routes are IngressRoutes
 

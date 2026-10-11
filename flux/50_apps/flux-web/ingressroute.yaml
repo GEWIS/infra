@@ -23,7 +23,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`flux.cbc.gewis.nl`)
+    - match: Host(`flux.gewis.nl`)
       kind: Rule
       middlewares:
         - name: authentik

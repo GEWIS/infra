@@ -2,7 +2,7 @@
 
 The operator serves a status UI on `:9080`: every Flux object's readiness, the
 event stream, and a graph from sources through Kustomizations and HelmReleases to
-the workloads they deploy. It is published at `flux.cbc.gewis.nl`, and it is
+the workloads they deploy. It is published at `flux.gewis.nl`, and it is
 **read-only**.
 
 ## Read-only by RBAC, not by UI setting

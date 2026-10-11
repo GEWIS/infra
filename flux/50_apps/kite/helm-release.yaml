@@ -20,7 +20,7 @@ spec:
     remediation:
       retries: 3
   values:
-    host: https://kite.cbc.gewis.nl:8443
+    host: https://kite.gewis.nl
     deploymentStrategy:
       type: Recreate
     secret:
@@ -66,7 +66,7 @@ spec:
         - name: authentik
           clientId: kite
           clientSecret: ${OAUTH_CLIENT_SECRET}
-          issuer: https://authentik.cbc.gewis.nl:8443/application/o/kite/
+          issuer: https://authentik.gewis.nl/application/o/kite/
           scopes: openid,profile,email
           usernameClaim: preferred_username
           groupsClaim: groups

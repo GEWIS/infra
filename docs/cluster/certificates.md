@@ -6,8 +6,7 @@ cert-manager issues one certificate for every public hostname from the
 
 | Name | Covers |
 | --- | --- |
-| `*.cbc.gewis.nl` | this cluster's own services |
-| `gewis.nl`, `*.gewis.nl` | the apex and every service the old cluster publishes |
+| `gewis.nl`, `*.gewis.nl` | this cluster's services, the apex and every service the old cluster publishes |
 | `*.test.gewis.nl`, `*.personal.gewis.nl` | test and personal sites |
 | `gew.is`, `*.gew.is` | the short domain |
 

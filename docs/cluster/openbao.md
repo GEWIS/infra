@@ -1,7 +1,7 @@
 # OpenBao
 
 Single-replica Raft, sealed with a static key from a SealedSecret and reached at
-`https://openbao.cbc.gewis.nl:8443`.
+`https://openbao.gewis.nl`.
 
 It self-initialises. Auto-unseal cannot unseal a barrier that was never
 initialised, and a StatefulSet will not start pod 1 until pod 0 is `Ready`, so an

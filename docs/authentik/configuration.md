@@ -90,7 +90,7 @@ Grafana mapping has to match character-for-character:
 TOK=$(kubectl -n authentik get secret authentik-auth \
   -o jsonpath='{.data.AUTHENTIK_BOOTSTRAP_TOKEN}' | base64 -d)
 curl -sS -H "Authorization: Bearer $TOK" \
-  'https://authentik.cbc.gewis.nl:8443/api/v3/core/groups/?page_size=100' \
+  'https://authentik.gewis.nl/api/v3/core/groups/?page_size=100' \
   | jq -r '.results[].name'
 ```
 
@@ -160,8 +160,8 @@ turn those maps into resources. Each relying party is one entry in `oidc_clients
 grafana = {
   display_name  = "Grafana"
   namespace     = "observability"
-  launch_url    = "https://grafana.cbc.gewis.nl:8443/"
-  redirect_uris = ["https://grafana.cbc.gewis.nl:8443/login/generic_oauth"]
+  launch_url    = "https://grafana.gewis.nl/"
+  redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
 }
 ```
 
@@ -189,9 +189,8 @@ proxy_access_groups = {
 }
 ```
 
-**Redirect URIs carry `:8443`.** Ingress is published on that port, it is
-part of the issuer, and `matching_mode = "strict"` means a missing port is a
-failed login with no useful error.
+**Redirect URIs match exactly.** `matching_mode = "strict"` means a URI that
+differs in scheme, host, port or path is a failed login with no useful error.
 
 **Each redirect URI sets `redirect_uri_type = "authorization"`.** authentik fills
 the field in when it is left out, and since `allowed_redirect_uris` is a list of
@@ -219,9 +218,9 @@ endpoint runs the same check.
 The endpoints are the shared per-provider ones, not per-application:
 
 ```ini
-auth_url  = https://authentik.cbc.gewis.nl:8443/application/o/authorize/
-token_url = https://authentik.cbc.gewis.nl:8443/application/o/token/
-api_url   = https://authentik.cbc.gewis.nl:8443/application/o/userinfo/
+auth_url  = https://authentik.gewis.nl/application/o/authorize/
+token_url = https://authentik.gewis.nl/application/o/token/
+api_url   = https://authentik.gewis.nl/application/o/userinfo/
 ```
 
 Grafana reaches those from inside the cluster over the public name, which

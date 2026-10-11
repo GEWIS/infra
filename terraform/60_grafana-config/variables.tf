@@ -7,7 +7,7 @@ variable "state_passphrase" {
 variable "grafana_url" {
   description = "Grafana base URL."
   type        = string
-  default     = "https://grafana.cbc.gewis.nl:8443"
+  default     = "https://grafana.gewis.nl"
 }
 
 variable "kubeconfig_path" {

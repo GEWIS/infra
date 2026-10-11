@@ -23,7 +23,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`longhorn.cbc.gewis.nl`)
+    - match: Host(`longhorn.gewis.nl`)
       kind: Rule
       middlewares:
         - name: authentik

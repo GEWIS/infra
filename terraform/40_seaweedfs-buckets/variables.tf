@@ -25,7 +25,7 @@ variable "seaweedfs_admin_secret_key" {
 variable "bao_address" {
   description = "OpenBao API address."
   type        = string
-  default     = "https://openbao.cbc.gewis.nl:8443"
+  default     = "https://openbao.gewis.nl"
 }
 
 variable "bao_role" {

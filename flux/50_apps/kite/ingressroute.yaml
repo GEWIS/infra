@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`kite.cbc.gewis.nl`)
+    - match: Host(`kite.gewis.nl`)
       kind: Rule
       services:
         - name: kite

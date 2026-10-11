@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`grafana.cbc.gewis.nl`)
+    - match: Host(`grafana.gewis.nl`)
       kind: Rule
       services:
         - name: grafana

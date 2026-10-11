@@ -14,7 +14,7 @@ in
 
     url = lib.mkOption {
       type = lib.types.str;
-      default = "https://openbao.cbc.gewis.nl:8443/v1/ssh/public_key";
+      default = "https://openbao.gewis.nl/v1/ssh/public_key";
       description = ''
         Unauthenticated endpoint the CA public key is fetched from. A failed or
         malformed fetch keeps the previous key, so certificates keep working

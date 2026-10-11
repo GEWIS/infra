@@ -23,7 +23,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`hubble.cbc.gewis.nl`)
+    - match: Host(`hubble.gewis.nl`)
       kind: Rule
       middlewares:
         - name: authentik

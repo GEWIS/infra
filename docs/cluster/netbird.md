@@ -28,18 +28,9 @@ own `HostSNI` match; a wildcard SNI would capture every other `*.gewis.nl` route
 
 ## Interim: public 443 still lands on the previous cluster
 
-router02 forwards public `:443` to the previous cluster's Traefik, which still
-serves the other `*.gewis.nl` apps. In its `netbird` namespace an `IngressRouteTCP`
-`new-cluster-passthrough` passes `HostSNI(nb.gewis.nl)` and
-`HostSNI(print.gewis.nl)` through untouched to `10.82.50.10:443`, via a
-selectorless Service and an EndpointSlice `new-cluster-traefik`. The endpoint
-carries `conditions.ready: true`; without it Traefik treats the Service as empty
-and drops the connection mid-handshake.
-
-A browser that already holds an HTTP/2 connection to that Traefik for another
-`*.gewis.nl` host reuses it for `nb.gewis.nl`, so the request never shows its SNI
-and gets the previous Traefik's `404 page not found`. NetBird clients are not
-affected. This section goes away when router02's `:443` moves to `10.82.50.10`.
+Public `nb.gewis.nl` and `print.gewis.nl` reach this cluster through the previous
+cluster's Traefik, like every other hostname here — see
+[Ingress](../talos/ingress.md#public-443-arrives-through-the-previous-cluster).
 
 The previous cluster's `apps` Kustomization, which still holds the old NetBird
 manifests, stays suspended with `flux suspend ks apps`. A `kubectl patch` of

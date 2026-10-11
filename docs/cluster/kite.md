@@ -1,6 +1,6 @@
 # Kite is the cluster UI
 
-[Kite](https://github.com/kite-org/kite) at `https://kite.cbc.gewis.nl:8443` is
+[Kite](https://github.com/kite-org/kite) at `https://kite.gewis.nl` is
 where people look at the cluster. It is a single pod with a SQLite database on a
 Longhorn volume, installed by `flux/50_apps/kite/` from
 `oci://ghcr.io/kite-org/charts`. Its clusters, login, roles and local admin come
@@ -54,8 +54,8 @@ Definitions*.
 
 The `kite` client comes from `oidc_clients` in `terraform/50_authentik-config`;
 an `ExternalSecret` brings its secret into `kite-oidc`, and Kite reads it as
-`${OAUTH_CLIENT_SECRET}` in its config. `host` carries `https://` and `:8443`,
-since Kite builds the callback URL `/api/auth/callback` from it.
+`${OAUTH_CLIENT_SECRET}` in its config. `host` carries `https://`, since Kite
+builds the callback URL `/api/auth/callback` from it.
 
 `JWT_SECRET` and `KITE_ENCRYPT_KEY` are generated once in the cluster by an
 External Secrets `Password` generator with `refreshPolicy: CreatedOnce`.

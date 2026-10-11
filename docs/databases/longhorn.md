@@ -21,7 +21,7 @@ The bucket is the one the previous cluster backed up to. Its backups show up in
 this cluster's UI and restore from there. Deleting a backup in the UI deletes it
 from the bucket, whichever cluster made it.
 
-## The UI is at `longhorn.cbc.gewis.nl`
+## The UI is at `longhorn.gewis.nl`
 
 `flux/50_apps/longhorn/ingressroute.yaml` publishes `longhorn-frontend` behind the
 authentik proxy outpost, like [Hubble](../observability/hubble.md). The UI can

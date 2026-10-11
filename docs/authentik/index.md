@@ -1,6 +1,6 @@
 # authentik
 
-Identity provider at `https://authentik.cbc.gewis.nl:8443`, reconciled by the
+Identity provider at `https://authentik.gewis.nl`, reconciled by the
 `apps` layer. It exists to be the OIDC front door for things that have no
 business holding their own user list — OpenBao first, more later.
 

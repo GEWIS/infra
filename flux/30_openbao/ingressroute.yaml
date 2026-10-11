@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`openbao.cbc.gewis.nl`)
+    - match: Host(`openbao.gewis.nl`)
       kind: Rule
       services:
         - name: openbao-active

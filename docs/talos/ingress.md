@@ -27,12 +27,29 @@ the subnet. The pool and the `CiliumL2AnnouncementPolicy` live in
 | `10.82.50.13` | the [MariaDB](../databases/mariadb.md) primary, `mariadb-primary` |
 | `10.82.50.14` | [NetBird](../cluster/netbird.md) STUN, `netbird-stun` (UDP 3478) |
 
-## The router forwards `:8443` to `:443`
+## Public `:443` arrives through the previous cluster
 
-router02 dst-nats public `:8443` to `10.82.50.10:443`, which is why every public
-URL carries `:8443`.
+router02 forwards public `:443` to the previous cluster's Traefik, which still
+serves the apps that have not moved yet. That Traefik passes this cluster's
+hostnames through untouched, by SNI, to `10.82.50.10:443`: an `IngressRouteTCP`
+`new-cluster-passthrough` with `tls.passthrough: true` in its `netbird`
+namespace, pointing at a selectorless Service and an EndpointSlice
+`new-cluster-traefik`.
 
-On the MikroTik side, **`To Ports` must be set to 443**. Leave it empty and
-`dst-nat` preserves the original port, forwarding to `:8443` where nothing is
-listening — the connection is refused in milliseconds, which looks exactly like
-a firewall block but is not one.
+| Hostname | Reaches router02 |
+| --- | --- |
+| `openbao`, `authentik`, `flux`, `hubble`, `kite`, `longhorn`, `nb`, `print` `.gewis.nl` | directly (CNAME `router02.net.gewis.nl`) |
+| `grafana.gewis.nl` | through the TU/e WAF (CNAME `waf.gewis.nl`) |
+
+A new public hostname on this cluster needs a `HostSNI` there as well, or the
+previous Traefik answers it itself. Its endpoint carries
+`conditions.ready: true`; without it Traefik treats the Service as empty and drops
+the connection mid-handshake.
+
+A browser that already holds an HTTP/2 connection to that Traefik for another
+`*.gewis.nl` host reuses it for these names, so the request never shows its SNI
+and gets the previous Traefik's `404 page not found` until the browser opens a
+fresh connection. Non-browser clients are not affected.
+
+This section goes away when router02's `:443` points at `10.82.50.10`. The older
+forward of public `:8443` to `10.82.50.10:443` is no longer used by any URL.
