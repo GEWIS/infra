@@ -39,6 +39,20 @@ IP when another dies.
 How public `:443` reaches this address while the previous cluster still holds it
 is in [Ingress](../talos/ingress.md#public-443-arrives-through-the-previous-cluster).
 
+## Client addresses
+
+| Setting on `websecure` | Trusts | Why |
+| --- | --- | --- |
+| `proxyProtocol.trustedIPs` | `10.82.50.201`–`203` | the previous cluster's nodes, which pass hostnames through to this Traefik; a PROXY header from them carries the real client address |
+| `forwardedHeaders.trustedIPs` | `131.155.10.134`, `.135` (TU/e WAF), `145.116.44.49`, `145.116.47.68` (Geproxy) | proxies that terminate TLS in front of router02; their `X-Forwarded-For` is kept |
+
+A connection from anywhere else is taken as the client itself, and any
+`X-Forwarded-For` it sends is replaced. A connection without a PROXY header is
+accepted from every address, trusted or not.
+
+`transport.respondingTimeouts.readTimeout: 0` lifts the default 60 s cap on
+reading a request, which would otherwise cut off large uploads.
+
 ## Routes are IngressRoutes
 
 Every published service has an `IngressRoute` on the `websecure` entry point,

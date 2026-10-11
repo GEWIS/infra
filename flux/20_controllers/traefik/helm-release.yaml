@@ -43,6 +43,20 @@ spec:
               permanent: true
       websecure:
         asDefault: true
+        proxyProtocol:
+          trustedIPs:
+            - 10.82.50.201
+            - 10.82.50.202
+            - 10.82.50.203
+        forwardedHeaders:
+          trustedIPs:
+            - 131.155.10.134
+            - 131.155.10.135
+            - 145.116.44.49
+            - 145.116.47.68
+        transport:
+          respondingTimeouts:
+            readTimeout: 0
     tlsStore:
       default:
         defaultCertificate:
