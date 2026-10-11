@@ -34,7 +34,10 @@ serves the apps that have not moved yet. That Traefik passes this cluster's
 hostnames through untouched, by SNI, to `10.82.50.10:443`: an `IngressRouteTCP`
 `new-cluster-passthrough` with `tls.passthrough: true` in its `netbird`
 namespace, pointing at a selectorless Service and an EndpointSlice
-`new-cluster-traefik`.
+`new-cluster-traefik`. Its `ServersTransportTCP` `new-cluster-proxy-protocol`
+prepends a PROXY protocol v2 header, so this Traefik sees the real client address
+rather than the previous cluster's node — see
+[Client addresses](../cluster/traefik.md#client-addresses).
 
 | Hostname | Reaches router02 |
 | --- | --- |

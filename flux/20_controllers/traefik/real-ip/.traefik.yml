@@ -1,0 +1,7 @@
+displayName: Real IP
+type: middleware
+import: github.com/gewis/traefik-real-ip
+summary: Sets X-Real-Ip to the client address, reading X-Forwarded-For only from trusted proxies.
+testData:
+  trustedIPs:
+    - 131.155.10.134

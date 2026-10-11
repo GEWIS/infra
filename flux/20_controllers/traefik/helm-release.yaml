@@ -24,6 +24,22 @@ spec:
   values:
     deployment:
       kind: DaemonSet
+      additionalVolumes:
+        - name: real-ip-plugin
+          configMap:
+            name: traefik-real-ip
+    experimental:
+      localPlugins:
+        real-ip:
+          type: localPath
+          moduleName: github.com/gewis/traefik-real-ip
+          mountPath: /plugins-local/src/github.com/gewis/traefik-real-ip
+          volumeName: real-ip-plugin
+    providers:
+      kubernetesCRD:
+        allowExternalNameServices: true
+      kubernetesIngress:
+        allowExternalNameServices: true
     service:
       annotations:
         lbipam.cilium.io/ips: 10.82.50.10
@@ -43,6 +59,9 @@ spec:
               permanent: true
       websecure:
         asDefault: true
+        http:
+          middlewares:
+            - traefik-real-ip@kubernetescrd
         proxyProtocol:
           trustedIPs:
             - 10.82.50.201

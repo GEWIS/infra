@@ -53,6 +53,36 @@ accepted from every address, trusted or not.
 `transport.respondingTimeouts.readTimeout: 0` lifts the default 60 s cap on
 reading a request, which would otherwise cut off large uploads.
 
+### `X-Real-Ip` comes from our own plugin
+
+Traefik sets `X-Real-Ip` to the connecting address, and keeps whatever a trusted
+proxy sends. The TU/e WAF appends the client to an `X-Forwarded-For` the client
+may already have filled in, and passes a client's own `X-Real-Ip` through, so
+neither header is trustworthy as received. The published plugins that rewrite it
+pick the leftmost `X-Forwarded-For` entry, which the client controls.
+
+The `real-ip` plugin in `flux/20_controllers/traefik/real-ip/` always overwrites
+`X-Real-Ip`. If the connecting address is not a trusted proxy, that address is
+the client. Otherwise it walks `X-Forwarded-For` from the right and takes the
+first address that is not a trusted proxy; an unparsable entry, or a chain of
+only trusted proxies, falls back to the connecting address. Its trusted list is
+the Middleware `traefik/real-ip` in `flux/30_config/traefik/`, and must match
+`forwardedHeaders.trustedIPs`. `websecure` applies it to every route through
+`http.middlewares`, so no route has to name it; if it fails to load, every
+route on `websecure` fails with it. On a cold build that is the state between the
+`controllers` and `config` layers, since the Middleware arrives with `config`.
+Nothing `config` needs goes through Traefik. The `openbao` layer depends only on
+`controllers`, so `openbao.gewis.nl` can be refused until `config` is applied;
+everything that uses OpenBao in the cluster talks to `openbao-active` directly.
+
+Traefik runs it as a local plugin: a kustomization in that directory turns the
+source into the ConfigMap `traefik-real-ip`, which the HelmRelease mounts under
+`/plugins-local/src/github.com/gewis/traefik-real-ip`. Traefik loads plugins only
+at startup, so a change to the source needs
+`kubectl -n traefik rollout restart ds/traefik`. Run the tests in that directory
+with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
+`GOPATH` layout.
+
 ## Routes are IngressRoutes
 
 Every published service has an `IngressRoute` on the `websecure` entry point,
@@ -73,6 +103,11 @@ router02.net.gewis.nl`, the CNAME target for its hostname — see [DNS](dns.md).
 `allowCrossNamespace` stays off: a route may only point at Services and
 Middlewares in its own namespace, so an app namespace cannot publish another
 namespace's Service.
+
+`allowExternalNameServices` is on for both the CRD and the Ingress provider, so a
+route can point at a `type: ExternalName` Service for a host outside the cluster.
+The host has to be reachable from the nodes; Traefik resolves the name through
+the cluster's DNS.
 
 ## Authentication is ForwardAuth to the authentik outpost
 
