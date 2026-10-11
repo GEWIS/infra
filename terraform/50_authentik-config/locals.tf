@@ -27,5 +27,17 @@ locals {
       display_name  = "Flux"
       external_host = "https://flux.cbc.gewis.nl:8443"
     }
+    longhorn = {
+      display_name  = "Longhorn"
+      external_host = "https://longhorn.cbc.gewis.nl:8443"
+    }
+  }
+
+  proxy_access_groups = {
+    longhorn = [
+      "CBC - Application Hosting Team (ADM)",
+      "CBC - Backup Team",
+      "CBC - Filehosting and backup (ADM)",
+    ]
   }
 }

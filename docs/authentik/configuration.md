@@ -176,6 +176,19 @@ OpenBao is not in the map. It is a single fixed client that consumes its secret
 itself rather than through a namespace, so `openbao.tf` spells it out — see
 [OpenBao](../cluster/openbao.md#people-log-in-through-authentik).
 
+**`proxy_access_groups` limits who passes a proxy client.** Without an entry, any
+user who can log in to authentik gets through, which is fine for the read-only
+Hubble and Flux UIs. An entry binds an expression policy to the application that
+admits a user if any listed directory group is in their `groups` attribute — the
+same attribute the OIDC claim uses. Longhorn has one, because its UI can delete
+volumes and backups:
+
+```hcl
+proxy_access_groups = {
+  longhorn = ["CBC - Application Hosting Team (ADM)", "CBC - Backup Team", ...]
+}
+```
+
 **Redirect URIs carry `:8443`.** Ingress is published on that port, it is
 part of the issuer, and `matching_mode = "strict"` means a missing port is a
 failed login with no useful error.

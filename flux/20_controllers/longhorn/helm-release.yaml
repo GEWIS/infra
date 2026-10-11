@@ -20,6 +20,9 @@ spec:
     remediation:
       retries: 3
   values:
+    defaultBackupStore:
+      backupTarget: "s3://bu-k3s@nl-ams/"
+      backupTargetCredentialSecret: backup-credentials
     defaultSettings:
       defaultDataPath: "/var/mnt/longhorn"
       storageReservedPercentageForDefaultDisk: 0

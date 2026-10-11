@@ -22,6 +22,21 @@ resource "authentik_application" "proxy" {
   meta_launch_url   = each.value.external_host
 }
 
+resource "authentik_policy_expression" "proxy_access" {
+  for_each = local.proxy_access_groups
+
+  name       = "${each.key}: ${join(", ", each.value)}"
+  expression = "return bool(set(${jsonencode(each.value)}) & set(request.user.attributes.get(\"groups\", [])))"
+}
+
+resource "authentik_policy_binding" "proxy_access" {
+  for_each = local.proxy_access_groups
+
+  target = authentik_application.proxy[each.key].uuid
+  policy = authentik_policy_expression.proxy_access[each.key].id
+  order  = 0
+}
+
 resource "authentik_outpost" "proxy" {
   name               = "cbc"
   type               = "proxy"
