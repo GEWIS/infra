@@ -30,6 +30,15 @@ resource "keycloak_openid_client" "forward_auth" {
   valid_redirect_uris = each.value.redirect_uris
 }
 
+resource "keycloak_openid_client_default_scopes" "forward_auth" {
+  for_each = local.forward_auth_clients
+
+  realm_id  = local.realm
+  client_id = keycloak_openid_client.forward_auth[each.key].id
+
+  default_scopes = ["acr", "basic", "client-roles", "email", "profile", "roles", "web-origins"]
+}
+
 resource "keycloak_openid_group_membership_protocol_mapper" "groups" {
   for_each = local.forward_auth_clients
 
@@ -42,6 +51,18 @@ resource "keycloak_openid_group_membership_protocol_mapper" "groups" {
   add_to_id_token     = true
   add_to_access_token = true
   add_to_userinfo     = true
+}
+
+resource "keycloak_openid_audience_protocol_mapper" "audience" {
+  for_each = local.forward_auth_clients
+
+  realm_id  = local.realm
+  client_id = keycloak_openid_client.forward_auth[each.key].id
+  name      = "audience"
+
+  included_client_audience = keycloak_openid_client.forward_auth[each.key].client_id
+  add_to_id_token          = false
+  add_to_access_token      = true
 }
 
 resource "vault_mount" "keycloak" {
