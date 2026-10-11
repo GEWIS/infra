@@ -1,7 +1,9 @@
 keys:
   admins: &admins
+    - &admin_jan ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKxoQSxfYqf9ITN8Fhckk8WbY4dwtBAXOhC9jxihJvq
     - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
     - &admin_ruben ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM
+    - &admin_victor ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMy5VeVDBmi3tDdm8D9FtKy0FJdpGJpYojE1kXEQtl1p
   hosts:
     - &pcgewisa age1yr0lfetlnev2j8298ra4u3yc38amrrnasu97eh36gtuamadpwyrqwhyryv
     - &pcgewisb age132p2xyv4zax3r3agtzdf5qnd0duzdyytk22gr6sejsh9hek2hynsz3alda
@@ -26,36 +28,48 @@ creation_rules:
   - path_regex: secrets/pcgewisa\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *pcgewisa
   - path_regex: secrets/pcgewisb\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *pcgewisb
   - path_regex: secrets/pcgewisc\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *pcgewisc
   - path_regex: secrets/pcgewisd\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *pcgewisd
   - path_regex: secrets/pcgewisinfo\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *pcgewisinfo
   - path_regex: secrets/s3-01\.yaml$
     key_groups:
       - age:
+          - *admin_jan
           - *admin_luuk
           - *admin_ruben
+          - *admin_victor
           - *s3_01
