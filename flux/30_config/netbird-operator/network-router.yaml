@@ -1,7 +1,7 @@
 apiVersion: netbird.io/v1alpha1
 kind: NetworkRouter
 metadata:
-  name: lan
+  name: talos-cluster
   namespace: netbird-operator
 spec:
   dnsZoneRef:
