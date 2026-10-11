@@ -140,6 +140,10 @@ nav:
       - Media: authentik/media.md
       - Configuration: authentik/configuration.md
       - Applying: authentik/applying.md
+  - Keycloak:
+      - Overview: keycloak/index.md
+      - Forward auth: keycloak/forward-auth.md
+      - Applying: keycloak/applying.md
   - Observability:
       - Overview: observability/index.md
       - Tenancy: observability/tenancy.md

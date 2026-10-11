@@ -4,6 +4,7 @@
     "talos"
     "sealed-secrets"
     "authentik"
+    "keycloak"
   ];
 
   admins = {

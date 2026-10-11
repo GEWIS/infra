@@ -86,7 +86,8 @@ with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
 Every published service has an `IngressRoute` on the `websecure` entry point,
 next to the workload it serves: `flux/30_openbao/`, `flux/50_apps/authentik/`,
 `flux/50_apps/observability/grafana/`, `flux/50_apps/hubble/`,
-`flux/50_apps/flux-web/`, `flux/50_apps/longhorn/` and `flux/50_apps/netbird/`,
+`flux/50_apps/flux-web/`, `flux/50_apps/longhorn/`, `flux/50_apps/netbird/` and
+`flux/50_apps/keycloak/`,
 each in an `ingressroute.yaml`. Routes to hosts outside the cluster live in
 `flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md). `web`
 (`:80`) only redirects to HTTPS. The `traefik` IngressClass is the cluster
@@ -107,6 +108,14 @@ namespace's Service.
 arbitrary host by name. Hosts outside the cluster are reached through a NetBird
 `NetworkEgress`, which is an ordinary Service — see
 [External proxy](external-proxy.md).
+
+## Keycloak-protected apps use the `traefik-oidc-auth` plugin
+
+The HelmRelease loads `traefik-oidc-auth` `v0.18.0` from the plugin catalog.
+Apps that log in through Keycloak use it in a Middleware, with their own
+client and an `oidc-secret` per namespace, see
+[Forward auth](../keycloak/forward-auth.md). Traefik downloads plugins at
+startup, so a version change restarts every pod in the DaemonSet.
 
 ## Authentication is ForwardAuth to the authentik outpost
 
