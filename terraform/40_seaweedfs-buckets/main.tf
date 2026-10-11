@@ -8,6 +8,7 @@ locals {
     tempo    = { namespace = "observability" }
     postgres = { namespace = "postgres" }
     mariadb  = { namespace = "mariadb" }
+    kaneo    = { namespace = "kaneo-prod" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
