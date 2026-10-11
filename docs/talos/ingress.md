@@ -39,12 +39,14 @@ namespace, pointing at a selectorless Service and an EndpointSlice
 | Hostname | Reaches router02 |
 | --- | --- |
 | `openbao`, `authentik`, `flux`, `hubble`, `kite`, `longhorn`, `nb`, `print` `.gewis.nl` | directly (CNAME `router02.net.gewis.nl`) |
-| `grafana.gewis.nl` | through the TU/e WAF (CNAME `waf.gewis.nl`) |
+| `grafana.gewis.nl` | through the TU/e WAF (CNAME `waf.gewis.nl`), which terminates TLS with its own certificate and connects on to router02 with the same SNI |
 
 A new public hostname on this cluster needs a `HostSNI` there as well, or the
-previous Traefik answers it itself. Its endpoint carries
-`conditions.ready: true`; without it Traefik treats the Service as empty and drops
-the connection mid-handshake.
+previous Traefik answers it itself. If the previous Traefik still has an HTTP
+route of its own for that hostname, that route wins over the passthrough, even
+with an explicit `priority`; the old route has to be removed first. The
+passthrough's endpoint carries `conditions.ready: true`; without it Traefik treats
+the Service as empty and drops the connection mid-handshake.
 
 A browser that already holds an HTTP/2 connection to that Traefik for another
 `*.gewis.nl` host reuses it for these names, so the request never shows its SNI

@@ -9,7 +9,7 @@
   admins = {
     luuk = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x";
     ruben = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM";
-    victor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMy5VeVDBmi3tDdm8D9FtKy0FJdpGJpYojE1kXEQtl1p";
+    victor = "age1zr2rw7z4p2gpt58gkhz6kx3nuvyhz76lgl334kcr56sc26czwstq4xhsh0";
     jan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKxoQSxfYqf9ITN8Fhckk8WbY4dwtBAXOhC9jxihJvq";
   };
 

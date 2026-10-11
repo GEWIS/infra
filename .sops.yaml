@@ -3,7 +3,7 @@ keys:
     - &admin_jan ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKxoQSxfYqf9ITN8Fhckk8WbY4dwtBAXOhC9jxihJvq
     - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
     - &admin_ruben ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM
-    - &admin_victor ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMy5VeVDBmi3tDdm8D9FtKy0FJdpGJpYojE1kXEQtl1p
+    - &admin_victor age1zr2rw7z4p2gpt58gkhz6kx3nuvyhz76lgl334kcr56sc26czwstq4xhsh0
   hosts:
     - &pcgewisa age1yr0lfetlnev2j8298ra4u3yc38amrrnasu97eh36gtuamadpwyrqwhyryv
     - &pcgewisb age132p2xyv4zax3r3agtzdf5qnd0duzdyytk22gr6sejsh9hek2hynsz3alda
