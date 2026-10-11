@@ -13,9 +13,9 @@ locals {
   service_subnets = ["10.96.0.0/12"]
 
   nodes = {
-    talos-01 = { ip = "10.82.50.101", mac = "00:16:3e:5e:b8:01", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2", memory_gib = 16 }
-    talos-02 = { ip = "10.82.50.102", mac = "00:16:3e:5e:b8:02", host = "gewisvhost3.win.tue.nl", sr = "vhost3-ssd", memory_gib = 30 }
-    talos-03 = { ip = "10.82.50.103", mac = "00:16:3e:5e:b8:03", host = "gewisvhost4.win.tue.nl", sr = "Local storage", memory_gib = 30 }
+    talos-01 = { ip = "10.82.50.101", mac = "00:16:3e:5e:b8:01", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2", cpus = 16, memory_gib = 16 }
+    talos-02 = { ip = "10.82.50.102", mac = "00:16:3e:5e:b8:02", host = "gewisvhost3.win.tue.nl", sr = "vhost3-ssd", cpus = 16, memory_gib = 30 }
+    talos-03 = { ip = "10.82.50.103", mac = "00:16:3e:5e:b8:03", host = "gewisvhost4.win.tue.nl", sr = "Local storage", cpus = 12, memory_gib = 30 }
   }
 
   bootstrap_node = "talos-01"
@@ -93,7 +93,7 @@ module "vm" {
   affinity_host       = data.xenorchestra_host.node_host[each.value.host].id
 
   mac_address   = each.value.mac
-  cpus          = 4
+  cpus          = each.value.cpus
   memory_gib    = each.value.memory_gib
   root_disk_gib = 50
   data_disk_gib = 300
