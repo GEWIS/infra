@@ -6,7 +6,7 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: talos-migration
+    branch: main
   url: https://github.com/GEWIS/k8s-apps
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
