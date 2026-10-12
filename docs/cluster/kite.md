@@ -4,8 +4,9 @@
 where people look at the cluster. It is a single pod with a SQLite database on a
 Longhorn volume, installed by `flux/50_apps/kite/` from
 `oci://ghcr.io/kite-org/charts`. Its clusters, login, roles and local admin come
-from the `config` block of the HelmRelease values; the UI shows those sections
-read-only. Kite watches the file and reloads it without a restart.
+from the Secret `kite-roles`, which [app access](app-access.md) renders; the UI
+shows those sections read-only. The chart mounts the Secret as a directory, so
+Kite picks up a new version without a restart.
 
 ## Permissions are Kite's own, capped by its service account
 
@@ -22,9 +23,8 @@ Even a bug in Kite's own checks cannot change anything but pods, and Flux stays
 the only writer of every other object. `pods/exec` still lets a user change
 things *inside* a running container.
 
-Roles are mapped to AD groups from the `groups` claim in
-`config.rbac.roleMapping`, and Kite replaces every role assignment with the
-configured ones on each reload:
+Roles are mapped to AD groups from the `groups` claim, and Kite replaces every
+role assignment with the configured ones on each reload:
 
 | Role | Mapped to | Grants |
 | --- | --- | --- |
@@ -36,10 +36,11 @@ granted on all namespaces; without it the *Custom Resource Definitions* page
 fails for anyone who is not an admin. It covers the definitions, not the objects
 in them.
 
-An app's people get two roles for their AD group: `<app>-read` with `get` and
-`log` on every resource, and `<app>-pods` with `exec` and `delete` on `pods`,
-both limited to the app's namespaces. Kite then offers delete only on pods. A
-user with no app role sees CRD definitions and nothing else.
+Each entry in the [app access](app-access.md) list gets two roles for its
+group: `<app>-read` with `get` and `log` on every resource, and `<app>-pods`
+with `exec` and `delete` on `pods`, both limited to the entry's namespaces.
+Kite then offers delete only on pods. A user with no app role sees CRD
+definitions and nothing else.
 
 ## What a user sees
 
@@ -52,10 +53,18 @@ Definitions*.
 
 ## Login and keys
 
-The `kite` client comes from `oidc_clients` in `terraform/50_authentik-config`;
-an `ExternalSecret` brings its secret into `kite-oidc`, and Kite reads it as
+Login goes through Keycloak, realm `GEWISWG`. The `kite` client comes from
+`oidc_clients` in `terraform/50_keycloak-config`; an `ExternalSecret` brings its
+secret from OpenBao `keycloak/kite/kite` into `kite-oidc`, and Kite reads it as
 `${OAUTH_CLIENT_SECRET}` in its config. `host` carries `https://`, since Kite
-builds the callback URL `/api/auth/callback` from it.
+builds the callback URL `/api/auth/callback` from it. The `groups` claim lists
+AD group names without a path, nested membership included, because the realm's
+`group-mapper` reads `memberOfFlattened`; it covers only groups under
+`OU=Groups`.
+
+Kite reads `OAUTH_CLIENT_SECRET` from its environment, which is set only when
+the pod starts. After the secret changes, wait until the `kite-oidc`
+ExternalSecret is synced, then run `kubectl -n kite rollout restart deploy/kite`.
 
 `JWT_SECRET` and `KITE_ENCRYPT_KEY` are generated once in the cluster by an
 External Secrets `Password` generator with `refreshPolicy: CreatedOnce`.

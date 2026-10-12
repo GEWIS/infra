@@ -1,0 +1,32 @@
+{{- if eq .Values.render "kiteConfig" }}
+{{- $roles := list (dict "name" "crd-reader" "description" "List CustomResourceDefinitions, so the CRD pages load" "clusters" (list "*") "namespaces" (list "*") "resources" (list "crds") "verbs" (list "get")) }}
+{{- $mapping := list (dict "name" "admin" "oidcGroups" (list "CBC - Application Hosting Team (ADM)")) (dict "name" "crd-reader" "users" (list "*")) }}
+{{- range .Values.apps }}
+{{- $roles = append $roles (dict "name" (printf "%s-read" .name) "description" (printf "Read and logs in the %s namespaces" .name) "clusters" (list "*") "namespaces" .namespaces "resources" (list "*") "verbs" (list "get" "log")) }}
+{{- $roles = append $roles (dict "name" (printf "%s-pods" .name) "description" (printf "Exec into and delete pods in the %s namespaces" .name) "clusters" (list "*") "namespaces" .namespaces "resources" (list "pods") "verbs" (list "exec" "delete")) }}
+{{- $mapping = append $mapping (dict "name" (printf "%s-read" .name) "oidcGroups" (list .group)) }}
+{{- $mapping = append $mapping (dict "name" (printf "%s-pods" .name) "oidcGroups" (list .group)) }}
+{{- end }}
+{{- $config := dict
+  "superUser" (dict "username" "admin" "password" "${KITE_ADMIN_PASSWORD}")
+  "clusters" (list (dict "name" "gewis-prod" "inCluster" true "default" true))
+  "oauth" (list (dict
+    "name" "keycloak"
+    "clientId" "kite"
+    "clientSecret" "${OAUTH_CLIENT_SECRET}"
+    "issuer" "https://auth.gewis.nl/realms/GEWISWG"
+    "scopes" "openid,profile,email"
+    "usernameClaim" "preferred_username"
+    "groupsClaim" "groups"
+    "enabled" true))
+  "rbac" (dict "roles" $roles "roleMapping" $mapping) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kite-roles
+  namespace: kite
+type: Opaque
+stringData:
+  config.yaml: |
+    {{- toYaml $config | nindent 4 }}
+{{- end }}

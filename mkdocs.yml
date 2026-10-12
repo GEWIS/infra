@@ -116,6 +116,7 @@ nav:
       - Flux layers: cluster/layers.md
       - Kite: cluster/kite.md
       - Ingress (Traefik): cluster/traefik.md
+      - App access: cluster/app-access.md
       - Certificates: cluster/certificates.md
       - DNS: cluster/dns.md
       - Internal resolver: cluster/resolver.md

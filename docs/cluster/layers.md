@@ -1,7 +1,7 @@
 # Layers exist to order secrets and readiness, nothing else
 
 ```
-sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ apps ─→ external-apps
+sealed-secrets ─→ controllers ─→ config ─┬─→ services ─→ apps ─→ external-apps ─→ access
                                 └→ openbao ┘
 ```
 
@@ -17,8 +17,9 @@ together with everything it applied.
 | `config` | `flux/30_config/` | ClusterIssuer, the wildcard Certificate, Longhorn jobs and storage classes, the kube-system Corefile, `cluster-admin` for `CBC - Application Hosting Team (ADM)`, the NetBird `NetworkRouter` |
 | `openbao` | `flux/30_openbao/` | OpenBao, its IngressRoute, its seal secret |
 | `services` | `flux/40_services/` | the resolver, the node exporter, the Postgres and MariaDB clusters, the `s3.gewis.nl` route |
-| `apps` | `flux/50_apps/` | authentik, Keycloak, the LGTM stack, Kite, the Hubble and Flux UI routes, the external proxy for gewiscontainer, gewismail and gewisweb |
+| `apps` | `flux/50_apps/` | authentik, Keycloak, the LGTM stack, Kite with its generated config, the Hubble and Flux UI routes, the external proxy for gewiscontainer, gewismail and gewisweb |
 | `external-apps` | `GEWIS/k8s-apps`, branch `talos-migration` | the app Kustomizations from `k8s-apps`, each applied as `app-deployer` from its own repo; declared in `flux/clusters/gewis-prod/60_external_apps.yaml` |
+| `access` | `flux/70_access/` | the RoleBindings and NetBird ClusterProxy from the [app access](app-access.md) list; it needs the app namespaces from `external-apps` |
 
 Three dependencies carry real weight and none is cosmetic:
 

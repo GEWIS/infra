@@ -6,6 +6,8 @@ metadata:
 spec:
   releaseName: kite
   interval: 1h
+  dependsOn:
+    - name: kite-config
   chart:
     spec:
       chart: kite
@@ -55,32 +57,4 @@ spec:
           verbs: ["create"]
     config:
       enabled: true
-      superUser:
-        username: admin
-        password: ${KITE_ADMIN_PASSWORD}
-      clusters:
-        - name: gewis-prod
-          inCluster: true
-          default: true
-      oauth:
-        - name: authentik
-          clientId: kite
-          clientSecret: ${OAUTH_CLIENT_SECRET}
-          issuer: https://authentik.gewis.nl/application/o/kite/
-          scopes: openid,profile,email
-          usernameClaim: preferred_username
-          groupsClaim: groups
-          enabled: true
-      rbac:
-        roles:
-          - name: crd-reader
-            description: List CustomResourceDefinitions, so the CRD pages load
-            clusters: ["*"]
-            namespaces: ["*"]
-            resources: ["crds"]
-            verbs: ["get"]
-        roleMapping:
-          - name: admin
-            oidcGroups: ["CBC - Application Hosting Team (ADM)"]
-          - name: crd-reader
-            users: ["*"]
+      existingSecret: kite-roles

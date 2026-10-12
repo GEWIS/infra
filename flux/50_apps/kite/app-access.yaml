@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-access
+  namespace: kite
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
+data:
+  values.yaml: |
+    apps:
+      - name: sudosos
+        group: "ABC - POS"
+        namespaces: [sudosos-prod, sudosos-test]
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kite-config
+  namespace: kite
+spec:
+  releaseName: kite-config
+  interval: 1h
+  chart:
+    spec:
+      chart: ./charts/app-access
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  valuesFrom:
+    - kind: ConfigMap
+      name: app-access
+      valuesKey: values.yaml
+  values:
+    render: kiteConfig

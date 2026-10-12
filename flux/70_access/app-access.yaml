@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: app-access
+  namespace: kite
+spec:
+  releaseName: app-access
+  interval: 1h
+  chart:
+    spec:
+      chart: ./charts/app-access
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    remediation:
+      retries: -1
+  upgrade:
+    remediation:
+      retries: -1
+  valuesFrom:
+    - kind: ConfigMap
+      name: app-access
+      valuesKey: values.yaml
+  values:
+    render: access

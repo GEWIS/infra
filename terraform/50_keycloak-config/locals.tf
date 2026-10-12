@@ -40,10 +40,21 @@ locals {
     }
   }
 
-  forward_auth_namespace_policies = {
-    for namespace in distinct([for client in local.forward_auth_clients : client.namespace]) : namespace => [
-      for name, client in local.forward_auth_clients :
-      vault_policy.forward_auth_client_read[name].name if client.namespace == namespace
+  oidc_clients = {
+    kite = {
+      namespace     = "kite"
+      redirect_uris = ["https://kite.gewis.nl/api/auth/callback"]
+    }
+  }
+
+  client_read_policies = merge(
+    { for name, client in local.forward_auth_clients : name => { namespace = client.namespace, policy = vault_policy.forward_auth_client_read[name].name } },
+    { for name, client in local.oidc_clients : name => { namespace = client.namespace, policy = vault_policy.oidc_client_read[name].name } },
+  )
+
+  namespace_policies = {
+    for namespace in distinct([for client in local.client_read_policies : client.namespace]) : namespace => [
+      for client in local.client_read_policies : client.policy if client.namespace == namespace
     ]
   }
 }

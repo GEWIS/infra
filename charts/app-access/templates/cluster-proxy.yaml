@@ -1,0 +1,53 @@
+{{- if eq .Values.render "access" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: clusterproxy-gewis
+  namespace: netbird-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clusterproxy-gewis
+rules:
+  - apiGroups: [""]
+    resources: ["users"]
+    verbs: ["impersonate"]
+  {{- with .Values.apps }}
+  - apiGroups: [""]
+    resources: ["groups"]
+    verbs: ["impersonate"]
+    resourceNames:
+      {{- range . }}
+      - {{ .group | quote }}
+      {{- end }}
+  {{- end }}
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["userextras/*", "uids"]
+    verbs: ["impersonate"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: clusterproxy-gewis
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: clusterproxy-gewis
+subjects:
+  - kind: ServiceAccount
+    name: clusterproxy-gewis
+    namespace: netbird-operator
+---
+apiVersion: netbird.io/v1alpha1
+kind: ClusterProxy
+metadata:
+  name: gewis
+  namespace: netbird-operator
+spec:
+  clusterName: gewis
+  apiServer: https://kubernetes.default.svc
+  serviceAccountName: clusterproxy-gewis
+  groups:
+    - name: k8s-api
+{{- end }}

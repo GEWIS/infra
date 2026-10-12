@@ -10,12 +10,6 @@ locals {
       launch_url    = "https://grafana.gewis.nl/"
       redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
     }
-    kite = {
-      display_name  = "Kite"
-      namespace     = "kite"
-      launch_url    = "https://kite.gewis.nl/"
-      redirect_uris = ["https://kite.gewis.nl/api/auth/callback"]
-    }
   }
 
   proxy_clients = {
