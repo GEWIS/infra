@@ -10,6 +10,7 @@ locals {
     mariadb        = { namespace = "mariadb" }
     kaneo          = { namespace = "kaneo-prod" }
     nextcloud      = { namespace = "nextcloud-prod" }
+    mattermost     = { namespace = "mattermost-prod" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])

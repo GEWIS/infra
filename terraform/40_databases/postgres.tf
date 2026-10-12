@@ -1,10 +1,11 @@
 locals {
   postgres_databases = {
-    authentik = { namespace = "authentik" }
-    grafana   = { namespace = "observability" }
-    netbird   = { namespace = "netbird" }
-    loom      = { namespace = "loom" }
-    nextcloud = { namespace = "nextcloud-prod" }
+    authentik   = { namespace = "authentik" }
+    grafana     = { namespace = "observability" }
+    netbird     = { namespace = "netbird" }
+    loom        = { namespace = "loom" }
+    nextcloud   = { namespace = "nextcloud-prod" }
+    mattermost  = { namespace = "mattermost-prod" }
   }
 
   postgres_namespace_policies = {
