@@ -58,6 +58,7 @@ spec:
             - -compactor.blocks-retention-period=30d
             - -ingester.ring.replication-factor=1
             - -store-gateway.sharding-ring.replication-factor=1
+            - -runtime-config.file=/etc/mimir/runtime/runtime.yaml
           env:
             - name: S3_ACCESS_KEY_ID
               valueFrom:
@@ -105,6 +106,9 @@ spec:
             - name: alertmanager
               mountPath: /etc/mimir/alertmanager
               readOnly: true
+            - name: runtime
+              mountPath: /etc/mimir/runtime
+              readOnly: true
       volumes:
         - name: tmp
           emptyDir: {}
@@ -114,6 +118,9 @@ spec:
         - name: alertmanager
           configMap:
             name: mimir-alertmanager
+        - name: runtime
+          configMap:
+            name: mimir-runtime
   volumeClaimTemplates:
     - metadata:
         name: data

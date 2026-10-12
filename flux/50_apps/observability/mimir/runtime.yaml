@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-runtime
+  namespace: observability
+data:
+  runtime.yaml: |
+    overrides:
+      CBC:
+        max_global_series_per_user: 300000
+        ingestion_rate: 50000
+        ingestion_burst_size: 500000

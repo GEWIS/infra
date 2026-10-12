@@ -42,5 +42,8 @@ holds only the placeholder, and the values come from the ESO-managed Secret via
 `secretKeyRef` — but anyone who can `exec` into the pod can read them from
 `/proc`, which is also true of the environment-variable form.
 
-Per-tenant limits, when they arrive, belong in a runtime configuration file
-rather than here: that one Mimir *does* reload without a restart.
+Per-tenant limits are the other exception. They live in the `mimir-runtime`
+ConfigMap (`runtime.yaml`), passed via `-runtime-config.file`, which Mimir
+reloads without a restart. `CBC` runs at 300,000 active series, 50,000
+samples/s and a burst of 500,000; at the defaults (150,000, 10,000 and 200,000)
+Mimir rejected most of `CBC`'s remote writes with 400s and 429s.
