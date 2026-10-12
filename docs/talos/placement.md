@@ -13,8 +13,8 @@ One node per host, so losing a host costs one etcd member and one Longhorn
 replica. The pool is `vhost1`/`vhost3`/`vhost4` — there is no `vhost2`. On
 `vhost4`, `vhost4-ssd` is nearly full; `Local storage` is the SR with room.
 
-Each node gets 4 vCPU and static memory set per node in the `nodes` map:
-30 GiB, except 16 GiB for talos-01 because `vhost1` has no more room until the
+vCPUs and static memory are set per node in the `nodes` map: 16 vCPU for
+talos-01 and talos-02, 4 for talos-03; 30 GiB, except 16 GiB for talos-01 because `vhost1` has no more room until the
 old cluster's `swarm201` is gone. Raising it is a static-memory change, so tofu
 halts the VM; do it with `-target`, one node at a time, like a disk resize.
 

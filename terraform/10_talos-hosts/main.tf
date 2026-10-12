@@ -15,7 +15,7 @@ locals {
   nodes = {
     talos-01 = { ip = "10.82.50.101", mac = "00:16:3e:5e:b8:01", host = "gewisvhost1.win.tue.nl", sr = "vhost1-ssd2", cpus = 16, memory_gib = 16 }
     talos-02 = { ip = "10.82.50.102", mac = "00:16:3e:5e:b8:02", host = "gewisvhost3.win.tue.nl", sr = "vhost3-ssd", cpus = 16, memory_gib = 30 }
-    talos-03 = { ip = "10.82.50.103", mac = "00:16:3e:5e:b8:03", host = "gewisvhost4.win.tue.nl", sr = "Local storage", cpus = 12, memory_gib = 30 }
+    talos-03 = { ip = "10.82.50.103", mac = "00:16:3e:5e:b8:03", host = "gewisvhost4.win.tue.nl", sr = "Local storage", cpus = 4, memory_gib = 30 }
   }
 
   bootstrap_node = "talos-01"
@@ -58,6 +58,22 @@ locals {
           source      = "/var/mnt/longhorn"
           options     = ["bind", "rshared", "rw"]
         }]
+        extraConfig = {
+          systemReserved = {
+            cpu                 = "50m"
+            memory              = "1Gi"
+            "ephemeral-storage" = "256Mi"
+            pid                 = "100"
+          }
+          kubeReserved = { memory = "1Gi" }
+          evictionHard = {
+            "memory.available"   = "1Gi"
+            "nodefs.available"   = "10%"
+            "nodefs.inodesFree"  = "5%"
+            "imagefs.available"  = "15%"
+            "imagefs.inodesFree" = "5%"
+          }
+        }
       }
       time = { servers = ["time.gewis.nl"] }
     }
