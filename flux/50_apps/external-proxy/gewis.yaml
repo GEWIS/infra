@@ -62,25 +62,25 @@ spec:
       middlewares:
         - name: redirect-corporateidentity-logo
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9210
     - kind: Rule
       match: Host(`gewis.nl`)
       middlewares:
         - name: gewisweb-cors
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9210
     - kind: Rule
       match: Host(`www.gewis.nl`)
       middlewares:
         - name: redirect-www-gewis
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9210
     - kind: Rule
       match: Host(`images.gewis.nl`)
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9211
   tls: {}

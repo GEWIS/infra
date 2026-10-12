@@ -1,20 +1,36 @@
-apiVersion: netbird.io/v1alpha1
-kind: NetworkEgress
+apiVersion: v1
+kind: Service
 metadata:
-  name: gewismail
+  name: gewismail-lan
   namespace: external-proxy
 spec:
-  networkRouterRef:
-    name: k8s-cluster
-    namespace: netbird-operator
-  target:
-    fqdn:
-      hostname: gewismail.net.nb.gewis.nl
   ports:
     - name: https
       port: 443
+      targetPort: 443
     - name: http-lists
       port: 8000
+      targetPort: 8000
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: gewismail-lan
+  namespace: external-proxy
+  labels:
+    kubernetes.io/service-name: gewismail-lan
+    endpointslice.kubernetes.io/managed-by: flux
+addressType: IPv4
+ports:
+  - name: https
+    port: 443
+    protocol: TCP
+  - name: http-lists
+    port: 8000
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.82.50.117
 ---
 apiVersion: traefik.io/v1alpha1
 kind: ServersTransport
@@ -36,13 +52,13 @@ spec:
     - kind: Rule
       match: Host(`mail.gewis.nl`) || Host(`webmail.gewis.nl`)
       services:
-        - name: gewismail
+        - name: gewismail-lan
           port: 443
           scheme: https
           serversTransport: gewismail
     - kind: Rule
       match: Host(`lists.gewis.nl`)
       services:
-        - name: gewismail
+        - name: gewismail-lan
           port: 8000
   tls: {}

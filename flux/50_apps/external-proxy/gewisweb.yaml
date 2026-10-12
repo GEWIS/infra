@@ -1,18 +1,30 @@
-apiVersion: netbird.io/v1alpha1
-kind: NetworkEgress
+apiVersion: v1
+kind: Service
 metadata:
-  name: gewisweb
+  name: gewisweb-lan
   namespace: external-proxy
 spec:
-  networkRouterRef:
-    name: k8s-cluster
-    namespace: netbird-operator
-  target:
-    fqdn:
-      hostname: gewisweb.net.nb.gewis.nl
   ports:
     - name: phpmyadmin
       port: 8081
+      targetPort: 8081
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: gewisweb-lan
+  namespace: external-proxy
+  labels:
+    kubernetes.io/service-name: gewisweb-lan
+    endpointslice.kubernetes.io/managed-by: flux
+addressType: IPv4
+ports:
+  - name: phpmyadmin
+    port: 8081
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.82.50.120
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -28,6 +40,6 @@ spec:
       middlewares:
         - name: tue-only
       services:
-        - name: gewisweb
+        - name: gewisweb-lan
           port: 8081
   tls: {}

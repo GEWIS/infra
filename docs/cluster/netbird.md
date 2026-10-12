@@ -56,7 +56,7 @@ key in SealedSecret `netbird-mgmt-api-key` and registering as cluster `gewis`,
 the Talos cluster name. It must differ from the previous cluster's operator,
 which registers as `gewis-prod`: the name prefixes the networks and resources the
 operator creates in NetBird, so two operators sharing it would manage each
-other's objects. `flux/30_config/netbird-operator/` holds the `NetworkRouter` `lan`,
+other's objects. `flux/30_config/netbird-operator/` holds the `NetworkRouter` `k8s-cluster`,
 which publishes resources under the NetBird DNS zone `k8s.gewis.nl`; that zone
 must exist in NetBird before the router reconciles.
 

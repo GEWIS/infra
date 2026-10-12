@@ -106,9 +106,9 @@ Middlewares in its own namespace, so an app namespace cannot publish another
 namespace's Service.
 
 `allowExternalNameServices` stays off as well, so a route cannot publish an
-arbitrary host by name. Hosts outside the cluster are reached through a NetBird
-`NetworkEgress`, which is an ordinary Service — see
-[External proxy](external-proxy.md).
+arbitrary host by name. Hosts outside the cluster are reached through a
+selectorless Service with a hand-written `EndpointSlice` for their LAN address —
+see [External proxy](external-proxy.md).
 
 ## Keycloak-protected apps use the `traefik-oidc-auth` plugin
 

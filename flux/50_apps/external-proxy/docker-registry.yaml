@@ -22,69 +22,69 @@ spec:
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9101
     - kind: Rule
       match: Host(`default.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9101
     - kind: Rule
       match: Host(`abc.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9102
     - kind: Rule
       match: Host(`board.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9103
     - kind: Rule
       match: Host(`cbc.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9104
     - kind: Rule
       match: Host(`supremum.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9107
     - kind: Rule
       match: Host(`avico.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9108
     - kind: Rule
       match: Host(`celerit.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9110
     - kind: Rule
       match: Host(`pdf.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9111
     - kind: Rule
       match: Host(`ivv.docker-registry.gewis.nl`)
       middlewares:
         - name: docker-registry-headers
       services:
-        - name: gewiscontainer
+        - name: gewiscontainer-lan
           port: 9112
   tls: {}
