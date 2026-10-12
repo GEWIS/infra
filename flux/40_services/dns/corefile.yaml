@@ -16,9 +16,10 @@ data:
         hosts {
             10.82.50.100 s3.net.gewis.nl
             10.82.50.10 s3.gewis.nl
-            10.82.50.11 dns.net.gewis.nl
+            10.82.50.11 alpha.dns.net.gewis.nl
             10.82.50.12 postgres.net.gewis.nl
             10.82.50.13 mariadb.net.gewis.nl
+            10.82.50.15 beta.dns.net.gewis.nl
             fallthrough
         }
 
