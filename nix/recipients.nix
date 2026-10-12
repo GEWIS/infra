@@ -12,6 +12,7 @@
     ruben = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM";
     victor = "age1zr2rw7z4p2gpt58gkhz6kx3nuvyhz76lgl334kcr56sc26czwstq4xhsh0";
     jan = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKxoQSxfYqf9ITN8Fhckk8WbY4dwtBAXOhC9jxihJvq";
+    lars = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDNEUz9gdN7GD8a1BNijKPl+3/CwYr+n36G4FjvqqVTt";
   };
 
   hosts = {
