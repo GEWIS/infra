@@ -3,12 +3,13 @@ locals {
   s3_region   = "us-east-1"
 
   buckets = {
-    loki     = { namespace = "observability" }
-    mimir    = { namespace = "observability" }
-    tempo    = { namespace = "observability" }
-    postgres = { namespace = "postgres" }
-    mariadb  = { namespace = "mariadb" }
-    kaneo    = { namespace = "kaneo-prod" }
+    loki           = { namespace = "observability" }
+    mimir          = { namespace = "observability" }
+    tempo          = { namespace = "observability" }
+    postgres       = { namespace = "postgres" }
+    mariadb        = { namespace = "mariadb" }
+    kaneo          = { namespace = "kaneo-prod" }
+    nextcloud      = { namespace = "nextcloud-prod" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
