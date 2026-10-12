@@ -4,6 +4,7 @@ locals {
     grafana   = { namespace = "observability" }
     netbird   = { namespace = "netbird" }
     loom      = { namespace = "loom" }
+    nextcloud = { namespace = "nextcloud-prod" }
   }
 
   postgres_namespace_policies = {
