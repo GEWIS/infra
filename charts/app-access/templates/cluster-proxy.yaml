@@ -40,6 +40,14 @@ subjects:
     namespace: netbird-operator
 ---
 apiVersion: netbird.io/v1alpha1
+kind: Group
+metadata:
+  name: k8s-api
+  namespace: netbird-operator
+spec:
+  name: k8s-api
+---
+apiVersion: netbird.io/v1alpha1
 kind: ClusterProxy
 metadata:
   name: gewis
@@ -49,5 +57,6 @@ spec:
   apiServer: https://kubernetes.default.svc
   serviceAccountName: clusterproxy-gewis
   groups:
-    - name: k8s-api
+    - localRef:
+        name: k8s-api
 {{- end }}

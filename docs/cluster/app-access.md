@@ -53,7 +53,8 @@ The account may impersonate any user and the groups in the list. That makes the
 proxy pod a trusted component, like the Flux controllers: whoever controls it
 can act as almost any user.
 
-The NetBird group `k8s-api` must exist in NetBird before the ClusterProxy
-reconciles; until then the operator logs `group: k8s-api not found` and the
-`app-access` release times out. Who can reach the proxy at all is a NetBird
-policy from the app groups to `k8s-api`, managed in the NetBird dashboard.
+The chart also renders a `Group` `k8s-api` in `netbird-operator`, and the
+ClusterProxy refers to it with `localRef`, so the operator creates the NetBird
+group itself. A plain `name:` reference would instead require the group to
+exist in NetBird already. Who can reach the proxy at all is a NetBird policy
+from the app groups to `k8s-api`, managed in the NetBird dashboard.
