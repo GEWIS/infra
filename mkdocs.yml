@@ -108,6 +108,7 @@ nav:
           - Networking: talos/networking.md
           - Placement: talos/placement.md
           - Memory: talos/memory.md
+          - Kubelet reservations: talos/kubelet-reservations.md
           - Follow-ups: talos/follow-ups.md
   - Cluster:
       - Overview: cluster/index.md
@@ -115,8 +116,8 @@ nav:
       - Flux Web UI: cluster/flux-web.md
       - Flux layers: cluster/layers.md
       - Kite: cluster/kite.md
-      - Ingress (Traefik): cluster/traefik.md
       - App access: cluster/app-access.md
+      - Ingress (Traefik): cluster/traefik.md
       - Certificates: cluster/certificates.md
       - DNS: cluster/dns.md
       - Internal resolver: cluster/resolver.md

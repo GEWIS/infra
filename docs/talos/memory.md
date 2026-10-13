@@ -12,3 +12,6 @@ back. One node sat at 2 GiB of its nominal 8 GiB this way: kubelet missed
 heartbeats, the node flapped `NotReady`, containerd tore down sandboxes, and the
 visible symptom was Longhorn pods crash-looping — the storage layer was fine.
 Static memory reserves the full amount on the host and cannot be squeezed.
+
+A node can still starve itself from the inside; see
+[kubelet memory reservations](kubelet-reservations.md).
