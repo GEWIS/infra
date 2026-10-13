@@ -81,6 +81,46 @@ at startup, so a change to the source needs
 with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
 `GOPATH` layout.
 
+## Error pages
+
+Every route on `websecure` that answers 404 or any `5xx` gets a
+GEWIS-styled page in place of the backend's: a full-bleed `#D40000` background
+(the `$gewis-red` from [gewisweb](https://github.com/GEWIS/gewisweb)) with the
+white GEWIS logo (`static.gewis.nl/logo/SVG/Full_Logo_White.svg`, its own black
+background square stripped out), the original status code and its reason phrase
+(`HTTP 502 — Bad Gateway`) as the heading, and the line asking the visitor to
+email `cbc@gewis.nl` if the error looks wrong. The status code of the response
+is not rewritten; Traefik swaps the body only.
+
+The Middleware `traefik/error-pages` lives in
+`flux/20_controllers/traefik/error-pages/middleware.yaml` and the `websecure` entry point lists
+it after `traefik-real-ip` in the Traefik HelmRelease
+(`flux/20_controllers/traefik/helm-release.yaml`) — it is an
+entry-point middleware, so no route has to name it. It ships in the same
+directory as the error-pages workload instead of the `config` layer: the
+HelmRelease references it, and a Middleware that is missing when a Traefik
+pod starts makes every route on `websecure` answer plain `404 page not
+found`. The Middleware CR cannot apply before the chart has installed its
+CRDs, and the kustomizer retries applying it (`retryInterval` on the layer),
+so a pod booting in that gap serves the broken state until it lands; Traefik
+then picks the middleware up through the provider watch and rebuilds the
+routers, no restart. Other `4xx` codes are deliberately untouched: replacement
+bodies would deny API clients machine-readable errors such as Keycloak's
+token-endpoint responses.
+
+The page is served by nginx: Deployment and Service `error-pages` in the
+`traefik` namespace from `flux/20_controllers/traefik/error-pages/`, two
+unprivileged read-only-root replicas of `nginx:1.28-alpine` behind
+`error-pages:8080`. Its ConfigMap (`traefik-error-pages-nginx`) holds the
+`nginx.conf` and one page template: the errors middleware asks for
+`/{status}.html`, nginx captures the status from the request path, maps it to a
+reason phrase (`default: "Error"` for the long tail), and SSI-echoes code and
+phrase into the template. The logo is inlined as a data URI because the browser
+fetches everything but the swapped body from the host that failed, not from
+this server, so a plain `logo.svg` reference would never reach it. The
+Middleware and the Service both live in `traefik`, so `allowCrossNamespace`
+staying off changes nothing.
+
 ## Routes are IngressRoutes
 
 Every published service has an `IngressRoute` on the `websecure` entry point,
