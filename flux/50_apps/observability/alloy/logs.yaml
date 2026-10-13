@@ -80,14 +80,14 @@ spec:
 
             rule {
               source_labels = ["__meta_kubernetes_namespace"]
-              regex         = "abc-crm"
+              regex         = "parelpracht-prod|parelpracht-test"
               target_label  = "tenant"
               replacement   = "ABC-CRM"
             }
 
             rule {
               source_labels = ["__meta_kubernetes_namespace"]
-              regex         = "abc-eou"
+              regex         = "grooster-prod"
               target_label  = "tenant"
               replacement   = "ABC-EOU"
             }
@@ -108,14 +108,14 @@ spec:
 
             rule {
               source_labels = ["__meta_kubernetes_namespace"]
-              regex         = "abc-nc"
+              regex         = "aurora-prod"
               target_label  = "tenant"
               replacement   = "ABC-NC"
             }
 
             rule {
               source_labels = ["__meta_kubernetes_namespace"]
-              regex         = "abc-pos"
+              regex         = "sudosos-prod|sudosos-test"
               target_label  = "tenant"
               replacement   = "ABC-POS"
             }
