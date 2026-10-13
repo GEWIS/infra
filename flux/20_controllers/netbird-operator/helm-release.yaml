@@ -23,3 +23,14 @@ spec:
     managementURL: https://nb.gewis.nl
     cluster:
       name: gewis
+    webhook:
+      failurePolicy: Ignore
+    operator:
+      replicaCount: 2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: netbird-operator

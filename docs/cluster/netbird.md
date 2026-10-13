@@ -65,3 +65,11 @@ The router pod the operator creates runs its `netbird` container with
 `baseline` Pod Security level by default, so the `netbird-operator` namespace is
 labelled `pod-security.kubernetes.io/enforce: privileged`; without it the
 Deployment's ReplicaSet is refused and no router pod appears.
+
+The operator also registers a mutating webhook, `mpod-v1.netbird.io`, on every
+pod create in every namespace. The chart default is `failurePolicy: Fail` with
+one replica, so when the node holding that replica dropped off the network, no
+pod could be created anywhere and nothing rescheduled onto the healthy nodes.
+The release therefore runs two replicas pinned to different nodes and sets
+`failurePolicy: Ignore`. No workload uses NetBird pod injection today; one that
+does would start without it while the webhook is unreachable.
