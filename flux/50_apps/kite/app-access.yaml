@@ -13,6 +13,15 @@ data:
       - name: sudosos
         group: "ABC - POS"
         namespaces: [sudosos-prod, sudosos-test]
+      - name: aurora
+        group: "ABC - Narrowcasting"
+        namespaces: [aurora-prod]
+      - name: parelpracht
+        group: "ABC - CRM"
+        namespaces: [parelpracht-prod, parelpracht-test]
+      - name: grooster
+        group: "ABC - Ease of use software"
+        namespaces: [grooster-prod]
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
