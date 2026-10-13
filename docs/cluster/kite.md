@@ -73,18 +73,47 @@ External Secrets `Password` generator with `refreshPolicy: CreatedOnce`.
 
 The config declares one local user, `admin`, with a password from a second
 `Password` generator in the `kite-admin` Secret. Kite needs a user before it
-leaves its first-run setup, and the plugin job logs in with it. No person uses
-it; when authentik is down, the Talos break-glass kubeconfig is the way in.
-Password login therefore stays enabled.
+leaves its first-run setup. No person uses it: login is Keycloak only, and when
+Keycloak is down the Talos break-glass kubeconfig is the way in.
 
-## Plugins
+## Plugins and login settings
 
-Kite keeps installed plugins in its database rather than its config file. The
-`plugins.json` key of the `kite-plugins` ConfigMap (`plugins.yaml`) lists them by
-catalog id and version, and the CronJob `kite-plugins` installs and enables any
-that are missing, disabled or at another version, every 15 minutes, through
-Kite's admin API. A lost database is repaired by the next run.
+Kite keeps installed plugins and its login settings in its database rather than
+its config file. The CronJob `kite-plugins` (`plugins.yaml`) repairs both every
+15 minutes through Kite's admin API:
+
+- it installs and enables the plugins listed by catalog id and version in the
+  `plugins.json` key of the `kite-plugins` ConfigMap;
+- it sets `passwordLoginDisabled: true` and `enablePasskeyLogin: false`, so the
+  login page offers only Keycloak.
+
+With password login off, the job authenticates with an API key, user
+`kite-plugins`, which the generated config maps to `admin`. The key lives in the
+Secret `kite-plugins-apikey`, the only Secret the job may read or patch. When the
+key is missing or rejected, the job logs in as `admin` with its password,
+replaces the key and stores it. That works after a lost database, because a new
+database starts with password login enabled. If only the Secret is lost while
+password login is off, an admin logs in through Keycloak, creates an API key
+named `kite-plugins` under *Settings*, and patches it into the Secret as
+`token: kite<id>-<key>`.
 
 | Plugin | Version | Adds |
 | --- | --- | --- |
 | `resource-map` | 0.1.0 | *Resource Map* under *Application*: workloads, Pods, Services, Ingresses and storage of a namespace as a graph |
+
+## Metrics
+
+Kite reads metrics from Mimir through `kite-prometheus`
+(`prometheus-proxy.yaml`), an nginx that forwards only
+`/prometheus/api/v1/` and adds a federated `X-Scope-OrgID` over every tenant,
+because Kite cannot send headers itself. The cluster entry in the generated
+config points `prometheusURL` at it.
+
+That proxy reads every tenant without authentication, so a
+`CiliumNetworkPolicy` admits only the Kite pod and it has no route outside the
+cluster. Inside Kite, raw PromQL is limited to `admin`, and pod graphs follow
+the pod permissions. The cluster-wide CPU and memory history on the overview
+is shown to every logged-in user, as aggregates only.
+
+Kite's node graphs filter cAdvisor series on `node`, so Alloy adds that label
+to the kubelet and cAdvisor scrapes from the node name.

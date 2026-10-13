@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kite-prometheus
+  namespace: kite
+data:
+  default.conf: |
+    server {
+      listen 8080;
+
+      location /prometheus/api/v1/ {
+        proxy_pass http://mimir.observability.svc.cluster.local:8080;
+        proxy_set_header X-Scope-OrgID "ABC-CRM|ABC-DB|ABC-EOU|ABC-NC|ABC-POS|ABC-WEB|CBC";
+      }
+
+      location / {
+        return 404;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kite-prometheus
+  namespace: kite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kite-prometheus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kite-prometheus
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.31.6-alpine-slim
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: config
+          configMap:
+            name: kite-prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kite-prometheus
+  namespace: kite
+spec:
+  selector:
+    app.kubernetes.io/name: kite-prometheus
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kite-prometheus
+  namespace: kite
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kite-prometheus
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: kite
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

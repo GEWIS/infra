@@ -12,38 +12,92 @@ data:
       }
     ]
   apply.py: |
+    import base64
     import json
     import os
+    import ssl
+    import urllib.error
     import urllib.request
 
     KITE = "http://kite.kite.svc:8080"
     PLUGINS = json.load(open("/config/plugins.json"))
+    SETTINGS = {"passwordLoginDisabled": True, "enablePasskeyLogin": False}
+    KEY_NAME = "kite-plugins"
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    KEY_SECRET = "https://kubernetes.default.svc/api/v1/namespaces/kite/secrets/kite-plugins-apikey"
+    KUBE = ssl.create_default_context(cafile=f"{SA}/ca.crt")
 
 
-    def call(method, path, body=None, cookie=None):
+    def call(method, path, body=None, auth=None):
         request = urllib.request.Request(KITE + path, method=method)
         request.add_header("Content-Type", "application/json")
-        if cookie:
-            request.add_header("Cookie", cookie)
+        if auth:
+            request.add_header(*auth)
         data = json.dumps(body).encode() if body is not None else None
         with urllib.request.urlopen(request, data, timeout=120) as response:
             return response.headers, json.loads(response.read() or b"null")
 
 
-    headers, _ = call("POST", "/api/auth/login/password",
-                      {"username": "admin", "password": os.environ["KITE_ADMIN_PASSWORD"]})
-    token = next(c.split(";")[0] for c in headers.get_all("Set-Cookie") if c.startswith("auth_token="))
+    def kube(method, body=None):
+        request = urllib.request.Request(KEY_SECRET, method=method)
+        request.add_header("Authorization", "Bearer " + open(f"{SA}/token").read())
+        request.add_header("Content-Type", "application/merge-patch+json")
+        data = json.dumps(body).encode() if body is not None else None
+        with urllib.request.urlopen(request, data, timeout=30, context=KUBE) as response:
+            return json.loads(response.read())
 
-    _, installed = call("GET", "/api/v1/admin/plugins", cookie=token)
+
+    def stored_key():
+        encoded = (kube("GET").get("data") or {}).get("token")
+        return ("Authorization", base64.b64decode(encoded).decode()) if encoded else None
+
+
+    def works(auth):
+        try:
+            call("GET", "/api/v1/admin/plugins", auth=auth)
+            return True
+        except urllib.error.HTTPError as error:
+            if error.code in (401, 403):
+                return False
+            raise
+
+
+    def new_key():
+        headers, _ = call("POST", "/api/auth/login/password",
+                          {"username": "admin", "password": os.environ["KITE_ADMIN_PASSWORD"]})
+        cookie = next(c.split(";")[0] for c in headers.get_all("Set-Cookie") if c.startswith("auth_token="))
+        session = ("Cookie", cookie)
+        _, keys = call("GET", "/api/v1/admin/apikeys/", auth=session)
+        for key in keys["apiKeys"]:
+            if key["username"] == KEY_NAME:
+                call("DELETE", f"/api/v1/admin/apikeys/{key['id']}", auth=session)
+        _, created = call("POST", "/api/v1/admin/apikeys/", {"name": KEY_NAME}, auth=session)
+        token = f"kite{created['apiKey']['id']}-{created['apiKey']['apiKey']}"
+        kube("PATCH", {"data": {"token": base64.b64encode(token.encode()).decode()}})
+        print("created a new API key")
+        return ("Authorization", token)
+
+
+    auth = stored_key()
+    if auth is None or not works(auth):
+        auth = new_key()
+
+    _, installed = call("GET", "/api/v1/admin/plugins", auth=auth)
     current = {p["id"]: p for p in installed["plugins"]}
     for plugin in PLUGINS:
         have = current.get(plugin["id"])
         if have is None or have["version"] != plugin["version"]:
-            call("POST", "/api/v1/admin/plugins", {**plugin, "enabled": True}, cookie=token)
+            call("POST", "/api/v1/admin/plugins", {**plugin, "enabled": True}, auth=auth)
             print(f"installed {plugin['id']} {plugin['version']}")
         elif not have["enabled"]:
-            call("PATCH", f"/api/v1/admin/plugins/{plugin['id']}", {"enabled": True}, cookie=token)
+            call("PATCH", f"/api/v1/admin/plugins/{plugin['id']}", {"enabled": True}, auth=auth)
             print(f"enabled {plugin['id']}")
+
+    _, setting = call("GET", "/api/v1/admin/general-setting/", auth=auth)
+    if any(setting.get(name) != value for name, value in SETTINGS.items()):
+        call("PUT", "/api/v1/admin/general-setting/", SETTINGS, auth=auth)
+        print(f"applied {SETTINGS}")
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -61,7 +115,7 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          automountServiceAccountToken: false
+          serviceAccountName: kite-plugins
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534
@@ -99,3 +153,41 @@ spec:
           - name: config
             configMap:
               name: kite-plugins
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kite-plugins
+  namespace: kite
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kite-plugins-apikey
+  namespace: kite
+type: Opaque
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kite-plugins
+  namespace: kite
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["kite-plugins-apikey"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kite-plugins
+  namespace: kite
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kite-plugins
+subjects:
+  - kind: ServiceAccount
+    name: kite-plugins
+    namespace: kite

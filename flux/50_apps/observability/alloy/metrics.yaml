@@ -53,6 +53,15 @@ spec:
             role = "node"
           }
 
+          discovery.relabel "nodes" {
+            targets = discovery.kubernetes.nodes.targets
+
+            rule {
+              source_labels = ["__meta_kubernetes_node_name"]
+              target_label  = "node"
+            }
+          }
+
           discovery.kubernetes "node_exporter" {
             role = "pod"
 
@@ -287,7 +296,7 @@ spec:
 
           prometheus.scrape "kubelet" {
             job_name        = "kubelet"
-            targets           = discovery.kubernetes.nodes.targets
+            targets           = discovery.relabel.nodes.output
             scheme            = "https"
             metrics_path      = "/metrics"
             bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -310,7 +319,7 @@ spec:
 
           prometheus.scrape "cadvisor" {
             job_name        = "cadvisor"
-            targets           = discovery.kubernetes.nodes.targets
+            targets           = discovery.relabel.nodes.output
             scheme            = "https"
             metrics_path      = "/metrics/cadvisor"
             bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
