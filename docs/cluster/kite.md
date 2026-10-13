@@ -29,12 +29,14 @@ role assignment with the configured ones on each reload:
 | Role | Mapped to | Grants |
 | --- | --- | --- |
 | `admin` (built in) | `CBC - Application Hosting Team (ADM)` | everything Kite's service account can do |
-| `crd-reader` | every logged-in user | `get` on `crds` in all namespaces |
+| `crd-reader` | every logged-in user | `get` on `crds`, cluster-scoped only |
 
-`crd-reader` exists because Kite lists cluster-scoped objects only for roles
-granted on all namespaces; without it the *Custom Resource Definitions* page
-fails for anyone who is not an admin. It covers the definitions, not the objects
-in them.
+`crd-reader` exists because every custom resource page first loads its
+CustomResourceDefinition, which is cluster-scoped. Kite checks cluster-scoped
+requests against the namespace `_all`, so the role lists exactly `_all` and not
+`*`: Kite shows a namespace in the selector when any of the user's roles
+covers it, and `*` would put every namespace there. It covers the definitions,
+not the objects in them.
 
 Each entry in the [app access](app-access.md) list gets two roles for its
 group: `<app>-read` with `get` and `log` on every resource, and `<app>-pods`

@@ -1,5 +1,5 @@
 {{- if eq .Values.render "kiteConfig" }}
-{{- $roles := list (dict "name" "crd-reader" "description" "List CustomResourceDefinitions, so the CRD pages load" "clusters" (list "*") "namespaces" (list "*") "resources" (list "crds") "verbs" (list "get")) }}
+{{- $roles := list (dict "name" "crd-reader" "description" "Read CustomResourceDefinitions, so the CRD and custom resource pages load" "clusters" (list "*") "namespaces" (list "_all") "resources" (list "crds") "verbs" (list "get")) }}
 {{- $mapping := list (dict "name" "admin" "oidcGroups" (list "CBC - Application Hosting Team (ADM)")) (dict "name" "crd-reader" "users" (list "*")) }}
 {{- range .Values.apps }}
 {{- $roles = append $roles (dict "name" (printf "%s-read" .name) "description" (printf "Read and logs in the %s namespaces" .name) "clusters" (list "*") "namespaces" .namespaces "resources" (list "*") "verbs" (list "get" "log")) }}
