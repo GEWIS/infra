@@ -10,3 +10,6 @@ subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: Group
     name: CBC - Application Hosting Team (ADM)
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: Netbird - K3s Hosts - SSH Access

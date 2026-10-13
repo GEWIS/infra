@@ -13,13 +13,17 @@ rules:
   - apiGroups: [""]
     resources: ["users"]
     verbs: ["impersonate"]
-  {{- with .Values.apps }}
+  {{- $groups := .Values.adminGroups }}
+  {{- range .Values.apps }}
+  {{- $groups = append $groups .group }}
+  {{- end }}
+  {{- with $groups }}
   - apiGroups: [""]
     resources: ["groups"]
     verbs: ["impersonate"]
     resourceNames:
       {{- range . }}
-      - {{ .group | quote }}
+      - {{ . | quote }}
       {{- end }}
   {{- end }}
   - apiGroups: ["authentication.k8s.io"]
