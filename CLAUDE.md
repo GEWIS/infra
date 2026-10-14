@@ -15,6 +15,12 @@ The docs and comments should always reflect the current state of the code, not r
 Comments in the code itself should be minimal, and should only be used if an unorthodox decision was made.
 If comments explaning the code are required, your code is too complex and should be refactored.
 
+Never solve a consistency problem with documentation. A value needed in two places
+(a tenant list, a group name, a hostname) is derived from one source in code, so a
+change in one place cannot leave another stale. Docs that say "remember to also update
+X" are a bug, not a fix; if deriving it properly is hard, design it instead of
+hand-copying the value.
+
 ## Commands
 
 ```sh

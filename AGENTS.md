@@ -1,5 +1,14 @@
 # Agent instructions
 
+## One source of truth, enforced by code
+
+Never solve a consistency problem with documentation. When the same value is
+needed in two places (a tenant list, a group name, a hostname), derive every
+copy from one source in code, so a change in one place cannot leave another
+stale. A docs page that says "remember to also update X" is a bug, not a fix.
+If deriving it properly is hard, say so and design it; do not hand-copy the
+value and document the duplication.
+
 ## Keep the docs in step with the code
 
 `docs/` is not an afterthought — it is published as a site at
