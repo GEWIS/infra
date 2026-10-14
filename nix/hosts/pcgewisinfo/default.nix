@@ -27,6 +27,7 @@ in
     servicePc = {
       enable = true;
       uid = 1000;
+      shutdownAt = null;
 
       browsers.info = {
         urlFile = config.sops.secrets.kioskUrl.path;
