@@ -35,10 +35,8 @@ the proxy only once NetBird also receives it.
 
 `adminGroups` are NetBird groups the proxy may impersonate without a namespace
 limit. Their rights come from the `cluster-admins` ClusterRoleBinding in
-`flux/30_config/rbac/`, which sits in the early `config` layer so it never
-disappears with a failed `app-access` release; add a group to both. They must
-come from the NetBird OU, since the proxy passes on only the caller's NetBird
-groups.
+`flux/30_config/rbac/`, in the `config` layer. They come from the NetBird OU,
+since the proxy passes on only the caller's NetBird groups.
 
 ## What one entry produces
 

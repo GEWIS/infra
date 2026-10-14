@@ -31,12 +31,11 @@ role assignment with the configured ones on each reload:
 | `admin` (built in) | `CBC - Application Hosting Team (ADM)` | everything Kite's service account can do |
 | `crd-reader` | every logged-in user | `get` on `crds`, cluster-scoped only |
 
-`crd-reader` exists because every custom resource page first loads its
-CustomResourceDefinition, which is cluster-scoped. Kite checks cluster-scoped
-requests against the namespace `_all`, so the role lists exactly `_all` and not
-`*`: Kite shows a namespace in the selector when any of the user's roles
-covers it, and `*` would put every namespace there. It covers the definitions,
-not the objects in them.
+Every custom resource page loads its CustomResourceDefinition first, and Kite
+checks cluster-scoped requests against the namespace `_all`, which is the only
+namespace `crd-reader` lists. The namespace selector shows a namespace when one
+of the user's roles lists it, so `crd-reader` adds none. It covers the
+definitions, not the objects in them.
 
 Each entry in the [app access](app-access.md) list gets two roles for its
 group: `<app>-read` with `get` and `log` on every resource, and `<app>-pods`
@@ -91,11 +90,8 @@ With password login off, the job authenticates with an API key, user
 `kite-plugins`, which the generated config maps to `admin`. The key lives in the
 Secret `kite-plugins-apikey`, the only Secret the job may read or patch. When the
 key is missing or rejected, the job logs in as `admin` with its password,
-replaces the key and stores it. That works after a lost database, because a new
-database starts with password login enabled. If only the Secret is lost while
-password login is off, an admin logs in through Keycloak, creates an API key
-named `kite-plugins` under *Settings*, and patches it into the Secret as
-`token: kite<id>-<key>`.
+replaces the key and stores it; a new database starts with password login
+enabled.
 
 | Plugin | Version | Adds |
 | --- | --- | --- |

@@ -35,8 +35,7 @@ The federated header is `join("|", sort(local.tenants))` in
 enumerates them exactly, so a `cbc` written anywhere would be a second,
 invisible tenant. There is one spelling, `CBC`, and it comes from that one list.
 
-The only other federated reader is Kite's metrics proxy,
-`flux/50_apps/kite/prometheus-proxy.yaml`, which repeats the header by hand; see
+The only other federated reader is Kite's metrics proxy; see
 [Kite](../cluster/kite.md#metrics).
 
 Loki tags federated results with `__tenant_id__`, so CBC can filter or group by
@@ -49,9 +48,6 @@ tenant inside a single query: `{app="foo", __tenant_id__=~"ABC-.+"}`.
 2. `flux/50_apps/observability/alloy/` — one relabel rule in `logs.yaml` mapping the
    namespace to the tenant, and one `prometheus.relabel` + `prometheus.remote_write`
    pair in `metrics.yaml`.
-3. `flux/50_apps/kite/prometheus-proxy.yaml` — the same tenant in its
-   `X-Scope-OrgID` header, then restart the `kite-prometheus` Deployment, since
-   nginx reads its config only at start.
 
 Nothing per-tenant is provisioned in SeaweedFS. Tenancy is a prefix inside the
 shared `loki`, `mimir` and `tempo` buckets, so the bucket layout never changes.
