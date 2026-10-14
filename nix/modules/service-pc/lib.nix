@@ -199,6 +199,10 @@ let
   # this is the wm_class the placement helper sees for that instance.
   browserWmClass = name: "firefox-${name}";
 
+  browserUnit = name: "service-pc-browser-${name}";
+
+  appUnit = name: "service-pc-app-${name}";
+
   browserModule = lib.types.submodule {
     options = {
       url = lib.mkOption {
@@ -290,14 +294,17 @@ let
   );
 
   # Everything the placement helper is asked to move, so the assertions can
-  # check the browsers and the extra apps in one pass.
+  # check the browsers and the extra apps in one pass, and the display reset
+  # knows which units to restart.
   placed =
     lib.mapAttrsToList (name: browser: {
       what = "gewis.servicePc.browsers.${name}";
+      unit = browserUnit name;
       inherit (browser) workspace monitor;
     }) cfg.browsers
     ++ lib.mapAttrsToList (name: app: {
       what = "gewis.servicePc.apps.${name}";
+      unit = appUnit name;
       inherit (app) workspace monitor;
     }) cfg.apps;
 
@@ -352,6 +359,8 @@ in
   inherit
     cfg
     browserWmClass
+    browserUnit
+    appUnit
     browserModule
     appModule
     placed

@@ -70,6 +70,18 @@ in
       '';
     };
 
+    resetDisplaysAt = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "*-*-* 04:00:00";
+      description = ''
+        Time every day, as a systemd calendar expression, at which screens that
+        are mirrored or switched off are put back side by side, and the
+        windows placed by `monitor` are restarted onto them. Requires
+        {option}`gewis.servicePc.multiMonitor`. `null` never does.
+      '';
+    };
+
     touch = {
       enable = lib.mkOption {
         type = lib.types.bool;

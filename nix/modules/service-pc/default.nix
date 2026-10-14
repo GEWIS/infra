@@ -9,5 +9,6 @@
     ./nfc.nix
     ./plymouth.nix
     ./shutdown.nix
+    ./display-reset.nix
   ];
 }

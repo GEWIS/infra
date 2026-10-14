@@ -36,6 +36,7 @@ in
       uid = 1000;
       multiMonitor = true;
       shutdownAt = null;
+      resetDisplaysAt = "04:00";
 
       browsers.left = {
         urlFile = config.sops.secrets.leftScreenURL.path;

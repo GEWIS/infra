@@ -12,6 +12,10 @@ Nothing else runs on it; the Aurora lights and audio services live on
 `/home/gewis` is carried on `/persist`, so the browser profiles survive the
 root filesystem being wiped on every boot.
 
+It is never powered off at night. Instead, every night the screens are put back
+side by side if they have ended up mirrored; see
+[Putting the screens back](../service-pc/touch.md#putting-the-screens-back).
+
 ## Secrets
 
 `secrets/pcgewisa.yaml` carries `cbcPassword`, `rdpPassword`,

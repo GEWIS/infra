@@ -14,6 +14,7 @@ Everything below is under `gewis.servicePc`, defined in
 | `multiMonitor` | `false` | This host has more than one screen; enables per-monitor placement |
 | `justPerfection` | `false` | Load the Just Perfection extension |
 | `shutdownAt` | `"23:00"` | Daily power-off time, as a systemd calendar expression; `null` keeps the host running |
+| `resetDisplaysAt` | `null` | Daily time, as a systemd calendar expression, to put mirrored or switched-off screens back side by side; needs `multiMonitor`. See [Putting the screens back](touch.md#putting-the-screens-back) |
 
 ## Touch
 

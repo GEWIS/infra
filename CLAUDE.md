@@ -89,7 +89,7 @@ carrying its own `disko.nix`), an entry in `flake.nix`, its age key in
 
 `gewis.servicePc` (`nix/modules/service-pc/`) is the kiosk/POS desktop: GNOME auto-login
 as an unprivileged user, one or more Firefox instances each at a fixed URL, extra apps,
-per-workspace or per-monitor placement, NFC reader, RDP. `lib.nix` holds what the
+per-workspace or per-monitor placement, a nightly reset of mirrored screens, NFC reader, RDP. `lib.nix` holds what the
 sub-files share (the placement helper, `sessionUnit`, the `browsers` and `apps`
 submodules). The module deliberately names no
 applications; packages, URLs and unfree allowances live in `nix/hosts/<host>/`. The

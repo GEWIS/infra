@@ -8,6 +8,7 @@ let
   inherit (import ./lib.nix { inherit config lib pkgs; })
     cfg
     browserWmClass
+    browserUnit
     needsKiosk
     sessionUnit
     ;
@@ -72,7 +73,7 @@ in
 
     systemd.user.services = lib.mapAttrs' (
       name: browser:
-      lib.nameValuePair "service-pc-browser-${name}" (sessionUnit {
+      lib.nameValuePair (browserUnit name) (sessionUnit {
         description = "${name} browser for the service-PC session";
         exec = "${browserLauncher name browser}";
         wmClass = browserWmClass name;

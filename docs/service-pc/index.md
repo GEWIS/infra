@@ -11,7 +11,8 @@ It gives a machine:
 - an NFC reader that types scanned tags into whatever has focus;
 - remote control of the session;
 - a boot splash showing the wallpaper instead of kernel output;
-- a power-off every evening, so a stuck session never outlives the day.
+- a power-off every evening, so a stuck session never outlives the day, or,
+  on a host that stays on, a nightly reset of mirrored screens to side by side.
 
 The module is defined in `nix/modules/service-pc/` and imported by every
 host through `nix/modules/default.nix`, so it is available everywhere and does
