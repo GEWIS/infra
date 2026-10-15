@@ -31,7 +31,7 @@ The gewismail HTTPS backend has a self-signed certificate; `ServersTransport`
 | Route | Hostnames | Backend |
 | --- | --- | --- |
 | `gewis` | `gewis.nl`, `www.gewis.nl` (redirect to the apex), `images.gewis.nl` | gewiscontainer `9210`, `9211` |
-| `gewiscontainer` | `ivv`, `mail-api`, `wiki`, `gewiki`, `latex`, `pdf`, `supremum`, `docker`, `pgadmin`, `analytics`, `analytics.test`, `xoa`, `planka`, `vault`, `pkg`, `test` `.gewis.nl` | gewiscontainer, one port each |
+| `gewiscontainer` | `ivv`, `mail-api`, `wiki`, `gewiki`, `latex`, `pdf`, `supremum`, `inf`, `docker`, `pgadmin`, `analytics`, `analytics.test`, `xoa`, `planka`, `vault`, `pkg`, `test` `.gewis.nl` | gewiscontainer, one port each |
 | `docker-registry` | `docker-registry.gewis.nl` and `<committee>.docker-registry.gewis.nl` | gewiscontainer `9101`–`9112` |
 | `gewismail` | `mail`, `webmail`, `lists` `.gewis.nl` | gewismail `443` (HTTPS), `8000` |
 | `gewisweb` | `phpmyadmin.gewis.nl` | gewisweb `8081` |

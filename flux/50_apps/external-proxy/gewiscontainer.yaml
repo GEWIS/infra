@@ -216,7 +216,7 @@ spec:
         - name: gewiscontainer-lan
           port: 9860
     - kind: Rule
-      match: Host(`supremum.gewis.nl`)
+      match: Host(`supremum.gewis.nl`) || Host(`inf.gewis.nl`)
       services:
         - name: gewiscontainer-lan
           port: 9501
