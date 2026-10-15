@@ -6,6 +6,7 @@
     ./common.nix
     ./motd.nix
     ./netbird.nix
+    ./nvidia.nix
     ./persistence.nix
     ./service-pc
     ./shell.nix

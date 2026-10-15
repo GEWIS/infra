@@ -16,6 +16,11 @@ It is never powered off at night. Instead, every night the screens are put back
 side by side if they have ended up mirrored; see
 [Putting the screens back](../service-pc/touch.md#putting-the-screens-back).
 
+## Graphics
+
+The PC has a GeForce GTX 1650 (TU117) and runs NVIDIA's driver with the open
+kernel modules. See [NVIDIA driver](../nvidia.md).
+
 ## Secrets
 
 `secrets/pcgewisa.yaml` carries `cbcPassword`, `rdpPassword`,

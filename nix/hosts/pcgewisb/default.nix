@@ -6,7 +6,6 @@ in
 {
   imports = [
     ./aurora.nix
-    ./graphics.nix
     ./networking.nix
     ./spotifyd.nix
   ];
@@ -23,6 +22,8 @@ in
     };
 
     comin.enable = true;
+
+    nvidia.enable = true;
 
     tmpfsRoot = {
       enable = true;

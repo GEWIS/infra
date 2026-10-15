@@ -19,6 +19,8 @@ in
 
     comin.enable = true;
 
+    nvidia.enable = true;
+
     tmpfsRoot = {
       enable = true;
       device = "/dev/sda";

@@ -64,6 +64,7 @@ nav:
       - NFC reader: service-pc/nfc.md
       - Remote access: service-pc/remote.md
       - Installing: service-pc/install.md
+  - NVIDIA driver: nvidia.md
   - Zabbix agent: zabbix-agent.md
   - Hosts:
       - pcgewisa:
