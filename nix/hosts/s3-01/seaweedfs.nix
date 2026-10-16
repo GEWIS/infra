@@ -40,6 +40,9 @@ let
     '';
   };
 
+  # Read by node exporter's textfile collector.
+  textfileDir = "/var/lib/prometheus-node-exporter-text";
+
   hardening = {
     NoNewPrivileges = true;
     PrivateDevices = true;
@@ -116,6 +119,8 @@ in
         };
       };
     };
+
+    tmpfiles.rules = [ "d ${textfileDir} 0755 root root -" ];
   };
 
   users.users.seaweedfs = {
@@ -139,6 +144,15 @@ in
         AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.seaweedfs-admin-secret-key}
       '';
     };
+  };
+
+  # Scraped by the cluster's Alloy (job "s3-01") for host health. LAN only;
+  # Cilium masquerades pod egress to the node addresses.
+  services.prometheus.exporters.node = {
+    enable = true;
+    extraFlags = [ "--collector.textfile.directory=${textfileDir}" ];
+    openFirewall = true;
+    firewallFilter = "-p tcp -m tcp -s 10.82.50.0/24 --dport ${toString config.services.prometheus.exporters.node.port}";
   };
 
   networking.firewall.allowedTCPPorts = [ s3Port ];

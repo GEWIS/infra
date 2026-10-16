@@ -12,7 +12,8 @@ weed server -dir=/var/lib/seaweedfs -ip=127.0.0.1 -ip.bind=127.0.0.1 \
 
 | Component | Port | Reachable from |
 | --- | --- | --- |
-| S3 API **and** IAM API | `:8333` | The mesh and `10.82.50.0/24`. The only port in `networking.firewall.allowedTCPPorts`. Named `s3.net.gewis.nl` on the LAN; the S3 API alone is public as [`https://s3.gewis.nl`](../cluster/s3.md). |
+| S3 API **and** IAM API | `:8333` | The mesh and `10.82.50.0/24`, open in `networking.firewall.allowedTCPPorts`. Named `s3.net.gewis.nl` on the LAN; the S3 API alone is public as [`https://s3.gewis.nl`](../cluster/s3.md). |
+| Node exporter | `:9100` | `10.82.50.0/24` only, by a source-filtered firewall rule. Scraped by the cluster's Alloy as job `s3-01`. |
 | Filer | `:8888` | Bound to loopback. Used by `seaweedfs-admin.service` and `weed shell`. |
 | Master | `:9333` | Bound to loopback. |
 | Volume | `:8080` | Bound to loopback. |
@@ -20,7 +21,7 @@ weed server -dir=/var/lib/seaweedfs -ip=127.0.0.1 -ip.bind=127.0.0.1 \
 `-ip=127.0.0.1` is the address the components *advertise to each other*, and
 `-ip.bind=127.0.0.1` keeps master, volume and filer on the loopback interface so
 they are unreachable off-host regardless of the firewall. Only the S3 gateway
-overrides that, with `-s3.ip.bind=0.0.0.0`; 8333 is also the only port in
+overrides that, with `-s3.ip.bind=0.0.0.0`; 8333 is the only SeaweedFS port in
 `networking.firewall.allowedTCPPorts`.
 
 `-volume.max=0` sizes the number of volume slots from the free disk instead of a
