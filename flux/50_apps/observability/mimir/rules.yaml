@@ -193,4 +193,33 @@ data:
               severity: critical
               channel: infra
             annotations:
-              summary: "s3-01's node exporter is unreachable: SeaweedFS is likely down"
+              summary: "s3-01's node exporter is unreachable: SeaweedFS and its off-site backup are likely down"
+  s3-backup.yaml: |
+    groups:
+      - name: s3-backup
+        rules:
+          - alert: S3BackupTooOld
+            expr: time() - seaweedfs_backup_last_success_timestamp_seconds{job="s3-01"} > 26 * 3600
+            for: 15m
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "No successful off-site copy of the SeaweedFS buckets for more than 26 hours"
+
+          - alert: S3BackupFailed
+            expr: seaweedfs_backup_last_run_success{job="s3-01"} == 0
+            labels:
+              severity: critical
+              channel: backup
+            annotations:
+              summary: "The latest off-site copy of the SeaweedFS buckets failed; see journalctl -u seaweedfs-backup on s3-01"
+
+          - alert: S3BackupMetricsMissing
+            expr: absent(seaweedfs_backup_last_success_timestamp_seconds{job="s3-01"})
+            for: 26h
+            labels:
+              severity: warning
+              channel: backup
+            annotations:
+              summary: "s3-01 reports no successful off-site backup, so the backup-age alert cannot fire"

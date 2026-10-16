@@ -19,7 +19,8 @@ The key is the S3 bucket name. `namespace` is the only namespace whose pods may 
 
 `no_backup = true` keeps a bucket out of the daily off-site copy; every bucket
 without it is copied. It becomes the bucket tag `no_backup=true`, which s3-01
-reads at backup time, so the host carries no bucket names.
+reads at backup time, so the host carries no bucket names. See
+[SeaweedFS backup](../seaweedfs-backup/index.md).
 
 Per entry, one apply produces:
 
