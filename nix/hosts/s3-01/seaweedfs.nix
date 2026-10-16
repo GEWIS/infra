@@ -40,6 +40,9 @@ let
     '';
   };
 
+  # Read by node exporter's textfile collector.
+  textfileDir = "/var/lib/prometheus-node-exporter-text";
+
   hardening = {
     NoNewPrivileges = true;
     PrivateDevices = true;
@@ -116,6 +119,8 @@ in
         };
       };
     };
+
+    tmpfiles.rules = [ "d ${textfileDir} 0755 root root -" ];
   };
 
   users.users.seaweedfs = {
@@ -140,6 +145,23 @@ in
       '';
     };
   };
+
+  # Scraped by the cluster's Alloy (job "s3-01") for host health. LAN only;
+  # Cilium masquerades pod egress to the node addresses.
+  services.prometheus.exporters.node = {
+    enable = true;
+    extraFlags = [ "--collector.textfile.directory=${textfileDir}" ];
+  };
+
+  # Not openFirewall + firewallFilter: that runs the filter through ip46tables,
+  # ip6tables rejects the IPv4 source, and firewall-start (sh -e) aborts before
+  # it hooks nixos-fw into INPUT, leaving every port open. nixos-fw is
+  # recreated on each start, so no stop command is needed.
+  networking.firewall.extraCommands = ''
+    iptables -w -A nixos-fw -p tcp -m tcp -s 10.82.50.0/24 \
+      --dport ${toString config.services.prometheus.exporters.node.port} \
+      -m comment --comment node-exporter -j nixos-fw-accept
+  '';
 
   networking.firewall.allowedTCPPorts = [ s3Port ];
 }

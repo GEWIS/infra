@@ -182,3 +182,15 @@ data:
               severity: warning
             annotations:
               summary: "Replica {{ $labels.target }} lags the primary by over 5 minutes"
+  s3-01.yaml: |
+    groups:
+      - name: s3-01
+        rules:
+          - alert: S3HostDown
+            expr: up{job="s3-01"} == 0 or absent(up{job="s3-01"})
+            for: 5m
+            labels:
+              severity: critical
+              channel: infra
+            annotations:
+              summary: "s3-01's node exporter is unreachable: SeaweedFS is likely down"
