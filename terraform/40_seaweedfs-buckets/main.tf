@@ -2,10 +2,13 @@ locals {
   s3_endpoint = "https://s3.gewis.nl"
   s3_region   = "us-east-1"
 
+  # Every bucket is copied off-site to Scaleway by seaweedfs-backup on s3-01 unless
+  # it sets no_backup = true, which becomes the bucket tag no_backup=true that the
+  # host reads. Observability data rebuilds by accrual, so it opts out.
   buckets = {
-    loki           = { namespace = "observability" }
-    mimir          = { namespace = "observability" }
-    tempo          = { namespace = "observability" }
+    loki           = { namespace = "observability", no_backup = true }
+    mimir          = { namespace = "observability", no_backup = true }
+    tempo          = { namespace = "observability", no_backup = true }
     postgres       = { namespace = "postgres" }
     mariadb        = { namespace = "mariadb" }
     kaneo          = { namespace = "kaneo-prod" }
@@ -28,6 +31,7 @@ resource "aws_s3_bucket" "this" {
   for_each = local.buckets
 
   bucket = each.key
+  tags   = try(each.value.no_backup, false) ? { no_backup = "true" } : {}
 }
 
 resource "aws_iam_user" "this" {

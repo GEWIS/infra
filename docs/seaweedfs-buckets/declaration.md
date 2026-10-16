@@ -4,9 +4,9 @@ Everything is driven by one map in `main.tf`:
 
 ```hcl
 buckets = {
-  loki       = { namespace = "observability" }
-  mimir      = { namespace = "observability" }
-  tempo      = { namespace = "observability" }
+  loki       = { namespace = "observability", no_backup = true }
+  mimir      = { namespace = "observability", no_backup = true }
+  tempo      = { namespace = "observability", no_backup = true }
   postgres   = { namespace = "postgres" }
   mariadb    = { namespace = "mariadb" }
   kaneo      = { namespace = "kaneo-prod" }
@@ -17,11 +17,15 @@ buckets = {
 
 The key is the S3 bucket name. `namespace` is the only namespace whose pods may read the resulting credentials.
 
+`no_backup = true` keeps a bucket out of the daily off-site copy; every bucket
+without it is copied. It becomes the bucket tag `no_backup=true`, which s3-01
+reads at backup time, so the host carries no bucket names.
+
 Per entry, one apply produces:
 
 | Object | Where |
 | --- | --- |
-| `aws_s3_bucket` `<bucket>` | SeaweedFS |
+| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out | SeaweedFS |
 | `aws_iam_user` `<namespace>-<bucket>` | SeaweedFS |
 | `aws_iam_access_key` for that user, non-expiring | SeaweedFS |
 | `aws_iam_user_policy` `<bucket>-read-write`: `s3:*` on `arn:aws:s3:::<bucket>` and `arn:aws:s3:::<bucket>/*` | SeaweedFS |
