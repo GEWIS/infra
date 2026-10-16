@@ -28,6 +28,7 @@ What the five service PCs share, and how to install another, is
 | [authentik](authentik/index.md) | The identity provider and how it is wired up |
 | [observability](observability/index.md) | The LGTM stack and its tenancy model |
 | [seaweedfs-buckets](seaweedfs-buckets/index.md) | S3 buckets and the credentials the cluster reads for them |
+| [seaweedfs-backup](seaweedfs-backup/index.md) | The daily off-site copy of the SeaweedFS buckets to Scaleway |
 | [ssh-certificates](ssh-certificates/index.md) | OpenBao as the CA for short-lived SSH user certificates |
 
 The repository itself, its layout, and how to work on it are in the

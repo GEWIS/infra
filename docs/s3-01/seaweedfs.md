@@ -13,7 +13,7 @@ weed server -dir=/var/lib/seaweedfs -ip=127.0.0.1 -ip.bind=127.0.0.1 \
 | Component | Port | Reachable from |
 | --- | --- | --- |
 | S3 API **and** IAM API | `:8333` | The mesh and `10.82.50.0/24`, open in `networking.firewall.allowedTCPPorts`. Named `s3.net.gewis.nl` on the LAN; the S3 API alone is public as [`https://s3.gewis.nl`](../cluster/s3.md). |
-| Node exporter | `:9100` | `10.82.50.0/24` only, by a source-filtered firewall rule. Scraped by the cluster's Alloy as job `s3-01`. |
+| Node exporter | `:9100` | `10.82.50.0/24` only, by a source-filtered firewall rule. Scraped by the cluster's Alloy; carries the [off-site backup](../seaweedfs-backup/job.md#metrics) result. |
 | Filer | `:8888` | Bound to loopback. Used by `seaweedfs-admin.service` and `weed shell`. |
 | Master | `:9333` | Bound to loopback. |
 | Volume | `:8080` | Bound to loopback. |
@@ -125,8 +125,9 @@ the master meta folder share it, and the filer uses its embedded **leveldb2**
 store under that meta folder, so there is no external metadata database to run
 or back up separately.
 
-There is one copy of every object on one VM on one storage repository. Treat it
-as such and keep a backup elsewhere.
+There is one copy of every object on one VM on one storage repository. The
+off-site copy is a daily sync of every bucket not marked `no_backup` to
+Scaleway — see [SeaweedFS backup](../seaweedfs-backup/index.md).
 
 For ad-hoc inspection on the host:
 

@@ -4,7 +4,8 @@ locals {
 
   # Every bucket is copied off-site to Scaleway by seaweedfs-backup on s3-01 unless
   # it sets no_backup = true, which becomes the bucket tag no_backup=true that the
-  # host reads. Observability data rebuilds by accrual, so it opts out.
+  # host reads. See docs/seaweedfs-backup/. Observability data rebuilds by
+  # accrual, so it opts out.
   buckets = {
 <<<<<<< HEAD
     loki           = { namespace = "observability" }
