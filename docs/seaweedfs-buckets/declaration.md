@@ -1,24 +1,28 @@
 # The declaration
 
-Everything is driven by one map in `main.tf`:
+Everything is driven by one map, `local.buckets` in
+`terraform/40_seaweedfs-buckets/main.tf`; the current buckets are listed there
+and nowhere else. An entry looks like this:
 
 ```hcl
 buckets = {
-  loki     = { namespace = "observability" }
-  mimir    = { namespace = "observability" }
-  tempo    = { namespace = "observability" }
+  loki     = { namespace = "observability", no_backup = true }
   postgres = { namespace = "postgres" }
-  mariadb  = { namespace = "mariadb" }
 }
 ```
 
 The key is the S3 bucket name. `namespace` is the only namespace whose pods may read the resulting credentials.
 
+`no_backup = true` keeps a bucket out of the daily off-site copy; every bucket
+without it is copied. It becomes the bucket tag `no_backup=true`, which s3-01
+reads at backup time, so the host carries no bucket names. See
+[SeaweedFS backup](../seaweedfs-backup/index.md).
+
 Per entry, one apply produces:
 
 | Object | Where |
 | --- | --- |
-| `aws_s3_bucket` `<bucket>` | SeaweedFS |
+| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out | SeaweedFS |
 | `aws_iam_user` `<namespace>-<bucket>` | SeaweedFS |
 | `aws_iam_access_key` for that user, non-expiring | SeaweedFS |
 | `aws_iam_user_policy` `<bucket>-read-write`: `s3:*` on `arn:aws:s3:::<bucket>` and `arn:aws:s3:::<bucket>/*` | SeaweedFS |

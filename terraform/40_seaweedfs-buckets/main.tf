@@ -2,17 +2,24 @@ locals {
   s3_endpoint = "https://s3.gewis.nl"
   s3_region   = "us-east-1"
 
+  # Every bucket is copied off-site to Scaleway by seaweedfs-backup on s3-01 unless
+  # it sets no_backup = true, which becomes the bucket tag no_backup=true that the
+  # host reads. See docs/seaweedfs-backup/. Observability data rebuilds by
+  # accrual and zot's images are pushed again from CI, so both opt out.
   buckets = {
-    loki           = { namespace = "observability" }
-    mimir          = { namespace = "observability" }
-    tempo          = { namespace = "observability" }
-    postgres       = { namespace = "postgres" }
-    mariadb        = { namespace = "mariadb" }
-    kaneo          = { namespace = "kaneo-prod" }
-    nextcloud      = { namespace = "nextcloud-prod" }
-    mattermost     = { namespace = "mattermost-prod" }
-    zot            = { namespace = "zot-prod" }
+    loki       = { namespace = "observability", no_backup = true }
+    mimir      = { namespace = "observability", no_backup = true }
+    tempo      = { namespace = "observability", no_backup = true }
+    postgres   = { namespace = "postgres" }
+    mariadb    = { namespace = "mariadb" }
+    kaneo      = { namespace = "kaneo-prod" }
+    nextcloud  = { namespace = "nextcloud-prod" }
+    mattermost = { namespace = "mattermost-prod" }
+    zot        = { namespace = "zot-prod", no_backup = true }
   }
+
+  # The one place the no_backup default lives; the tag and the output read it.
+  no_backup = { for name, bucket in local.buckets : name => try(bucket.no_backup, false) }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
 
@@ -28,6 +35,7 @@ resource "aws_s3_bucket" "this" {
   for_each = local.buckets
 
   bucket = each.key
+  tags   = local.no_backup[each.key] ? { no_backup = "true" } : {}
 }
 
 resource "aws_iam_user" "this" {

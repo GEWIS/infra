@@ -63,6 +63,9 @@ Setup:
 3. Attach a policy granting `ObjectStorageFullAccess`, scoped to that Project
    only.
 4. Add each operator as a member and have them generate their own API key.
+   Add their `user_id` to the off-site backup's
+   [bucket policy](../seaweedfs-backup/scaleway.md#4-the-bucket-policy) too;
+   a principal there cannot be a group.
 
 Offboarding is `scw iam api-key delete <access-key>`, or removing them from the
 group, or locking the member. All take effect immediately.
