@@ -4,11 +4,14 @@ Everything is driven by one map in `main.tf`:
 
 ```hcl
 buckets = {
-  loki     = { namespace = "observability" }
-  mimir    = { namespace = "observability" }
-  tempo    = { namespace = "observability" }
-  postgres = { namespace = "postgres" }
-  mariadb  = { namespace = "mariadb" }
+  loki       = { namespace = "observability" }
+  mimir      = { namespace = "observability" }
+  tempo      = { namespace = "observability" }
+  postgres   = { namespace = "postgres" }
+  mariadb    = { namespace = "mariadb" }
+  kaneo      = { namespace = "kaneo-prod" }
+  nextcloud  = { namespace = "nextcloud-prod" }
+  mattermost = { namespace = "mattermost-prod" }
 }
 ```
 
