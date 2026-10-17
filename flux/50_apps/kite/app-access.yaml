@@ -7,8 +7,6 @@ metadata:
     reconcile.fluxcd.io/watch: Enabled
 data:
   values.yaml: |
-    adminGroups:
-      - "Netbird - K3s Hosts - SSH Access"
     apps:
       - name: sudosos
         group: "ABC - POS"

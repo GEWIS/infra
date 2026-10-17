@@ -11,21 +11,8 @@ metadata:
   name: clusterproxy-gewis
 rules:
   - apiGroups: [""]
-    resources: ["users"]
+    resources: ["users", "groups"]
     verbs: ["impersonate"]
-  {{- $groups := .Values.adminGroups }}
-  {{- range .Values.apps }}
-  {{- $groups = append $groups .group }}
-  {{- end }}
-  {{- with $groups }}
-  - apiGroups: [""]
-    resources: ["groups"]
-    verbs: ["impersonate"]
-    resourceNames:
-      {{- range . }}
-      - {{ . | quote }}
-      {{- end }}
-  {{- end }}
   - apiGroups: ["authentication.k8s.io"]
     resources: ["userextras/*", "uids"]
     verbs: ["impersonate"]
