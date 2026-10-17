@@ -17,17 +17,17 @@ organization list, no user administration, no server settings. If a task has no
 tofu resource, it is a `curl` against the API, or a temporary revert of this one
 line.
 
-If OIDC itself breaks — authentik unreachable, Active Directory down, the client
+If OIDC itself breaks — Keycloak unreachable, Active Directory down, the client
 secret rotated out from under the release — there is no interactive way in at
 all. Recovery is to set `disable_login_form: false` in git and let Flux
 reconcile, which takes about as long as a reconcile. The API remains reachable
 with the admin credentials throughout, which is how `terraform/60_grafana-config`
 keeps working while nobody can log in.
 
-That chain is longer than it was under Keycloak: a login now depends on
-authentik, which depends on its Postgres database, which depends on the cluster.
-Directory outages take Grafana logins with them, because authentik keeps no
-local password for a synced user.
+A login depends on Keycloak at `auth.gewis.nl`, realm `GEWISWG`, and through it
+on Active Directory, so directory outages take Grafana logins with them. See
+[Keycloak](../keycloak/index.md#oidc-clients) for where the `roles` claim the
+org mapping reads comes from.
 
 `role_attribute_strict` is `true`. An account whose roles match no mapping entry
 is refused outright rather than landing in the empty `Main Org.` as a Viewer, so

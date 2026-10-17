@@ -56,8 +56,7 @@ costs a filter change and a re-sync.
 
 `svc-authentik@gewiswg.gewis.nl`, not the `svc-auth` account Keycloak binds with.
 Sharing one credential between two systems means rotating it is an outage in the
-other, and resetting it to find out is an outage in GEWIS SSO — which Grafana
-still depends on.
+other, and resetting it to find out is an outage in GEWIS SSO.
 
 It needs read on users and groups under `DC=GEWISWG,DC=GEWIS,DC=nl` and nothing
 else: no privileged groups, and **not** a member of the logon privilege group,
@@ -83,8 +82,8 @@ tofu init
 tofu apply
 ```
 
-Then read the synced groups back, because their names are what any OpenBao or
-Grafana mapping has to match character-for-character:
+Then read the synced groups back, because their names are what any OpenBao
+mapping has to match character-for-character:
 
 ```sh
 TOK=$(kubectl -n authentik get secret authentik-auth \
@@ -131,49 +130,33 @@ return {"attributes": {"groups": [
 ]}}
 ```
 
-and the Grafana provider carries its own `profile` scope mapping that emits the
+and the OpenBao provider carries its own `profile` scope mapping that emits the
 claim from that attribute instead of from `request.user.groups`:
 
 ```python
 "groups": request.user.attributes.get("groups", []),
 ```
 
-which is the same shape as the mapper on Keycloak's Grafana client. The managed
+The managed
 `goauthentik.io/providers/oauth2/scope-profile` is left off the provider, because
 two mappings claiming `profile` would both write `groups` in an undefined order; the
 local one reproduces the rest of that scope's claims — `name`, `preferred_username`,
-`nickname` — which `login_attribute_path` and `name_attribute_path` key on.
+`nickname` — and OpenBao's `user_claim` keys on `preferred_username`.
 
 Group membership inside authentik stays direct-only and cheap, from `member`. It
 needs the `GEWISWG: distinguishedName` mapping to work at all — matching is
 `attributes.distinguishedName IN members`, and none of authentik's nine managed LDAP
 mappings writes a DN — but nothing about the OIDC claim depends on it any more.
 
-## OIDC clients are a map
+## Proxy clients are a map
 
-Every client the root creates is declared in `locals.tf`, grouped by kind:
-`oidc_clients` for OIDC relying parties that run in the cluster, `proxy_clients` for
-apps behind the [proxy outpost](../cluster/traefik.md#authentication-is-forwardauth-to-the-authentik-outpost). `oidc.tf` and `proxy.tf` only
-turn those maps into resources. Each relying party is one entry in `oidc_clients`:
+Every app behind the [proxy outpost](../cluster/traefik.md#authentication-is-forwardauth-to-the-authentik-outpost)
+is one entry in `proxy_clients` in `locals.tf`; `proxy.tf` only turns that map
+into resources. OIDC relying parties that run in the cluster get their client from
+Keycloak instead, see [Keycloak](../keycloak/index.md#oidc-clients).
 
-```hcl
-grafana = {
-  display_name  = "Grafana"
-  namespace     = "observability"
-  launch_url    = "https://grafana.gewis.nl/"
-  redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
-}
-```
-
-That renders an `authentik_provider_oauth2` and an `authentik_application`,
-generates the client secret, and writes `client_id` and `client_secret` to
-OpenBao at `authentik/<namespace>/<client>` with a read policy and a Kubernetes
-auth role for that namespace. The consuming namespace pulls them in with an
-`ExternalSecret`, exactly as it does for SeaweedFS credentials — so the secret is
-generated, stored and consumed without anyone reading it.
-
-OpenBao is not in the map. It is a single fixed client that consumes its secret
-itself rather than through a namespace, so `openbao.tf` spells it out — see
+OpenBao is the one OIDC client left here. It consumes its secret itself rather
+than through a namespace, so `openbao.tf` spells it out — see
 [OpenBao](../cluster/openbao.md#people-log-in-through-authentik).
 
 **`proxy_access_groups` limits who passes a proxy client.** Without an entry, any
@@ -207,33 +190,8 @@ Invalid grant_type for provider   grant_type=authorization_code
 The request is otherwise malformed
 ```
 
-which reaches the browser as Grafana's *"Login provider denied login request"* —
-a message that names neither the grant type nor the provider. The list is
+which reaches the browser as the relying party's generic login error — a message
+that names neither the grant type nor the provider. The list is
 `["authorization_code", "refresh_token"]`: the first for the code flow, the second
 because a relying party asking for `offline_access` renews with it, and the token
 endpoint runs the same check.
-
-## Grafana authenticates against the directory through authentik
-
-The endpoints are the shared per-provider ones, not per-application:
-
-```ini
-auth_url  = https://authentik.gewis.nl/application/o/authorize/
-token_url = https://authentik.gewis.nl/application/o/token/
-api_url   = https://authentik.gewis.nl/application/o/userinfo/
-```
-
-Grafana reaches those from inside the cluster over the public name, which
-hairpins back through the router and Traefik — verified from the pod, and it costs the
-documented few-second TLS tax on the first connection. Using the in-cluster
-Service instead would work for the token exchange but would make the issuer
-disagree with what the browser sees.
-
-**The org mapping did not have to change.** Grafana keyed off Keycloak's `roles`
-claim; authentik emits the same names in `groups`, because `GRAFANA-CBC-RO`,
-`GRAFANA-ABC_CRM-RW` and the rest are Active Directory groups that Keycloak was
-surfacing too. So `org_attribute_path` moves from `roles` to `groups` and the
-`org_mapping` string is untouched.
-
-Two attribute paths do change, because the claim names differ: `username` becomes
-`preferred_username` and `full_name` becomes `name`.

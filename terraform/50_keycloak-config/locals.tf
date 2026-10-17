@@ -42,8 +42,14 @@ locals {
 
   oidc_clients = {
     kite = {
+      client_id     = "kite"
       namespace     = "kite"
       redirect_uris = ["https://kite.gewis.nl/api/auth/callback"]
+    }
+    grafana = {
+      client_id     = "grafana-prod"
+      namespace     = "observability"
+      redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
     }
   }
 

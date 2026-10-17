@@ -42,8 +42,17 @@ Forward auth for other apps uses clients in this realm, see
 ## OIDC clients
 
 Apps that do their own OIDC login get a client from `oidc_clients` in
-`terraform/50_keycloak-config/locals.tf`, today only `kite`. Each client gets a
-`groups` claim with the user's AD group names, and its `client_id` and
-`client_secret` go to OpenBao at `keycloak/<namespace>/<client>`. The namespace
+`terraform/50_keycloak-config/locals.tf`: `kite` and `grafana`. The map key names
+the client and its OpenBao path; `client_id` is what Keycloak calls it. Each
+client gets a `groups` claim with the user's AD group names, and its `client_id`
+and `client_secret` go to OpenBao at `keycloak/<namespace>/<key>`. The namespace
 reads them through a `SecretStore` with the role `keycloak-<namespace>`, the
 same role the forward-auth clients use.
+
+The `groups` claim lists direct memberships only, and the `GRAFANA-*` groups hold
+no users directly; they contain team groups. So Grafana keys on a different
+claim. Its client is `grafana-prod`, which existed before this root and was
+imported. It has the client roles `GRAFANA-*` and `PRIV - Grafana Admin`, and
+the `client roles` mapper `grafana_roles` puts the ones a user holds in a
+top-level `roles` claim. Grafana's `org_attribute_path` reads that claim. The
+roles themselves and how users get them are not managed by this root.

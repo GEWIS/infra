@@ -9,7 +9,7 @@ resource "keycloak_openid_client" "oidc" {
   for_each = local.oidc_clients
 
   realm_id      = local.realm
-  client_id     = each.key
+  client_id     = each.value.client_id
   name          = each.key
   description   = "Managed by OpenTofu in GEWIS/infra, terraform/50_keycloak-config. Changes made here are overwritten."
   access_type   = "CONFIDENTIAL"
@@ -44,6 +44,19 @@ resource "keycloak_openid_group_membership_protocol_mapper" "oidc_groups" {
   add_to_id_token     = true
   add_to_access_token = true
   add_to_userinfo     = true
+}
+
+resource "keycloak_openid_user_client_role_protocol_mapper" "grafana_roles" {
+  realm_id  = local.realm
+  client_id = keycloak_openid_client.oidc["grafana"].id
+  name      = "client roles"
+
+  claim_name                  = "roles"
+  client_id_for_role_mappings = keycloak_openid_client.oidc["grafana"].client_id
+  multivalued                 = true
+  add_to_id_token             = true
+  add_to_access_token         = true
+  add_to_userinfo             = true
 }
 
 resource "vault_kv_secret_v2" "oidc_client" {

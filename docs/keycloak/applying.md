@@ -34,3 +34,21 @@ Check one client end to end once its namespace has the ExternalSecret:
 kubectl -n <namespace> get externalsecret oidc-secret
 curl -sI https://<host>/admin/ | grep -i '^location'   # → auth.gewis.nl/realms/GEWISWG/…
 ```
+
+## Adopting a client that already exists
+
+A client created by hand is imported, not recreated, so its client roles and the
+directory mappers that hand them out stay attached. Add `import` blocks to the
+root, addressed by the client's internal UUID (`GEWISWG/<uuid>`, mappers
+`GEWISWG/client/<uuid>/<mapper-uuid>`), and delete them after the apply that
+imported them.
+
+That apply overwrites what `oidc.tf` declares: the client secret becomes the
+generated one, and redirect URIs, direct access grants, default scopes, name and
+description are reset. Attributes it does not declare, such as consent and web
+origins, keep their hand-set values.
+
+An app that already has users from another IdP sees a different `sub` for each of
+them. Grafana matches users by `sub` only, so after moving it from authentik its
+existing OAuth users were deleted through the admin API and recreated on their
+next login.

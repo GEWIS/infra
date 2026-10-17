@@ -151,7 +151,7 @@ free number in a gap instead of renumbering. A stage that is not a root, like
   `.envrc` takes from a live `kubectl`. authentik cannot start before
   `40_databases` creates its database, `50_authentik-config` configures the
   `auth/oidc` mount `40_openbao-config` creates, `50_ssh-certificates` configures its
-  `ssh` mount, and Grafana mounts the OIDC Secret `50_authentik-config` writes.
+  `ssh` mount, and Grafana mounts the OIDC Secret `50_keycloak-config` writes.
 
 `terraform/modules/xcpng-vm` and `nixos-host` are the shared building blocks.
 

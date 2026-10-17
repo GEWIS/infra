@@ -27,4 +27,4 @@ from the bucket, whichever cluster made it.
 authentik proxy outpost, like [Hubble](../observability/hubble.md). The UI can
 delete volumes and backups, so unlike Hubble it only admits the groups in
 `proxy_access_groups` — see
-[authentik configuration](../authentik/configuration.md#oidc-clients-are-a-map).
+[authentik configuration](../authentik/configuration.md#proxy-clients-are-a-map).

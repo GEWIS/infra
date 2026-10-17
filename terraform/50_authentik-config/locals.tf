@@ -3,15 +3,6 @@ locals {
 
   openbao_login_group = "CBC - Application Hosting Team (ADM)"
 
-  oidc_clients = {
-    grafana = {
-      display_name  = "Grafana"
-      namespace     = "observability"
-      launch_url    = "https://grafana.gewis.nl/"
-      redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
-    }
-  }
-
   proxy_clients = {
     hubble = {
       display_name  = "Hubble"
