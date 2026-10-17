@@ -6,9 +6,7 @@ metadata:
 spec:
   errors:
     status:
-      - "401"
-      - "403"
-      - "500-599"
+      - "502-504"
     service:
       name: error-pages
       port: 8080
