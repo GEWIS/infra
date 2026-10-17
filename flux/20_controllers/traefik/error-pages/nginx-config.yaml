@@ -53,6 +53,13 @@ data:
                 alias /etc/nginx/page.html;
             }
     
+            # The fallback IngressRoute (no other router matched) lands in this
+            # location; the styled 404 is served straight from here, without
+            # going through the errors middleware — so the 404 case never
+            # replaces a body an application produced itself. The internal
+            # redirect re-enters the location above, which SSI-echoes 404 and
+            # its reason phrase into the template.
+            error_page 404 /404.html;
             location / {
                 return 404;
             }

@@ -83,7 +83,8 @@ with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
 
 ## Error pages
 
-Every route on `websecure` that answers 404 or any `5xx` gets a
+Every route on `websecure` that answers 401, 403 or any `5xx` (but not 404 or
+503, see below) gets a
 GEWIS-styled page in place of the backend's: a full-bleed `#D40000` background
 (the `$gewis-red` from [gewisweb](https://github.com/GEWIS/gewisweb)) with the
 white GEWIS logo (`static.gewis.nl/logo/SVG/Full_Logo_White.svg`, its own black
@@ -104,9 +105,18 @@ found`. The Middleware CR cannot apply before the chart has installed its
 CRDs, and the kustomizer retries applying it (`retryInterval` on the layer),
 so a pod booting in that gap serves the broken state until it lands; Traefik
 then picks the middleware up through the provider watch and rebuilds the
-routers, no restart. Other `4xx` codes are deliberately untouched: replacement
-bodies would deny API clients machine-readable errors such as Keycloak's
-token-endpoint responses.
+routers, no restart.
+
+The errors middleware reacts to a status alone and cannot tell an error
+Traefik produced from one the backend returned. It therefore does not list 404
+or 503, so applications keep ownership of both: an application 404 (the usual
+case) and an application maintenance page on 503 pass through untouched. The
+price is that Traefik's own 503 (a matched router whose Service has no
+endpoints) then shows its plain page; 502 and 504 cover a dead or unresponsive
+backend. Nor are the other `4xx` codes listed: replacement bodies would deny
+API clients machine-readable errors such as Keycloak's token-endpoint
+responses. Note that 401 and 403 are listed, so a keyed-on 401 from an auth
+backend replaces the machine-readable body it would otherwise emit.
 
 The page is served by nginx: Deployment and Service `error-pages` in the
 `traefik` namespace from `flux/20_controllers/traefik/error-pages/`, two
@@ -115,11 +125,25 @@ unprivileged read-only-root replicas of `nginx:1.28-alpine` behind
 `nginx.conf` and one page template: the errors middleware asks for
 `/{status}.html`, nginx captures the status from the request path, maps it to a
 reason phrase (`default: "Error"` for the long tail), and SSI-echoes code and
-phrase into the template. The logo is inlined as a data URI because the browser
+phrase into the template. A change to the ConfigMap needs
+`kubectl -n traefik rollout restart deploy/error-pages`, since nginx reads its
+configuration only at startup. The logo is inlined as a data URI because the browser
 fetches everything but the swapped body from the host that failed, not from
 this server, so a plain `logo.svg` reference would never reach it. The
-Middleware and the Service both live in `traefik`, so `allowCrossNamespace`
+The Middleware and the Service both live in `traefik`, so `allowCrossNamespace`
 staying off changes nothing.
+
+A host that no `IngressRoute` matches never reaches a backend: Traefik's
+internal fallback router answers plain `404 page not found` and, unlike every
+real router, takes no part in entry-point middlewares — so the Middleware
+alone cannot restyle it. The `IngressRoute error-pages-fallback` in
+`error-pages/catch-all.yaml` closes that hole: with `priority: 1` it can only
+match requests no other router wanted, and it sends them to the error-page
+nginx, whose `location /` serves the styled 404 itself through
+`error_page 404 /404.html` — no errors middleware involved, which is exactly
+why the 404 covers everything Traefik has to refuse without ever replacing a
+404 an application produced. The
+unknown-SNI-terminates-on-the-default-`*.cbc.gewis.nl` part is unchanged.
 
 ## Routes are IngressRoutes
 
