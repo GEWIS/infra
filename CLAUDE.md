@@ -144,8 +144,9 @@ free number in a gap instead of renumbering. A stage that is not a root, like
 - `10_talos-hosts`: VMs, machine config, etcd bootstrap. Talks to node IPs on
   `10.82.50.0/24`, so it needs the on-site LAN or VPN. `10_s3-01` runs alongside it.
 - `20_talos-bootstrap`: Cilium, the Gateway API CRDs, the `sealed-secrets` namespace with a
-  pinned sealing key, and the Flux Operator with its `FluxInstance`. Uses `.kube/config`,
-  which `mint-creds` writes on demand and which expires after one hour.
+  pinned sealing key, and the Flux Operator with its `FluxInstance`. Needs the
+  `mint-creds` `.kube/config`, which expires after one hour; without it
+  `.kube/config` links to the NetBird proxy `kubeconfig.yaml`.
 - `40_*`, `50_*`, `60_grafana-config`: configure services now running in the cluster.
   The roots with a vault provider (`40_*`, `50_*`) need `TF_VAR_bao_jwt`, which their
   `.envrc` takes from a live `kubectl`. authentik cannot start before

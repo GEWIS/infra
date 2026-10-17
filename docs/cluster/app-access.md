@@ -74,7 +74,11 @@ exist in NetBird already. Who can reach the proxy at all is a NetBird policy
 to `k8s-api`, managed in the NetBird dashboard; today only
 `Netbird - K3s Hosts - SSH Access` has one.
 
-`kubeconfig.yaml` in the repository root connects through it:
+`kubeconfig.yaml` in the repository root connects through it. Inside the
+repository it is the default: `.envrc` links `.kube/config` to it, until
+`mint-creds` replaces that link with a break-glass certificate; see
+[kubeconfig and talosconfig](../talos/secrets.md#kubeconfig-and-talosconfig-break-glass).
+Elsewhere, point kubectl at it:
 
 ```sh
 kubectl --kubeconfig kubeconfig.yaml get pods -n sudosos-prod
@@ -84,5 +88,4 @@ The host is `<clusterName>.netbird-kubeapi-proxy.net.nb.gewis.nl`, with
 `clusterName: gewis` from the ClusterProxy. The proxy presents a self-signed
 certificate, hence `insecure-skip-tls-verify`; the mesh carries the trust. The
 token `none` is a placeholder that stops kubectl prompting, and the proxy strips
-it. The break-glass `.kube/config` from `mint-creds` is a separate, one-hour
-credential; see [kubeconfig and talosconfig](../talos/secrets.md#kubeconfig-and-talosconfig-break-glass).
+it.

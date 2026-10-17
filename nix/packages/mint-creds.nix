@@ -57,6 +57,7 @@ pkgs.writeShellApplication {
       -out kube.crt
 
     mkdir -p "$(dirname "$kubeconfig")"
+    rm -f "$kubeconfig"
     {
       printf 'apiVersion: v1\nkind: Config\ncurrent-context: %s\n' "$cluster"
       printf 'clusters:\n    - name: %s\n      cluster:\n        server: %s\n' "$cluster" "$endpoint"
