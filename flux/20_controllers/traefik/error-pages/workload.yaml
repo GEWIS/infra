@@ -35,6 +35,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 101
         runAsGroup: 101
+        fsGroup: 101
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -70,9 +71,6 @@ spec:
               mountPath: /tmp
             - name: cache
               mountPath: /var/cache/nginx
-            # nginx defaults to creating a pid file here; no config directive needed.
-            - name: run
-              mountPath: /var/run
       volumes:
         - name: nginx-config
           configMap:
@@ -80,6 +78,4 @@ spec:
         - name: tmp
           emptyDir: {}
         - name: cache
-          emptyDir: {}
-        - name: run
           emptyDir: {}
