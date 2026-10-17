@@ -83,8 +83,8 @@ with `go test ./...`, and under Traefik's interpreter with `yaegi test .` from a
 
 ## Error pages
 
-Every route on `websecure` that answers 401, 403 or any `5xx` (but not 404 or
-503, see below) gets a
+Every route on `websecure` that answers 401, 403 or any `5xx` (but not 404,
+see below) gets a
 GEWIS-styled page in place of the backend's: a full-bleed `#D40000` background
 (the `$gewis-red` from [gewisweb](https://github.com/GEWIS/gewisweb)) with the
 white GEWIS logo (`static.gewis.nl/logo/SVG/Full_Logo_White.svg`, its own black
@@ -108,15 +108,17 @@ then picks the middleware up through the provider watch and rebuilds the
 routers, no restart.
 
 The errors middleware reacts to a status alone and cannot tell an error
-Traefik produced from one the backend returned. It therefore does not list 404
-or 503, so applications keep ownership of both: an application 404 (the usual
-case) and an application maintenance page on 503 pass through untouched. The
-price is that Traefik's own 503 (a matched router whose Service has no
-endpoints) then shows its plain page; 502 and 504 cover a dead or unresponsive
-backend. Nor are the other `4xx` codes listed: replacement bodies would deny
-API clients machine-readable errors such as Keycloak's token-endpoint
-responses. Note that 401 and 403 are listed, so a keyed-on 401 from an auth
-backend replaces the machine-readable body it would otherwise emit.
+Traefik produced from one the backend returned. The only one that matters for
+that is 404, and 404 is not listed — applications keep ownership of it, and
+every 404 Traefik produces is covered by the fallback router below. The whole
+`5xx` range is listed, so an application answering its own 503 (a maintenance
+page) is restyled too, accepted knowingly: a Traefik-generated 503 cannot be
+told apart, and a dead backend winning the page is the point — it is what
+`judge.gehack.nl` shows while DOMjudge's domserver is unready. Nor are the
+other `4xx` codes listed: replacement bodies would deny API clients
+machine-readable errors such as Keycloak's token-endpoint responses. Note that
+401 and 403 are listed, so a keyed-on 401 from an auth backend replaces the
+machine-readable body it would otherwise emit.
 
 The page is served by nginx: Deployment and Service `error-pages` in the
 `traefik` namespace from `flux/20_controllers/traefik/error-pages/`, two

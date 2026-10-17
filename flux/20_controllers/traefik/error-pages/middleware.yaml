@@ -8,8 +8,7 @@ spec:
     status:
       - "401"
       - "403"
-      - "500-502"
-      - "504-599"
+      - "500-599"
     service:
       name: error-pages
       port: 8080
