@@ -58,10 +58,13 @@ what Barman already keeps.
 
 ### What this does not cover
 
-SeaweedFS is a single node on one disk, and
-[`seaweedfs-buckets/index.md`](../seaweedfs-buckets/index.md) states plainly that
-nothing in it is backed up by being there. These backups survive a lost cluster,
-not a lost s3-01; an off-site copy of the bucket is what covers that.
+SeaweedFS is a single node on one disk, so these backups alone survive a lost
+cluster, not a lost s3-01. The `postgres` and `mariadb` buckets are therefore
+copied to Scaleway once a day, after the 03:00 base backups, with 30 days of
+version history on top — see [SeaweedFS backup](../seaweedfs-backup/index.md).
+That copy is a complete Barman archive in its own right, so a recovery can read
+it directly; what it means for point-in-time recovery is in
+[Point-in-time recovery off-site](../seaweedfs-backup/pitr.md).
 
 A backup is only proven by a restore: recover into a throwaway `Cluster` with
 `bootstrap.recovery` and an `externalClusters` entry pointing at the same

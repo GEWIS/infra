@@ -347,6 +347,15 @@ spec:
             forward_to      = [prometheus.relabel.tenant_cbc.receiver]
           }
 
+          // s3-01 is outside the cluster: host health and the off-site backup
+          // result from its node exporter's textfile collector.
+          prometheus.scrape "s3_01" {
+            job_name        = "s3-01"
+            targets         = [{"__address__" = "s3.net.gewis.nl:9100", "instance" = "s3-01"}]
+            scrape_interval = "60s"
+            forward_to      = [prometheus.relabel.tenant_cbc.receiver]
+          }
+
           prometheus.operator.servicemonitors "mariadb" {
             namespaces = ["mariadb"]
             forward_to = [prometheus.relabel.tenant_cbc.receiver]
