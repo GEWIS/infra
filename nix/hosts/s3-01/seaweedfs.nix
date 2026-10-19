@@ -43,7 +43,7 @@ let
   hardening = {
     NoNewPrivileges = true;
     PrivateDevices = true;
-    PrivateTmp = true;
+    PrivateTmp = "disconnected";
     ProtectControlGroups = true;
     ProtectHome = true;
     ProtectKernelModules = true;

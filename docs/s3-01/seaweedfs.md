@@ -46,6 +46,17 @@ waits in systemd for no gain on a single node. `AF_UNIX` therefore stays in
 (`ProtectSystem = "strict"`, `SystemCallFilter = @system-service`, and the
 rest).
 
+Those unix sockets are `/tmp/seaweedfs-<service>-grpc-<port>.sock`, a path
+hard-coded in `weed`, created once at startup, and used for every dial to a
+loopback gRPC port with no fallback to TCP. Hence `PrivateTmp = "disconnected"`
+rather than `true`: a private `/tmp` under the host's
+`/tmp/systemd-private-*/tmp` is still aged out by `systemd-tmpfiles-clean`
+(10 days, `tmp.conf`), and once the volume socket is gone the master cannot
+create volumes. Writes keep working until the existing volumes fill, then every
+`PutObject` fails with `InternalError` and the log shows `dial unix
+/tmp/seaweedfs-volume-grpc-18080.sock: connect: no such file or directory`. A
+restart of `seaweedfs.service` recreates the sockets.
+
 The unit runs as a fixed `seaweedfs` user and group, not `DynamicUser`, because
 the sops-nix secret needs a stable owner to be rendered for. State lives under
 `StateDirectory = "seaweedfs"`.
