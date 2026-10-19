@@ -14,8 +14,7 @@ let
       backend = "pulseaudio";
       disable_discovery = true;
       use_mpris = false;
-      no_audio_cache = false;
-      max_cache_size = 1000000000;
+      no_audio_cache = true;
       volume_controller = "none";
       initial_volume = 0;
       volume_normalisation = true;

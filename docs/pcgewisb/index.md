@@ -76,11 +76,11 @@ ports and is not offered to other accounts.
 | --- | --- |
 | Volume control | none: Spotify's volume slider does nothing, set the level with `wpctl` |
 | Normalisation | on |
-| Audio cache | on, at most 1 GB |
+| Audio cache | off: librespot's cache size limit prunes every file under the cache path, including the login |
 | MPRIS | off |
 
-The account's credentials and the audio cache live in
-`/home/gewis/.cache/spotifyd`, which survives reboots with the rest of
+The account's credentials live in `/home/gewis/.cache/spotifyd`, which
+survives reboots with the rest of
 `/home/gewis`. The unit only starts once
 `/home/gewis/.cache/spotifyd/oauth/credentials.json` exists. Log in once from a
 terminal in the [remote session](../service-pc/remote.md); the login page
