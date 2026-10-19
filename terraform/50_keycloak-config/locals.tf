@@ -27,6 +27,7 @@ locals {
     "ssg.gewis.nl",
     "bac.gewis.nl",
     "bac-admin.gewis.nl",
+    "rink.personal.gewis.nl",
   ]
 
   forward_auth_clients = {
