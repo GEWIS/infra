@@ -2,32 +2,64 @@ locals {
   realm = "GEWISWG"
 
   webhost_prod_hosts = [
+    "9eglinster.gewis.nl",
+    "9eglinster-admin.gewis.nl",
+
     "abc.gewis.nl",
     "abc-admin.gewis.nl",
-    "gehack.gewis.nl",
-    "cbc-bbq.gewis.nl",
-    "static.gewis.nl",
-    "stijl.gewis.nl",
-    "vz.personal.gewis.nl",
-    "secr.personal.gewis.nl",
-    "pm.personal.gewis.nl",
-    "cib.personal.gewis.nl",
-    "co.personal.gewis.nl",
-    "ceb.personal.gewis.nl",
-    "mta-sts.gewis.nl",
-    "9eglinster.gewis.nl",
+
     "athena.gewis.nl",
-    "defi.gewis.nl",
+    "yourdomain.gewis.nl",
+
     "avico.gewis.nl",
-    "boom.gewis.nl",
-    "gezwem.gewis.nl",
-    "intro.gewis.nl",
-    "linkinbio.gewis.nl",
-    "odc.gewis.nl",
-    "ssg.gewis.nl",
+
     "bac.gewis.nl",
     "bac-admin.gewis.nl",
+
+    "cib.personal.gewis.nl",
+
+    "co.personal.gewis.nl",
+
+    "ceb.personal.gewis.nl",
+    "ceb-admin.personal.gewis.nl",
+
+    "cbc-bbq.gewis.nl",
+
+    "boom.gewis.nl",
+    "boom-admin.gewis.nl",
+
+    "defi.gewis.nl",
+    "defi-admin.gewis.nl",
+
+    "gehack.gewis.nl",
+    "gehack-admin.gewis.nl",
+
+    "gezwem.gewis.nl",
+    "gezwem-admin.gewis.nl",
+
+    "intro.gewis.nl",
+    "intro-admin.gewis.nl",
+
+    "mta-sts.gewis.nl",
+
+    "odc.gewis.nl",
+    "odc-admin.gewis.nl",
+
+    "pm.personal.gewis.nl",
+
     "rink.personal.gewis.nl",
+
+    "secr.personal.gewis.nl",
+
+    "ssg.gewis.nl",
+    "ssg-admin.gewis.nl",
+
+    "static.gewis.nl",
+    "static-admin.gewis.nl",
+
+    "stijl.gewis.nl",
+
+    "vz.personal.gewis.nl",
   ]
 
   forward_auth_clients = {
