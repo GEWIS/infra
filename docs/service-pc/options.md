@@ -68,6 +68,14 @@ browsers = {
 A browser is restarted whenever it exits, whatever the reason, so closing it
 over RDP just brings it back.
 
+Firefox's startup-crash check is off (`toolkit.startup.max_resumed_crashes`
+is locked to `-1` through AutoConfig, since policies cannot set `toolkit.`
+preferences). Firefox counts every instance killed before it finished
+starting, such as a reboot or power cut shortly after boot, as a startup
+crash. After more than three in six hours it would otherwise open a "Firefox
+closed unexpectedly while starting" dialog instead of the page. That dialog
+shows up in the placement helper's `saw:` list as a bare `firefox` window.
+
 `kiosk` waits for the browser's window, raises it, and sends F11 through
 `ydotool`, repeating the press until GNOME reports the window as fullscreen.
 Firefox keeps only a fullscreen state it entered itself, and F11 is a toggle,

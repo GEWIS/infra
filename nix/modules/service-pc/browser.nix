@@ -109,6 +109,16 @@ in
         "browser.shell.checkDefaultBrowser" = false;
         "datareporting.policy.dataSubmissionPolicyBypassNotification" = true;
       };
+
+      # A browser killed before it finished starting (a reboot or power cut
+      # shortly after boot) counts as a startup crash. After more than three in
+      # six hours Firefox opens a "closed unexpectedly while starting" dialog
+      # instead of the page, which nobody at a kiosk can answer. -1 turns the
+      # check off. Policies cannot set `toolkit.` preferences, so this goes
+      # through AutoConfig.
+      autoConfig = ''
+        lockPref("toolkit.startup.max_resumed_crashes", -1);
+      '';
     };
   };
 }
