@@ -28,6 +28,7 @@ spec:
             key: api-token
     sources:
       - traefik-proxy
+      - service
     domainFilters:
       - gewis.nl
     policy: upsert-only

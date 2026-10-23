@@ -146,8 +146,8 @@ unknown-SNI-terminates-on-the-default-`*.cbc.gewis.nl` part is unchanged.
 
 ## Routes are IngressRoutes
 
-Every published service has an `IngressRoute` on the `websecure` entry point,
-next to the workload it serves: `flux/30_openbao/`, `flux/40_services/s3/`,
+Every published service has an `IngressRoute` next to the workload it serves:
+`flux/30_openbao/`, `flux/40_services/s3/`,
 `flux/50_apps/authentik/`, `flux/50_apps/observability/grafana/`,
 `flux/50_apps/hubble/`, `flux/50_apps/flux-web/`, `flux/50_apps/longhorn/`,
 `flux/50_apps/netbird/` and `flux/50_apps/keycloak/`,
@@ -161,8 +161,11 @@ TLS comes from the default TLS store: `wildcard-cbc-gewis-nl-tls` in the
 `traefik` namespace, issued by its own [`Certificate`](certificates.md). A route
 needs only `tls: {}`.
 
-Each route carries `external-dns.alpha.kubernetes.io/target:
-router02.net.gewis.nl`, the CNAME target for its hostname — see [DNS](dns.md).
+Each public route is on the `websecure` entry point and carries
+`external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl`, the CNAME
+target for its hostname — see [DNS](dns.md). Internal routes are on `internal`
+and target `internal.net.gewis.nl`, see
+[below](#internal-only-routes-use-the-internal-entrypoint).
 
 `allowCrossNamespace` stays off: a route may only point at Services and
 Middlewares in its own namespace, so an app namespace cannot publish another
@@ -172,6 +175,22 @@ namespace's Service.
 arbitrary host by name. Hosts outside the cluster are reached through a
 selectorless Service with a hand-written `EndpointSlice` for their LAN address —
 see [External proxy](external-proxy.md).
+
+## Internal-only routes use the `internal` entrypoint
+
+The `internal` entrypoint (container port `8444`) is exposed on its own
+LoadBalancer Service, `traefik-internal`, pinned to **`10.82.50.16`**, through
+the chart's `service.additionalServices` and the port's `expose` map; the main
+Service does not carry it. router02 forwards nothing there, so a route on this
+entrypoint is reachable only from the LAN, pods and NetBird. It is TLS-only,
+serves the same default certificate, and has neither `websecure`'s middlewares
+nor its fallback 404.
+
+The Service carries `external-dns.alpha.kubernetes.io/hostname:
+internal.net.gewis.nl`, so external-dns' `service` source gives that
+name a public A record with the Service's LAN address. Internal routes are on
+`entryPoints: [internal]` only and target that name, the way public ones target
+router02, see [DNS](dns.md).
 
 ## Keycloak-protected apps use the `traefik-oidc-auth` plugin
 
