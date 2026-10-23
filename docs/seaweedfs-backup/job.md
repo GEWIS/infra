@@ -11,7 +11,7 @@ Per bucket SeaweedFS lists, it:
 1. reads the bucket's tags (`GET /<bucket>?tagging`, signed with `curl
    --aws-sigv4`) and skips it if `no_backup=true` is set; no tags (`404
    NoSuchTagSet`) means copy it,
-2. refuses an empty bucket (below),
+2. skips an empty bucket (below),
 3. runs
 
 ```sh
@@ -35,10 +35,14 @@ hardening as the SeaweedFS units.
 
 - **No buckets listed** — SeaweedFS down or the key wrong — fails the run.
 - **A bucket whose tags cannot be read** is not copied and fails the run.
-- **A source bucket that lists no objects** is skipped and fails the run.
-  Syncing it would turn every object in its copy into a delete marker — exactly
-  what would happen after s3-01 is rebuilt and the buckets come back empty. The
-  cost is that a new bucket alerts until its app writes the first object.
+- **A bucket whose objects cannot be listed** (`rclone size` exits non-zero) is
+  not copied and fails the run.
+- **A source bucket that lists no objects** is skipped and logged as
+  `skipping <bucket>: no objects`; the run still succeeds. Syncing it would turn
+  every object in its copy into a delete marker — exactly what would happen
+  after s3-01 is rebuilt and the buckets come back empty. A new bucket is
+  therefore simply not copied until its app writes the first object, and a
+  bucket emptied in SeaweedFS keeps its last copy in Scaleway.
 
 A bucket that fails is reported and the others still run; the unit exits
 non-zero at the end. There is no automatic retry beyond rclone's own (3 attempts

@@ -114,8 +114,8 @@ read the host's node exporter, which Alloy scrapes as job `s3-01`
 The backup unit writes its result into the node exporter's textfile collector,
 see [The job](../seaweedfs-backup/job.md#metrics). `S3HostDown` covers these
 alerts going quiet: an unreachable host leaves the age alert with no series to
-compare. A run that skips an empty bucket fails on purpose, so a new bucket
-shows up here until it has data.
+compare. An empty bucket is skipped without failing the run, so it does not
+alert.
 
 ## Seeing alerts in Grafana
 

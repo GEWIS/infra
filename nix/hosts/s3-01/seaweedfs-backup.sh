@@ -35,10 +35,15 @@ for bucket in $buckets; do
   esac
 
   # An empty source would turn every object in the copy into a delete marker,
-  # e.g. after s3-01 is rebuilt; refuse instead.
-  if [ -z "$(rclone lsf -R --files-only "seaweedfs:$bucket" | head -n 1)" ]; then
-    echo "seaweedfs:$bucket is empty or unreadable; not syncing it" >&2
+  # e.g. after s3-01 is rebuilt; skip it instead. A listing that fails is not
+  # an empty bucket, so that still fails the run.
+  if ! size="$(rclone size --fast-list --json "seaweedfs:$bucket")"; then
+    echo "$bucket: listing its objects failed; not syncing it" >&2
     failed="$failed $bucket"
+    continue
+  fi
+  if [[ "$size" == *'"count":0,'* ]]; then
+    echo "skipping $bucket: no objects"
     continue
   fi
 
