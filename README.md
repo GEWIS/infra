@@ -25,7 +25,8 @@ credentials the cluster reads for them are
 [`docs/seaweedfs-buckets/`](docs/seaweedfs-buckets/index.md); the LGTM stack and its
 tenancy model are [`docs/observability/`](docs/observability/index.md). HA Postgres
 and MariaDB placement and their backup model are
-[`docs/databases/`](docs/databases/index.md).
+[`docs/databases/`](docs/databases/index.md). The zot container registry at
+`registry.gewis.nl` is [`docs/registry/`](docs/registry/index.md).
 
 ## Layout
 

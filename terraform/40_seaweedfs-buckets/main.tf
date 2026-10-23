@@ -11,7 +11,7 @@ locals {
     kaneo          = { namespace = "kaneo-prod" }
     nextcloud      = { namespace = "nextcloud-prod" }
     mattermost     = { namespace = "mattermost-prod" }
-    zot            = { namespace = "zot-prod" }
+    zot            = { namespace = "zot" }
   }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
