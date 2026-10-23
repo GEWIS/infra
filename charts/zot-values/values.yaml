@@ -1,0 +1,5 @@
+config: {}
+apps: []
+publishers: []
+lanReader:
+  password: ""

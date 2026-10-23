@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zot
+  namespace: zot
+spec:
+  releaseName: zot
+  interval: 1h
+  chart:
+    spec:
+      chart: zot
+      version: "0.1.128"
+      sourceRef:
+        kind: HelmRepository
+        name: zot
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  dependsOn:
+    - name: zot-values
+  valuesFrom:
+    - kind: ConfigMap
+      name: zot-values
+      valuesKey: values.yaml
+  values:
+    persistence: true
+    pvc:
+      storage: 2Gi
+    service:
+      type: ClusterIP
+    # Unset the chart's sample config.json, which conflicts with `config`.
+    configFiles:
+      config.json: null
+    externalSecrets:
+      - secretName: zot-session
+        mountPath: /secrets/session
+      - secretName: zot-oidc
+        mountPath: /secrets/oidc
+      - secretName: zot-htpasswd
+        mountPath: /secrets/htpasswd
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: zot-s3
+            key: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: zot-s3
+            key: AWS_SECRET_ACCESS_KEY
