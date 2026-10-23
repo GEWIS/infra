@@ -45,7 +45,8 @@ as a public A record at the address Cilium assigned, the one in its
 `lbipam.cilium.io/ips`. Each internal route then targets
 `internal.net.gewis.nl` and gets a CNAME onto it, as public routes get
 one onto router02. Only the LAN and NetBird can reach the address — see
-[the internal entrypoint](traefik.md#internal-only-routes-use-the-internal-entrypoint).
+[the internal entrypoint](traefik.md#internal-only-routes-use-the-internal-entrypoint)
+and [Container registry](../registry/exposure.md#which-name-to-use).
 
 `--cloudflare-record-comment` tags every managed record; ownership itself is
 still the TXT, not the comment.

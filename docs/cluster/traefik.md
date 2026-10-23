@@ -150,7 +150,7 @@ Every published service has an `IngressRoute` next to the workload it serves:
 `flux/30_openbao/`, `flux/40_services/s3/`,
 `flux/50_apps/authentik/`, `flux/50_apps/observability/grafana/`,
 `flux/50_apps/hubble/`, `flux/50_apps/flux-web/`, `flux/50_apps/longhorn/`,
-`flux/50_apps/netbird/` and `flux/50_apps/keycloak/`,
+`flux/50_apps/netbird/`, `flux/50_apps/keycloak/` and `flux/50_apps/zot/`,
 each in an `ingressroute.yaml`. Routes to hosts outside the cluster live in
 `flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md); S3 is the
 exception, see [S3](s3.md). `web`
@@ -190,7 +190,9 @@ The Service carries `external-dns.alpha.kubernetes.io/hostname:
 internal.net.gewis.nl`, so external-dns' `service` source gives that
 name a public A record with the Service's LAN address. Internal routes are on
 `entryPoints: [internal]` only and target that name, the way public ones target
-router02, see [DNS](dns.md).
+router02, see [DNS](dns.md). The only internal route is the
+[container registry](../registry/exposure.md)'s `registry.net.gewis.nl`, which
+is a name in the default [certificate](certificates.md).
 
 ## Keycloak-protected apps use the `traefik-oidc-auth` plugin
 

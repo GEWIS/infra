@@ -1,0 +1,66 @@
+# See docs/registry/sessions.md.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: zot-no-session
+  namespace: zot
+spec:
+  headers:
+    customRequestHeaders:
+      X-ZOT-API-CLIENT: ""
+    customResponseHeaders:
+      Set-Cookie: ""
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: zot
+  namespace: zot
+  annotations:
+    external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: >-
+        Host(`registry.gewis.nl`)
+        && !HeaderRegexp(`Authorization`, `.*`)
+      services:
+        - name: zot
+          port: 5000
+    - kind: Rule
+      match: >-
+        Host(`registry.gewis.nl`)
+        && HeaderRegexp(`Authorization`, `.*`)
+        && !PathPrefix(`/zot/auth/apikey`)
+      middlewares:
+        - name: zot-no-session
+      services:
+        - name: zot
+          port: 5000
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: zot-lan
+  namespace: zot
+  annotations:
+    external-dns.alpha.kubernetes.io/target: internal.net.gewis.nl
+spec:
+  entryPoints:
+    - internal
+  routes:
+    - kind: Rule
+      match: >-
+        Host(`registry.net.gewis.nl`)
+        && PathPrefix(`/v2/`)
+        && (Method(`GET`) || Method(`HEAD`))
+      middlewares:
+        - name: zot-lan-reader
+        - name: zot-no-session
+      services:
+        - name: zot
+          port: 5000
+  tls: {}
