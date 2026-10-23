@@ -173,6 +173,13 @@ nav:
       - Reading from the cluster: seaweedfs-buckets/reading.md
       - Verifying: seaweedfs-buckets/verifying.md
       - Notes: seaweedfs-buckets/notes.md
+  - SeaweedFS backup:
+      - Overview: seaweedfs-backup/index.md
+      - The Scaleway side: seaweedfs-backup/scaleway.md
+      - The job: seaweedfs-backup/job.md
+      - Point-in-time recovery: seaweedfs-backup/pitr.md
+      - Restoring: seaweedfs-backup/restoring.md
+      - Verifying: seaweedfs-backup/verifying.md
   - SSH certificates:
       - Overview: ssh-certificates/index.md
       - The CA and the role: ssh-certificates/ca.md

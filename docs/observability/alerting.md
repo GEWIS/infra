@@ -90,6 +90,33 @@ metric and no alert; its state is in the `MariaDB` status, see
 The instance metrics come from the operator's mysqld-exporter, scraped through its
 `ServiceMonitor` — see [MariaDB](../databases/mariadb.md#metrics).
 
+## The s3-01 rules
+
+`s3-01.yaml` in the same ConfigMap. s3-01 is outside the cluster, so its rules
+read the host's node exporter, which Alloy scrapes as job `s3-01`
+(`prometheus.scrape "s3_01"` in `flux/50_apps/observability/alloy/metrics.yaml`):
+
+| Alert | Channel | Fires when |
+| --- | --- | --- |
+| `S3HostDown` | `infra` | s3-01's node exporter has been unreachable for 5 minutes |
+
+## The S3 backup rules
+
+`s3-backup.yaml` in the same ConfigMap, for the daily
+[off-site copy](../seaweedfs-backup/index.md) that runs on s3-01:
+
+| Alert | Channel | Fires when |
+| --- | --- | --- |
+| `S3BackupTooOld` | `backup` | no successful run for 26 hours |
+| `S3BackupFailed` | `backup` | the last run failed |
+| `S3BackupMetricsMissing` | `backup` | s3-01 has reported no successful run for 26 hours, which would keep the age alert from ever firing |
+
+The backup unit writes its result into the node exporter's textfile collector,
+see [The job](../seaweedfs-backup/job.md#metrics). `S3HostDown` covers these
+alerts going quiet: an unreachable host leaves the age alert with no series to
+compare. An empty bucket is skipped without failing the run, so it does not
+alert.
+
 ## Seeing alerts in Grafana
 
 Mimir's ruler and Alertmanager APIs serve one tenant per request; a federated
