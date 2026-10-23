@@ -44,6 +44,14 @@ spec:
         lbipam.cilium.io/ips: 10.82.50.10
       spec:
         externalTrafficPolicy: Local
+      additionalServices:
+        internal:
+          annotations:
+            lbipam.cilium.io/ips: 10.82.50.16
+            external-dns.alpha.kubernetes.io/hostname: internal.net.gewis.nl
+          spec:
+            type: LoadBalancer
+            externalTrafficPolicy: Local
     ingressClass:
       enabled: true
       isDefaultClass: true
@@ -68,6 +76,18 @@ spec:
             - 131.155.10.135
             - 145.116.44.49
             - 145.116.47.68
+        transport:
+          respondingTimeouts:
+            readTimeout: 0
+      internal:
+        port: 8444
+        exposedPort: 443
+        expose:
+          default: false
+          internal: true
+        http:
+          tls:
+            enabled: true
         transport:
           respondingTimeouts:
             readTimeout: 0
