@@ -4,7 +4,7 @@ metadata:
   name: authentik
   namespace: authentik
   annotations:
-    external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
+    external-dns.alpha.kubernetes.io/target: waf.gewis.nl
 spec:
   entryPoints:
     - websecure
