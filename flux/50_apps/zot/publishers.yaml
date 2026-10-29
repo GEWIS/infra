@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-publishers
+  namespace: zot
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
+data:
+  values.yaml: |
+    publishers:
+      - repository: gewis/aurora
+        workflow: semantic-release.yaml
+        paths:
+          - aurora/core
+          - aurora/backoffice
+          - aurora/client
+      - repository: gewis/aurora-info
+        workflow: semantic-release.yaml
+        paths:
+          - aurora/info
+      - repository: gewis/gelift-tracker
+        workflow: docker-ghcr.yml
+        paths:
+          - gelift-tracker
+      - repository: gewis/grooster
+        workflow: semantic-release.yml
+        paths:
+          - grooster/backend
+          - grooster/frontend
+      - repository: gewis/grooster
+        workflow: frontend-docker-develop.yml
+        paths:
+          - grooster/frontend
+      - repository: gewis/parelpracht
+        workflow: semantic-release.yaml
+        paths:
+          - parelpracht/client
+          - parelpracht/server
+      - repository: gewis/pdf-compiler
+        workflow: semantic-release.yaml
+        paths:
+          - pdf-compiler
+      - repository: gewis/pdf-generator
+        workflow: release.yml
+        paths:
+          - pdf-generator
+      - repository: gewis/plankapi
+        workflow: semantic-release.yml
+        paths:
+          - plankapi
+      - repository: gewis/pwned-passwords-bloom-api
+        workflow: release.yml
+        paths:
+          - pwned-passwords/api
+          - pwned-passwords/redis
+      - repository: gewis/radix
+        workflow: docker-build.yml
+        paths:
+          - radix/app
+          - radix/matomo
+      - repository: gewis/room-responsible-ng
+        workflow: build.yaml
+        paths:
+          - room-responsible-ng
+      - repository: gewis/sudosos
+        workflow: release.yml
+        paths:
+          - sudosos/backend
+          - sudosos/dashboard
+          - sudosos/docs
+          - sudosos/point-of-sale
+      - repository: gewis/sudosos
+        workflow: frontend-docker.yml
+        paths:
+          - sudosos/dashboard
+          - sudosos/point-of-sale
+      - repository: gewis/supremumweb
+        workflow: release.yml
+        paths:
+          - supremumweb

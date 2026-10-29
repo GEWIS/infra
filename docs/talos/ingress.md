@@ -26,6 +26,7 @@ the subnet. The pool and the `CiliumL2AnnouncementPolicy` live in
 | `10.82.50.12` | the [Postgres](../databases/postgres.md) primary, `postgres-lan` |
 | `10.82.50.13` | the [MariaDB](../databases/mariadb.md) primary, `mariadb-primary` |
 | `10.82.50.14` | [NetBird](../cluster/netbird.md) STUN, `netbird-stun` (UDP 3478) |
+| `10.82.50.16` | Traefik's [internal entrypoint](../cluster/traefik.md#internal-only-routes-use-the-internal-entrypoint), `traefik-internal`, for LAN-only routes |
 
 ## router02 forwards public `:443` here
 

@@ -6,6 +6,8 @@ repo_name: GEWIS/infra
 edit_uri: edit/main/docs/
 docs_dir: docs
 strict: true
+validation:
+  anchors: warn
 
 theme:
   name: material
@@ -49,7 +51,11 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -148,6 +154,15 @@ nav:
       - Overview: keycloak/index.md
       - Forward auth: keycloak/forward-auth.md
       - Applying: keycloak/applying.md
+  - Container registry:
+      - Overview: registry/index.md
+      - Two names: registry/exposure.md
+      - LAN login: registry/lan-login.md
+      - Login: registry/login.md
+      - Sessions and keys: registry/sessions.md
+      - Publishing: registry/publishing.md
+      - The config: registry/config.md
+      - Storage: registry/storage.md
   - Observability:
       - Overview: observability/index.md
       - Tenancy: observability/tenancy.md
