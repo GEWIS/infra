@@ -29,10 +29,10 @@ hour**. Run it again when they expire; nothing mints them for you.
 Without `mint-creds`, `.kube/config` is a symlink to the committed
 `kubeconfig.yaml`, which goes through the
 [NetBird proxy](../cluster/app-access.md#kubectl-over-netbird) as your own user.
-`.envrc` creates that symlink whenever `.kube/config` does not exist, and
-`mint-creds` replaces it with its own file instead of writing through it. To go
-back to the proxy after the certificate expires, delete `.kube/config` and
-re-enter the directory.
+`mint-creds` replaces that symlink with its own file instead of writing through
+it. Each time `.envrc` loads, it puts the symlink back unless `.kube/config`
+holds a client certificate that has not expired yet, so once the hour is up,
+re-entering the directory (or `direnv reload`) returns you to the proxy.
 
 The kube certificate is `O=system:masters`, so it works even when RBAC or
 every in-cluster identity provider is broken, and it cannot be revoked short of

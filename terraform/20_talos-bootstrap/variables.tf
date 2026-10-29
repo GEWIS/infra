@@ -5,7 +5,7 @@ variable "state_passphrase" {
 }
 
 variable "kubeconfig_path" {
-  description = "Path to the cbc cluster kubeconfig. Defaults to the repo-local .kube/config that .envrc mints."
+  description = "Path to the cbc cluster kubeconfig. Defaults to the repo-local .kube/config: the NetBird proxy kubeconfig, or a mint-creds break-glass certificate while one is valid."
   type        = string
   default     = null
 }

@@ -75,8 +75,8 @@ to `k8s-api`, managed in the NetBird dashboard; today only
 `Netbird - K3s Hosts - SSH Access` has one.
 
 `kubeconfig.yaml` in the repository root connects through it. Inside the
-repository it is the default: `.envrc` links `.kube/config` to it, until
-`mint-creds` replaces that link with a break-glass certificate; see
+repository it is the default: `.envrc` links `.kube/config` to it, except for
+the hour that a `mint-creds` break-glass certificate replaces that link; see
 [kubeconfig and talosconfig](../talos/secrets.md#kubeconfig-and-talosconfig-break-glass).
 Elsewhere, point kubectl at it:
 

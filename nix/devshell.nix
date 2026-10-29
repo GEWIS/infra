@@ -12,6 +12,7 @@ pkgs.mkShellNoCC {
     k9s
     nixfmt
     cilium-cli
+    openssl
     openbao
     nixos-anywhere
     opentofu

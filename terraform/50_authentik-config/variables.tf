@@ -11,7 +11,7 @@ variable "authentik_url" {
 }
 
 variable "kubeconfig_path" {
-  description = "Kubeconfig used to read the authentik API token from the cluster. Defaults to the repository's .kube/config, which .envrc mints."
+  description = "Kubeconfig used to read the authentik API token from the cluster. Defaults to the repository's .kube/config: the NetBird proxy kubeconfig, or a mint-creds break-glass certificate while one is valid."
   type        = string
   default     = null
 }
