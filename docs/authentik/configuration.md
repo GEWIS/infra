@@ -159,6 +159,16 @@ OpenBao is the one OIDC client left here. It consumes its secret itself rather
 than through a namespace, so `openbao.tf` spells it out — see
 [OpenBao](../cluster/openbao.md#people-log-in-through-authentik).
 
+**An entry with `cookie_domain` covers a whole domain.** It becomes a
+`forward_domain` provider instead of `forward_single`: one login is valid for every
+host under that domain, and `external_host` is only where the login callback lands.
+The `gehack` client works this way for GEHACK's geproxy, whose own Caddy runs the
+check for `loom.gehack.nl` and `imaged.gehack.nl` against
+`https://authentik.gewis.nl/outpost.goauthentik.io/`. That path reaches the `cbc`
+outpost on any host through the `outpost-callback` route, and the outpost picks the
+provider from `X-Forwarded-Host`. The ingress drops a request whose `Host` carries a
+port, so a proxy calling in from outside must send the bare `authentik.gewis.nl`.
+
 **`proxy_access_groups` limits who passes a proxy client.** Without an entry, any
 user who can log in to authentik gets through, which is fine for the read-only
 Hubble and Flux UIs. An entry binds an expression policy to the application that

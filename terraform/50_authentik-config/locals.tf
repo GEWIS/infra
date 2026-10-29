@@ -16,6 +16,11 @@ locals {
       display_name  = "Longhorn"
       external_host = "https://longhorn.gewis.nl"
     }
+    gehack = {
+      display_name  = "GEHACK"
+      external_host = "https://loom.gehack.nl"
+      cookie_domain = "gehack.nl"
+    }
   }
 
   proxy_access_groups = {
@@ -24,5 +29,6 @@ locals {
       "CBC - Backup Team",
       "CBC - Filehosting and backup (ADM)",
     ]
+    gehack = ["Organ - GEHACK"]
   }
 }
