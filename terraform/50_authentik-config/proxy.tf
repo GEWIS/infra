@@ -6,9 +6,8 @@ resource "authentik_provider_proxy" "client" {
   for_each = local.proxy_clients
 
   name          = each.key
-  mode          = try(each.value.cookie_domain, null) == null ? "forward_single" : "forward_domain"
+  mode          = "forward_single"
   external_host = each.value.external_host
-  cookie_domain = try(each.value.cookie_domain, null)
 
   authorization_flow = data.authentik_flow.authorization.id
   invalidation_flow  = data.authentik_flow.invalidation.id
