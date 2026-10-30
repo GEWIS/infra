@@ -161,7 +161,8 @@ than through a namespace, so `openbao.tf` spells it out — see
 
 **GEHACK's geproxy gets one client per host.** Each name in `gehack_hosts`
 becomes a `forward_single` client `gehack-<host>` for `https://<host>.gehack.nl`,
-limited to `gehack_group`. One `forward_domain` client for all of `gehack.nl`
+limited to `gehack_group`, with a 12-hour session (`access_token_validity`)
+instead of authentik's default. One `forward_domain` client for all of `gehack.nl`
 sent every login callback to its single `external_host`, and a login started on
 another host ended there instead of back where it began. geproxy's own Caddy runs
 the check against `https://authentik.gewis.nl/outpost.goauthentik.io/`. That path

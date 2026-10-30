@@ -23,8 +23,9 @@ locals {
     },
     {
       for host in local.gehack_hosts : "gehack-${host}" => {
-        display_name  = "GEHACK ${host}"
-        external_host = "https://${host}.gehack.nl"
+        display_name          = "GEHACK ${host}"
+        external_host         = "https://${host}.gehack.nl"
+        access_token_validity = "hours=12"
       }
     },
   )

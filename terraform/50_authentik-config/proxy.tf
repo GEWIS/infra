@@ -9,6 +9,8 @@ resource "authentik_provider_proxy" "client" {
   mode          = "forward_single"
   external_host = each.value.external_host
 
+  access_token_validity = lookup(each.value, "access_token_validity", null)
+
   authorization_flow = data.authentik_flow.authorization.id
   invalidation_flow  = data.authentik_flow.invalidation.id
 }
