@@ -47,5 +47,7 @@ in
     openFirewall = false;
   };
 
+  gewis.servicePc.restart.services = [ "geprint" ];
+
   networking.firewall.interfaces.${meshInterface}.allowedTCPPorts = [ 8080 ];
 }

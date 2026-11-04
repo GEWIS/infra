@@ -82,6 +82,41 @@ in
       '';
     };
 
+    restart = {
+      at = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = if cfg.shutdownAt == null then "04:30" else null;
+        defaultText = lib.literalExpression ''if shutdownAt == null then "04:30" else null'';
+        example = "*-*-* 05:00:00";
+        description = ''
+          Time every day, as a systemd calendar expression, at which every
+          browser and extra app is restarted, together with
+          {option}`services` and {option}`userServices`. `null` never does.
+        '';
+      };
+
+      services = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "geprint" ];
+        description = ''
+          System services, named as under `systemd.services`, restarted at
+          {option}`at`.
+        '';
+      };
+
+      userServices = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "spotifyd" ];
+        description = ''
+          User services of the session, named as under
+          `systemd.user.services`, restarted at {option}`at`. The browsers and
+          extra apps are always included.
+        '';
+      };
+    };
+
     touch = {
       enable = lib.mkOption {
         type = lib.types.bool;

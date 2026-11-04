@@ -16,6 +16,25 @@ Everything below is under `gewis.servicePc`, defined in
 | `shutdownAt` | `"23:00"` | Daily power-off time, as a systemd calendar expression; `null` keeps the host running |
 | `resetDisplaysAt` | `null` | Daily time, as a systemd calendar expression, to put mirrored or switched-off screens back side by side; needs `multiMonitor`. See [Putting the screens back](touch.md#putting-the-screens-back) |
 
+## Nightly restart
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `restart.at` | `"04:30"` when `shutdownAt` is `null`, else `null` | Daily time, as a systemd calendar expression, to restart every browser and extra app and the units below; `null` never does |
+| `restart.services` | `[ ]` | System units, by their `systemd.services` name, restarted at the same time |
+| `restart.userServices` | `[ ]` | User units of the session, by their `systemd.user.services` name, restarted at the same time |
+
+Two units do the work, both firing at `restart.at`: the system unit
+`service-pc-restart` restarts `restart.services`, the user unit of the same
+name restarts the browsers, apps and `restart.userServices`. A restarted
+browser is placed and made fullscreen again like at login. Run it by hand
+with:
+
+```console
+$ sudo systemctl start service-pc-restart.service
+$ sudo systemctl --user -M gewis@ start service-pc-restart.service
+```
+
 ## Touch
 
 | Option | Default | Meaning |

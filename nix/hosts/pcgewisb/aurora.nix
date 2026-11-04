@@ -74,4 +74,9 @@ in
       mode = "0400";
     };
   };
+
+  gewis.servicePc.restart = {
+    services = [ "aurora-lights-proxy" ];
+    userServices = [ "aurora-audio-player" ];
+  };
 }

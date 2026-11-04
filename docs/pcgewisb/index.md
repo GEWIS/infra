@@ -16,6 +16,9 @@ boot.
 It is never powered off at night. Instead, every night the screens are put back
 side by side if they have ended up mirrored; see
 [Putting the screens back](../service-pc/touch.md#putting-the-screens-back).
+At 04:30 both browsers, `aurora-lights-proxy`, `aurora-audio-player` and
+`spotifyd` are restarted; see
+[Nightly restart](../service-pc/options.md#nightly-restart).
 
 ## Aurora services
 

@@ -69,7 +69,7 @@ docs/                  per-host and cluster operational detail
 | `netbird.nix` | `gewis.netbird.*` — GEWIS mesh client |
 | `persistence.nix` | `gewis.persistence.*` — what survives a reboot on a tmpfs root |
 | `tmpfs-root.nix` | `gewis.tmpfsRoot.*` — disko layout for a tmpfs root with `/nix` and `/persist` on one UEFI disk |
-| `service-pc/` | `gewis.servicePc.*` — GNOME session, pinned apps, NFC, RDP and the nightly power-off for service PCs |
+| `service-pc/` | `gewis.servicePc.*` — GNOME session, pinned apps, NFC, RDP, and the nightly power-off or, on hosts that stay on, nightly service restart for service PCs |
 | `zabbix-agent.nix` | `gewis.zabbixAgent.*` — Zabbix agent |
 
 Every `gewis.*` module is off until a host enables it. `xcpng.nix` sits

@@ -12,7 +12,9 @@ It gives a machine:
 - remote control of the session;
 - a boot splash showing the wallpaper instead of kernel output;
 - a power-off every evening, so a stuck session never outlives the day, or,
-  on a host that stays on, a nightly reset of mirrored screens to side by side.
+  on a host that stays on, a nightly reset of mirrored screens to side by side
+  and a [nightly restart](options.md#nightly-restart) of its browsers, apps
+  and long-running services.
 
 The module is defined in `nix/modules/service-pc/` and imported by every
 host through `nix/modules/default.nix`, so it is available everywhere and does

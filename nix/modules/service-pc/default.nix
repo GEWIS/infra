@@ -10,5 +10,6 @@
     ./plymouth.nix
     ./shutdown.nix
     ./display-reset.nix
+    ./restart.nix
   ];
 }

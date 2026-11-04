@@ -20,10 +20,19 @@ let
       mode = "0444";
     };
 
+    # Stands in for a host service such as geprint.
+    systemd.services.restart-probe = {
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.ExecStart = "${pkgs.coreutils}/bin/sleep infinity";
+    };
+
     gewis.servicePc = {
       enable = true;
       uid = 1000;
       workspaces = 2;
+      # A host that stays on gets the nightly restart by default.
+      shutdownAt = null;
+      restart.services = [ "restart-probe" ];
 
       browsers = {
         first = {
@@ -141,9 +150,34 @@ pkgs.testers.runNixOSTest {
       machine.wait_for_open_port(3389)
       machine.fail("pgrep -u gewis -f gcr-prompter")
 
+    def main_pids(machine):
+      user = {
+        unit: machine.succeed(
+          f"su gewis -c '{session}systemctl --user show -p MainPID --value {unit}'"
+        ).strip()
+        for unit in (
+          "service-pc-browser-first.service",
+          "service-pc-browser-second.service",
+          "service-pc-app-xterm.service",
+        )
+      }
+      system = {"restart-probe.service": machine.succeed("systemctl show -p MainPID --value restart-probe.service").strip()}
+      return user | system
+
     with subtest("a fresh machine"):
       fresh.start()
       check(fresh)
+
+    with subtest("the nightly restart replaces every browser, app and listed service"):
+      fresh.wait_for_unit("restart-probe.service")
+      before = main_pids(fresh)
+      fresh.succeed(f"su gewis -c '{session}systemctl --user start service-pc-restart.service'")
+      fresh.succeed("systemctl start service-pc-restart.service")
+      after = main_pids(fresh)
+      for unit, pid in after.items():
+        assert pid not in ("", "0", before[unit]), f"{unit}: {before[unit]} -> {pid}"
+      for browser in ("first", "second"):
+        fresh.wait_until_succeeds(f"pgrep -u gewis -f -- '--name firefox-{browser}'")
       fresh.shutdown()
 
     with subtest("a machine carrying a keyring nobody has the password of"):

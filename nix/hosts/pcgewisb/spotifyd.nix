@@ -37,5 +37,7 @@ in
     };
   };
 
+  gewis.servicePc.restart.userServices = [ "spotifyd" ];
+
   environment.systemPackages = [ pkgs.spotifyd ];
 }

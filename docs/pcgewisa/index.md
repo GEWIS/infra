@@ -15,6 +15,8 @@ root filesystem being wiped on every boot.
 It is never powered off at night. Instead, every night the screens are put back
 side by side if they have ended up mirrored; see
 [Putting the screens back](../service-pc/touch.md#putting-the-screens-back).
+Both browsers are restarted at 04:30; see
+[Nightly restart](../service-pc/options.md#nightly-restart).
 
 ## Graphics
 
