@@ -56,11 +56,23 @@ resource "aws_iam_user_policy" "this" {
   name = "${each.key}-read-write"
   user = aws_iam_user.this[each.key].name
 
+  # Object, list and multipart operations only. s3:* would map to SeaweedFS's
+  # Admin action, which also lets an app retag its bucket (no_backup=true drops
+  # it from the off-site copy without any alert) or delete it.
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
-      Action = ["s3:*"]
+      Action = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:ListMultipartUploads",
+        "s3:ListParts",
+        "s3:AbortMultipartUpload",
+      ]
       Resource = [
         aws_s3_bucket.this[each.key].arn,
         "${aws_s3_bucket.this[each.key].arn}/*",
