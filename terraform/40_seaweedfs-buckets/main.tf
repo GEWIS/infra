@@ -11,6 +11,11 @@ locals {
   # GLACIER; unset is STANDARD) and becomes the tag backup_class.
   # The database archives stay STANDARD: recovery reads them in place. Nextcloud
   # is bulk files nothing reads until a full restore, so it goes to Glacier.
+  #
+  # backup_encrypt = true copies the bucket through rclone crypt, so Scaleway
+  # only holds ciphertext; it becomes the tag backup_encrypt=true. For user
+  # files only: the database archives must stay readable to Barman and
+  # mariadb-operator in place.
   buckets = {
     loki       = { namespace = "observability", no_backup = true }
     mimir      = { namespace = "observability", no_backup = true }
@@ -18,14 +23,15 @@ locals {
     postgres   = { namespace = "postgres" }
     mariadb    = { namespace = "mariadb" }
     kaneo      = { namespace = "kaneo-prod" }
-    nextcloud  = { namespace = "nextcloud-prod", backup_class = "GLACIER" }
-    mattermost = { namespace = "mattermost-prod" }
+    nextcloud  = { namespace = "nextcloud-prod", backup_class = "GLACIER", backup_encrypt = true }
+    mattermost = { namespace = "mattermost-prod", backup_encrypt = true }
     zot        = { namespace = "zot-prod", no_backup = true }
   }
 
   # The one place each default lives; the tags and the output read these.
-  no_backup    = { for name, bucket in local.buckets : name => try(bucket.no_backup, false) }
-  backup_class = { for name, bucket in local.buckets : name => try(bucket.backup_class, null) }
+  no_backup      = { for name, bucket in local.buckets : name => try(bucket.no_backup, false) }
+  backup_class   = { for name, bucket in local.buckets : name => try(bucket.backup_class, null) }
+  backup_encrypt = { for name, bucket in local.buckets : name => try(bucket.backup_encrypt, false) }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
 
@@ -44,6 +50,7 @@ resource "aws_s3_bucket" "this" {
   tags = merge(
     local.no_backup[each.key] ? { no_backup = "true" } : {},
     local.backup_class[each.key] != null ? { backup_class = local.backup_class[each.key] } : {},
+    local.backup_encrypt[each.key] ? { backup_encrypt = "true" } : {},
   )
 }
 

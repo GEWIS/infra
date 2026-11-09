@@ -8,7 +8,7 @@ and nowhere else. An entry looks like this:
 buckets = {
   loki      = { namespace = "observability", no_backup = true }
   postgres  = { namespace = "postgres" }
-  nextcloud = { namespace = "nextcloud-prod", backup_class = "GLACIER" }
+  nextcloud = { namespace = "nextcloud-prod", backup_class = "GLACIER", backup_encrypt = true }
 }
 ```
 
@@ -23,11 +23,15 @@ reads at backup time, so the host carries no bucket names. See
 becomes the tag `backup_class=<class>`. Unset means `STANDARD`. See
 [Storage class per bucket](../seaweedfs-backup/storage-class.md).
 
+`backup_encrypt = true` copies the bucket through rclone crypt, so Scaleway only
+holds ciphertext; it becomes the tag `backup_encrypt=true`. See
+[Encryption per bucket](../seaweedfs-backup/encryption.md).
+
 Per entry, one apply produces:
 
 | Object | Where |
 | --- | --- |
-| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out and `backup_class=<class>` if it sets one | SeaweedFS |
+| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out, `backup_class=<class>` if it sets one and `backup_encrypt=true` if it encrypts | SeaweedFS |
 | `aws_iam_user` `<namespace>-<bucket>` | SeaweedFS |
 | `aws_iam_access_key` for that user, non-expiring | SeaweedFS |
 | `aws_iam_user_policy` `<bucket>-read-write`: object, list and multipart actions on `arn:aws:s3:::<bucket>` and `arn:aws:s3:::<bucket>/*`, nothing on its tags, policy or the bucket itself | SeaweedFS |

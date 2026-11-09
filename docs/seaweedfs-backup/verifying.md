@@ -10,7 +10,7 @@ already hold your Scaleway key for the state backend, so pass the SeaweedFS keys
 per call instead of exporting them:
 
 ```sh
-tofu output -json buckets | jq 'map_values({backup, backup_class})'
+tofu output -json buckets | jq 'map_values({backup, backup_class, backup_encrypt})'
 
 sw() {
   AWS_ACCESS_KEY_ID="$TF_VAR_seaweedfs_admin_access_key" \
@@ -18,7 +18,7 @@ sw() {
   aws --endpoint-url http://s3.net.gewis.nl:8333 --region us-east-1 "$@"
 }
 sw s3api get-bucket-tagging --bucket loki       # no_backup=true
-sw s3api get-bucket-tagging --bucket nextcloud  # backup_class=GLACIER
+sw s3api get-bucket-tagging --bucket nextcloud  # backup_class=GLACIER, backup_encrypt=true
 sw s3api get-bucket-tagging --bucket kaneo      # NoSuchTagSet
 ```
 
@@ -34,17 +34,23 @@ cat /var/lib/prometheus-node-exporter-text/*.prom
 ```
 
 Each copied bucket logs `syncing <bucket>` (`syncing <bucket> as <class>` with
-`backup_class` set) followed by the objects copied, or
-`There was nothing to transfer`; each opted-out one logs `skipping <bucket>:
-tagged no_backup`. Then compare, with the remotes from [Restoring](restoring.md):
+`backup_class` set, ending in `, encrypted` with `backup_encrypt`) followed by
+the objects copied, or `There was nothing to transfer`; each opted-out one logs
+`skipping <bucket>: tagged no_backup`. Then compare, with the remotes from
+[Restoring](restoring.md) and, for encrypted buckets, the crypt keys from
+[Encrypted buckets](restoring.md#encrypted-buckets):
 
 ```sh
 rclone check --one-way seaweedfs:postgres scaleway:gewis-seaweedfs-backup/postgres
-rclone lsf --format pT scaleway:gewis-seaweedfs-backup/nextcloud   # every line ends GLACIER
+rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-seaweedfs-backup/mattermost':"
+rclone lsf --format pT scaleway:gewis-seaweedfs-backup/nextcloud   # encrypted names, every line ends GLACIER
 ```
 
-`rclone check` compares checksums from the listing and reads no object data, so
-it works on a Glacier bucket too.
+`rclone check` compares checksums from the listing and reads no object data.
+`cryptcheck` reads each copy's 32-byte header, so it cannot check a bucket that
+is both encrypted and in Glacier; for that one, compare
+`rclone size seaweedfs:nextcloud` with `rclone size
+":crypt,remote='scaleway:gewis-seaweedfs-backup/nextcloud':"`, which only lists.
 
 ## The cluster sees it
 

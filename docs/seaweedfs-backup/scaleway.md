@@ -91,15 +91,21 @@ versioning and the lifecycle rules out of the job's reach. Generate an
 API key for the application with `seaweedfs-backup` as its preferred Object
 Storage Project.
 
-Add it to the host's sops file:
+Add it to the host's sops file, together with the keys of the
+[encrypted copies](encryption.md#the-keys):
 
 ```yaml
 scaleway-backup-access-key: <application access key>
 scaleway-backup-secret-key: <application secret key>
+scaleway-backup-crypt-password: <output of openssl rand -base64 32>
+scaleway-backup-crypt-salt: <output of openssl rand -base64 32>
 ```
 
+Keep a copy of the two crypt keys in the admins' password manager too; without
+them the encrypted copies cannot be read.
+
 Do this **before** the next `tofu apply` of `terraform/10_s3-01`: sops-nix
-checks at build time that every declared secret exists, so without these two
+checks at build time that every declared secret exists, so without these
 keys the s3-01 closure does not build (*"the key 'scaleway-backup-access-key'
 cannot be found"*). `nix flake check` only evaluates hosts, so CI stays green
 either way.

@@ -13,8 +13,9 @@ s3://gewis-seaweedfs-backup/<bucket>/<key>
 | --- | --- | --- |
 | `no_backup` opt-out per bucket | `terraform/40_seaweedfs-buckets/main.tf` | becomes the bucket tag `no_backup=true`; every untagged bucket is copied |
 | `backup_class` per bucket | `terraform/40_seaweedfs-buckets/main.tf` | becomes the bucket tag `backup_class=<class>`, the Scaleway storage class of that bucket's copy; see [Storage class per bucket](storage-class.md) |
+| `backup_encrypt` per bucket | `terraform/40_seaweedfs-buckets/main.tf` | becomes the bucket tag `backup_encrypt=true`; that bucket is copied through rclone crypt, see [Encryption per bucket](encryption.md) |
 | `seaweedfs-backup.service` + `.timer` | `nix/hosts/s3-01/seaweedfs.nix`, script in `seaweedfs-backup.sh` | `rclone sync` per bucket, daily at 04:15 UTC |
-| Scaleway key | `secrets/s3-01.yaml`, keys `scaleway-backup-access-key` / `-secret-key` | the job's write access to the backup bucket |
+| Scaleway key, crypt keys | `secrets/s3-01.yaml`, keys `scaleway-backup-access-key` / `-secret-key` and `scaleway-backup-crypt-password` / `-salt` | the job's write access to the backup bucket, and the keys of the encrypted copies |
 | Scaleway Project, bucket, IAM application | by hand, see [The Scaleway side](scaleway.md) | versioning, Object Lock, lifecycle |
 | Node exporter on s3-01 | `nix/hosts/s3-01/seaweedfs.nix` | host health plus the job's result, scraped by the cluster's Alloy |
 | Alerts | `flux/50_apps/observability/mimir/rules.yaml` | see [Alerting](../observability/alerting.md#the-s3-backup-rules) |

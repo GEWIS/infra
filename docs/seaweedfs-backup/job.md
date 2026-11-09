@@ -13,8 +13,9 @@ Per bucket SeaweedFS lists, it:
    NoSuchTagSet`) means copy it,
 2. takes the storage class from the tag `backup_class`, if set, and fails the
    bucket on a value that is not `STANDARD` or `GLACIER`,
-3. skips an empty bucket (below),
-4. runs
+3. takes `backup_encrypt` the same way, failing on any value but `true`,
+4. skips an empty bucket (below),
+5. runs
 
 ```sh
 rclone sync --fast-list --checksum --stats-one-line --stats 0 -v \
@@ -27,6 +28,12 @@ rclone connection string that overrides the class for that one sync. The log
 line then reads `syncing <bucket> as <class>`. See
 [Storage class per bucket](storage-class.md).
 
+With `backup_encrypt=true`, that destination is wrapped in an on-the-fly crypt
+remote, `:crypt,remote='<destination>':`, and `--checksum` is dropped: crypt
+objects carry no plaintext hash, so the bucket is compared by size and
+modification time. The log line ends in `, encrypted`. See
+[Encryption per bucket](encryption.md).
+
 Both remotes are configured entirely through `RCLONE_CONFIG_<REMOTE>_*`
 environment variables, so there is no rclone config file:
 
@@ -35,6 +42,11 @@ environment variables, so there is no rclone config file:
 | `seaweedfs` | `http://127.0.0.1:8333`, region `us-east-1` | the admin identity, from the sops secrets `seaweedfs-admin-*` |
 | `scaleway` | `s3.nl-ams.scw.cloud`, default storage class `STANDARD` (Multi-AZ), `no_check_bucket` because the key may not create buckets | `scaleway-backup-*` from `secrets/s3-01.yaml` |
 
+crypt is configured through `RCLONE_CRYPT_*` instead: the file and directory
+name settings are pinned in the unit's environment, and the script obscures
+`scaleway-backup-crypt-password` and `-salt` into `RCLONE_CRYPT_PASSWORD` and
+`RCLONE_CRYPT_PASSWORD2` at start, through stdin.
+
 The secrets reach the unit as the sops template `seaweedfs-backup.env`
 (`EnvironmentFile`, root-only). The unit runs as a `DynamicUser` with the same
 hardening as the SeaweedFS units.
@@ -42,8 +54,10 @@ hardening as the SeaweedFS units.
 ## Guards
 
 - **No buckets listed**, SeaweedFS down or the key wrong, fails the run.
-- **A bucket whose tags cannot be read**, or whose `backup_class` is unknown, is
-  not copied and fails the run.
+- **A bucket whose tags cannot be read**, or whose `backup_class` or
+  `backup_encrypt` is unknown, is not copied and fails the run.
+- **A bucket tagged `backup_encrypt` while the crypt keys are missing** is not
+  copied and fails the run.
 - **A bucket whose objects cannot be listed** (`rclone size` exits non-zero) is
   not copied and fails the run.
 - **A source bucket that lists no objects** is skipped and logged as

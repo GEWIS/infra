@@ -191,6 +191,11 @@ in
           RCLONE_CONFIG_SCALEWAY_STORAGE_CLASS = "STANDARD";
           # The job key may not create buckets; the bucket exists already.
           RCLONE_CONFIG_SCALEWAY_NO_CHECK_BUCKET = "true";
+          # For buckets tagged backup_encrypt. Both are rclone's defaults, pinned
+          # because changing either renames every object in an encrypted copy,
+          # exactly like changing the keys. See docs/seaweedfs-backup/encryption.md.
+          RCLONE_CRYPT_FILENAME_ENCRYPTION = "standard";
+          RCLONE_CRYPT_DIRECTORY_NAME_ENCRYPTION = "true";
         };
 
         serviceConfig = hardening // {
@@ -229,6 +234,8 @@ in
       seaweedfs-admin-secret-key = { };
       scaleway-backup-access-key = { };
       scaleway-backup-secret-key = { };
+      scaleway-backup-crypt-password = { };
+      scaleway-backup-crypt-salt = { };
     };
 
     templates."seaweedfs-admin.env" = {
@@ -250,6 +257,8 @@ in
         RCLONE_CONFIG_SEAWEEDFS_SECRET_ACCESS_KEY=${config.sops.placeholder.seaweedfs-admin-secret-key}
         RCLONE_CONFIG_SCALEWAY_ACCESS_KEY_ID=${config.sops.placeholder.scaleway-backup-access-key}
         RCLONE_CONFIG_SCALEWAY_SECRET_ACCESS_KEY=${config.sops.placeholder.scaleway-backup-secret-key}
+        SCALEWAY_CRYPT_PASSWORD=${config.sops.placeholder.scaleway-backup-crypt-password}
+        SCALEWAY_CRYPT_SALT=${config.sops.placeholder.scaleway-backup-crypt-salt}
       '';
     };
   };

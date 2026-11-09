@@ -33,6 +33,28 @@ rclone copy -v scaleway:gewis-seaweedfs-backup/<bucket> seaweedfs:<bucket>
 
 `copy`, not `sync`: it never deletes on the SeaweedFS side.
 
+## Encrypted buckets
+
+A bucket with `backup_encrypt = true` ([Encryption per bucket](encryption.md))
+is read back through crypt, rooted at its prefix. The keys are
+`scaleway-backup-crypt-password` and `-salt` from `secrets/s3-01.yaml`, or the
+copy in the admins' password manager:
+
+```sh
+export RCLONE_CRYPT_PASSWORD="$(sops -d --extract '["scaleway-backup-crypt-password"]' ../../secrets/s3-01.yaml | rclone obscure -)"
+export RCLONE_CRYPT_PASSWORD2="$(sops -d --extract '["scaleway-backup-crypt-salt"]' ../../secrets/s3-01.yaml | rclone obscure -)"
+
+rclone copy -v ":crypt,remote='scaleway:gewis-seaweedfs-backup/<bucket>':" seaweedfs:<bucket>
+```
+
+The file and directory name settings are rclone's defaults, which the job pins,
+so they need no flags here. Everything else on this page applies unchanged, on
+the underlying `scaleway` remote: `RCLONE_CONFIG_SCALEWAY_VERSION_AT` for
+[a past moment](#the-bucket-as-it-was-at-a-moment), and the
+[Glacier restore](#from-glacier) on `scaleway:gewis-seaweedfs-backup/<bucket>`,
+which sees the encrypted names and restores all of them. A single file cannot
+be picked out by name there; restore the whole prefix.
+
 ## From Glacier
 
 A bucket with `backup_class = "GLACIER"` ([Storage class per
@@ -83,7 +105,8 @@ also make the SeaweedFS destination read-only.
 2. Apply `terraform/40_seaweedfs-buckets`. That recreates every bucket empty,
    with new keys that External Secrets picks up within the hour.
 3. `rclone copy` each backed-up bucket back, as above, after restoring the
-   [Glacier](#from-glacier) ones, then
+   [Glacier](#from-glacier) ones and through crypt for the
+   [encrypted](#encrypted-buckets) ones, then
    `systemctl unmask --runtime seaweedfs-backup.timer` and
    `systemctl start seaweedfs-backup.timer`. The Glacier buckets are the slow
    part: start their restore first.
@@ -92,12 +115,18 @@ also make the SeaweedFS destination read-only.
 
 ## A restore drill
 
-A copy is only proven by restoring it. Two cheap checks and one real one:
+A copy is only proven by restoring it. Cheap checks first, then a real one:
 
 ```sh
 rclone check --one-way seaweedfs:kaneo scaleway:gewis-seaweedfs-backup/kaneo
 rclone copy scaleway:gewis-seaweedfs-backup/kaneo /tmp/restore-kaneo
+rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-seaweedfs-backup/mattermost':"
 ```
+
+`cryptcheck` encrypts each source file with the nonce from its copy's 32-byte
+header and compares the result, so it proves both the copy and the keys while
+downloading only the headers. That is still a read, so it needs a bucket that
+is not in Glacier, such as `mattermost`.
 
 The real one is a throwaway CloudNativePG `Cluster` with `bootstrap.recovery`
 whose `ObjectStore` points straight at
