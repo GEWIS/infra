@@ -12,6 +12,7 @@ s3://gewis-seaweedfs-backup/<bucket>/<key>
 | Piece | Where | Does |
 | --- | --- | --- |
 | `no_backup` opt-out per bucket | `terraform/40_seaweedfs-buckets/main.tf` | becomes the bucket tag `no_backup=true`; every untagged bucket is copied |
+| `backup_class` per bucket | `terraform/40_seaweedfs-buckets/main.tf` | becomes the bucket tag `backup_class=<class>`, the Scaleway storage class of that bucket's copy; see [Storage class per bucket](storage-class.md) |
 | `seaweedfs-backup.service` + `.timer` | `nix/hosts/s3-01/seaweedfs.nix`, script in `seaweedfs-backup.sh` | `rclone sync` per bucket, daily at 04:15 UTC |
 | Scaleway key | `secrets/s3-01.yaml`, keys `scaleway-backup-access-key` / `-secret-key` | the job's write access to the backup bucket |
 | Scaleway Project, bucket, IAM application | by hand, see [The Scaleway side](scaleway.md) | versioning, Object Lock, lifecycle |

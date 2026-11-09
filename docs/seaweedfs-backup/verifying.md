@@ -2,7 +2,7 @@
 
 After applying `terraform/40_seaweedfs-buckets` and `terraform/10_s3-01`.
 
-## The opt-out tags are set
+## The tags are set
 
 From `terraform/40_seaweedfs-buckets`, whose `.envrc` exports the admin keys as
 `TF_VAR_seaweedfs_admin_*`. The `aws` CLI reads `AWS_*`, which in that shell
@@ -10,15 +10,16 @@ already hold your Scaleway key for the state backend, so pass the SeaweedFS keys
 per call instead of exporting them:
 
 ```sh
-tofu output -json buckets | jq 'map_values(.backup)'
+tofu output -json buckets | jq 'map_values({backup, backup_class})'
 
 sw() {
   AWS_ACCESS_KEY_ID="$TF_VAR_seaweedfs_admin_access_key" \
   AWS_SECRET_ACCESS_KEY="$TF_VAR_seaweedfs_admin_secret_key" \
   aws --endpoint-url http://s3.net.gewis.nl:8333 --region us-east-1 "$@"
 }
-sw s3api get-bucket-tagging --bucket loki   # no_backup=true
-sw s3api get-bucket-tagging --bucket kaneo  # NoSuchTagSet
+sw s3api get-bucket-tagging --bucket loki       # no_backup=true
+sw s3api get-bucket-tagging --bucket nextcloud  # backup_class=GLACIER
+sw s3api get-bucket-tagging --bucket kaneo      # NoSuchTagSet
 ```
 
 ## The job runs
@@ -32,13 +33,18 @@ journalctl -u seaweedfs-backup -b
 cat /var/lib/prometheus-node-exporter-text/*.prom
 ```
 
-Each copied bucket logs `syncing <bucket>` followed by the objects copied, or
+Each copied bucket logs `syncing <bucket>` (`syncing <bucket> as <class>` with
+`backup_class` set) followed by the objects copied, or
 `There was nothing to transfer`; each opted-out one logs `skipping <bucket>:
 tagged no_backup`. Then compare, with the remotes from [Restoring](restoring.md):
 
 ```sh
 rclone check --one-way seaweedfs:postgres scaleway:gewis-seaweedfs-backup/postgres
+rclone lsf --format pT scaleway:gewis-seaweedfs-backup/nextcloud   # every line ends GLACIER
 ```
+
+`rclone check` compares checksums from the listing and reads no object data, so
+it works on a Glacier bucket too.
 
 ## The cluster sees it
 

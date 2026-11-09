@@ -177,6 +177,7 @@ nav:
       - Overview: seaweedfs-backup/index.md
       - The Scaleway side: seaweedfs-backup/scaleway.md
       - The job: seaweedfs-backup/job.md
+      - Storage class per bucket: seaweedfs-backup/storage-class.md
       - Point-in-time recovery: seaweedfs-backup/pitr.md
       - Restoring: seaweedfs-backup/restoring.md
       - Verifying: seaweedfs-backup/verifying.md

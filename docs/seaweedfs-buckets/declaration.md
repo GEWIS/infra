@@ -6,8 +6,9 @@ and nowhere else. An entry looks like this:
 
 ```hcl
 buckets = {
-  loki     = { namespace = "observability", no_backup = true }
-  postgres = { namespace = "postgres" }
+  loki      = { namespace = "observability", no_backup = true }
+  postgres  = { namespace = "postgres" }
+  nextcloud = { namespace = "nextcloud-prod", backup_class = "GLACIER" }
 }
 ```
 
@@ -18,11 +19,15 @@ without it is copied. It becomes the bucket tag `no_backup=true`, which s3-01
 reads at backup time, so the host carries no bucket names. See
 [SeaweedFS backup](../seaweedfs-backup/index.md).
 
+`backup_class` picks the Scaleway storage class of the copy, the same way: it
+becomes the tag `backup_class=<class>`. Unset means `STANDARD`. See
+[Storage class per bucket](../seaweedfs-backup/storage-class.md).
+
 Per entry, one apply produces:
 
 | Object | Where |
 | --- | --- |
-| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out | SeaweedFS |
+| `aws_s3_bucket` `<bucket>`, tagged `no_backup=true` if the entry opts out and `backup_class=<class>` if it sets one | SeaweedFS |
 | `aws_iam_user` `<namespace>-<bucket>` | SeaweedFS |
 | `aws_iam_access_key` for that user, non-expiring | SeaweedFS |
 | `aws_iam_user_policy` `<bucket>-read-write`: object, list and multipart actions on `arn:aws:s3:::<bucket>` and `arn:aws:s3:::<bucket>/*`, nothing on its tags, policy or the bucket itself | SeaweedFS |

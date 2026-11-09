@@ -11,13 +11,21 @@ Per bucket SeaweedFS lists, it:
 1. reads the bucket's tags (`GET /<bucket>?tagging`, signed with `curl
    --aws-sigv4`) and skips it if `no_backup=true` is set; no tags (`404
    NoSuchTagSet`) means copy it,
-2. skips an empty bucket (below),
-3. runs
+2. takes the storage class from the tag `backup_class`, if set, and fails the
+   bucket on a value that is not `STANDARD` or `GLACIER`,
+3. skips an empty bucket (below),
+4. runs
 
 ```sh
 rclone sync --fast-list --checksum --stats-one-line --stats 0 -v \
   "seaweedfs:$bucket" "scaleway:gewis-seaweedfs-backup/$bucket"
 ```
+
+With `backup_class` set, the destination is
+`scaleway,storage_class=<class>:gewis-seaweedfs-backup/$bucket` instead: an
+rclone connection string that overrides the class for that one sync. The log
+line then reads `syncing <bucket> as <class>`. See
+[Storage class per bucket](storage-class.md).
 
 Both remotes are configured entirely through `RCLONE_CONFIG_<REMOTE>_*`
 environment variables, so there is no rclone config file:
@@ -25,7 +33,7 @@ environment variables, so there is no rclone config file:
 | Remote | Endpoint | Credentials |
 | --- | --- | --- |
 | `seaweedfs` | `http://127.0.0.1:8333`, region `us-east-1` | the admin identity, from the sops secrets `seaweedfs-admin-*` |
-| `scaleway` | `s3.nl-ams.scw.cloud`, storage class `STANDARD` (Multi-AZ), `no_check_bucket` because the key may not create buckets | `scaleway-backup-*` from `secrets/s3-01.yaml` |
+| `scaleway` | `s3.nl-ams.scw.cloud`, default storage class `STANDARD` (Multi-AZ), `no_check_bucket` because the key may not create buckets | `scaleway-backup-*` from `secrets/s3-01.yaml` |
 
 The secrets reach the unit as the sops template `seaweedfs-backup.env`
 (`EnvironmentFile`, root-only). The unit runs as a `DynamicUser` with the same
@@ -34,7 +42,8 @@ hardening as the SeaweedFS units.
 ## Guards
 
 - **No buckets listed**, SeaweedFS down or the key wrong, fails the run.
-- **A bucket whose tags cannot be read** is not copied and fails the run.
+- **A bucket whose tags cannot be read**, or whose `backup_class` is unknown, is
+  not copied and fails the run.
 - **A bucket whose objects cannot be listed** (`rclone size` exits non-zero) is
   not copied and fails the run.
 - **A source bucket that lists no objects** is skipped and logged as

@@ -6,6 +6,11 @@ locals {
   # it sets no_backup = true, which becomes the bucket tag no_backup=true that the
   # host reads. See docs/seaweedfs-backup/. Observability data rebuilds by
   # accrual and zot's images are pushed again from CI, so both opt out.
+  #
+  # backup_class picks the Scaleway storage class of a bucket's copy (STANDARD or
+  # GLACIER; unset is STANDARD) and becomes the tag backup_class.
+  # The database archives stay STANDARD: recovery reads them in place. Nextcloud
+  # is bulk files nothing reads until a full restore, so it goes to Glacier.
   buckets = {
     loki       = { namespace = "observability", no_backup = true }
     mimir      = { namespace = "observability", no_backup = true }
@@ -13,13 +18,14 @@ locals {
     postgres   = { namespace = "postgres" }
     mariadb    = { namespace = "mariadb" }
     kaneo      = { namespace = "kaneo-prod" }
-    nextcloud  = { namespace = "nextcloud-prod" }
+    nextcloud  = { namespace = "nextcloud-prod", backup_class = "GLACIER" }
     mattermost = { namespace = "mattermost-prod" }
     zot        = { namespace = "zot-prod", no_backup = true }
   }
 
-  # The one place the no_backup default lives; the tag and the output read it.
-  no_backup = { for name, bucket in local.buckets : name => try(bucket.no_backup, false) }
+  # The one place each default lives; the tags and the output read these.
+  no_backup    = { for name, bucket in local.buckets : name => try(bucket.no_backup, false) }
+  backup_class = { for name, bucket in local.buckets : name => try(bucket.backup_class, null) }
 
   namespaces = toset([for bucket in local.buckets : bucket.namespace])
 
@@ -35,7 +41,10 @@ resource "aws_s3_bucket" "this" {
   for_each = local.buckets
 
   bucket = each.key
-  tags   = local.no_backup[each.key] ? { no_backup = "true" } : {}
+  tags = merge(
+    local.no_backup[each.key] ? { no_backup = "true" } : {},
+    local.backup_class[each.key] != null ? { backup_class = local.backup_class[each.key] } : {},
+  )
 }
 
 resource "aws_iam_user" "this" {

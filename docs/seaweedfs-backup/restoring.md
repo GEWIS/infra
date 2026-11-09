@@ -16,9 +16,14 @@ export RCLONE_CONFIG_SEAWEEDFS_TYPE=s3
 export RCLONE_CONFIG_SEAWEEDFS_PROVIDER=SeaweedFS
 export RCLONE_CONFIG_SEAWEEDFS_ENDPOINT=http://s3.net.gewis.nl:8333
 export RCLONE_CONFIG_SEAWEEDFS_REGION=us-east-1
+export RCLONE_CONFIG_SEAWEEDFS_STORAGE_CLASS=STANDARD
 export RCLONE_CONFIG_SEAWEEDFS_ACCESS_KEY_ID="$TF_VAR_seaweedfs_admin_access_key"
 export RCLONE_CONFIG_SEAWEEDFS_SECRET_ACCESS_KEY="$TF_VAR_seaweedfs_admin_secret_key"
 ```
+
+Without `STORAGE_CLASS` on `seaweedfs`, rclone copies each source object's class
+along with it, and objects restored from Glacier would be labelled `GLACIER` in
+SeaweedFS.
 
 ## The latest copy
 
@@ -27,6 +32,27 @@ rclone copy -v scaleway:gewis-seaweedfs-backup/<bucket> seaweedfs:<bucket>
 ```
 
 `copy`, not `sync`: it never deletes on the SeaweedFS side.
+
+## From Glacier
+
+A bucket with `backup_class = "GLACIER"` ([Storage class per
+bucket](storage-class.md)) cannot be copied back until every object is
+restored to `STANDARD`. Request that first, for long enough to finish the copy:
+
+```sh
+rclone backend restore scaleway:gewis-seaweedfs-backup/nextcloud -o lifetime=7
+rclone backend restore-status scaleway:gewis-seaweedfs-backup/nextcloud
+```
+
+A restore can take up to 24 hours to start per object. A multipart object
+counts as one object per part. Once `restore-status` shows nothing still in
+progress, `rclone copy` as above. After `lifetime` days the objects go back to
+Glacier by themselves.
+
+These commands restore the current versions only. An older version, for
+[the bucket as it was at a moment](#the-bucket-as-it-was-at-a-moment), needs
+`aws s3api restore-object --version-id <version> --restore-request Days=7` per
+object. Neither has been run against Scaleway yet.
 
 ## The bucket as it was at a moment
 
@@ -56,9 +82,11 @@ also make the SeaweedFS destination read-only.
    the restore.
 2. Apply `terraform/40_seaweedfs-buckets`. That recreates every bucket empty,
    with new keys that External Secrets picks up within the hour.
-3. `rclone copy` each backed-up bucket back, as above, then
+3. `rclone copy` each backed-up bucket back, as above, after restoring the
+   [Glacier](#from-glacier) ones, then
    `systemctl unmask --runtime seaweedfs-backup.timer` and
-   `systemctl start seaweedfs-backup.timer`.
+   `systemctl start seaweedfs-backup.timer`. The Glacier buckets are the slow
+   part: start their restore first.
 4. For Postgres, recover as in [Backups](../databases/backups.md); a cluster
    restored from this archive must archive under a new `serverName`.
 
