@@ -1,8 +1,9 @@
 # App access
 
 An app's people reach their namespaces two ways: through [Kite](kite.md) and with
-`kubectl` over NetBird. Both are generated from one list, so a group never has
-one without the other.
+`kubectl` over NetBird. They also manage their app's images in the
+[container registry](../registry/login.md). All three are generated from one
+list, so a group never has one without the others.
 
 Kite cannot take its roles from Kubernetes objects. It reads one config file and
 talks to the apiserver as its own service account, so a RoleBinding does nothing
@@ -37,12 +38,17 @@ gets `cluster-admin` from the `cluster-admins` ClusterRoleBinding in
 
 ## What one entry produces
 
-The local chart `charts/app-access` is installed twice from that ConfigMap:
+The local chart `charts/app-access` is installed three times from that ConfigMap:
 
 | Release | Layer | Renders |
 | --- | --- | --- |
 | `kite-config` (`render: kiteConfig`) | `apps` | Secret `kite/kite-roles`: Kite's whole config, with `<name>-read` (`get`, `log`) and `<name>-pods` (`exec`, `delete` on pods) mapped to `group` |
+| `zot-app-access` (`render: zotAccess`) | `apps` | ConfigMap `zot/zot-app-access`: the list as a values fragment, from which `zot-values` gives `group` `read`, `create`, `update` and `delete` on `<name>/**` in the registry |
 | `app-access` (`render: access`) | `access` | per namespace a Role and RoleBinding `<name>-access` for `Group: <group>`: read everything, `pods/exec`, delete pods; plus the NetBird ClusterProxy |
+
+`zot-app-access` is defined in `flux/50_apps/zot/` in namespace `kite`, next to
+the `app-access` ConfigMap it reads, and installs into `zot` through
+`targetNamespace`. An app's images sit under `<name>/`.
 
 The split exists because a RoleBinding needs its namespace, and app namespaces
 come from `k8s-apps` in `external-apps`. Only the `access` layer waits for

@@ -1,0 +1,100 @@
+{{- $config := deepCopy .Values.config }}
+{{- $repositories := dig "http" "accessControl" "repositories" nil $config | required "config.http.accessControl.repositories must be set" }}
+
+{{- $appPolicies := dict }}
+{{- range $app := .Values.apps }}
+  {{- if not (regexMatch "^[a-z0-9]+([._-][a-z0-9]+)*$" (.name | default "")) }}
+    {{- fail (printf "app %s: name must be a lowercase image path segment" (toJson $app)) }}
+  {{- end }}
+  {{- $policy := dict
+    "groups" (list (required (printf "app %s: group is empty" .name) .group))
+    "actions" (list "read" "create" "update" "delete") }}
+  {{- $_ := set $appPolicies .name $policy }}
+  {{- $_ := set $repositories (printf "%s/**" .name) (dict
+    "defaultPolicy" (list "read")
+    "policies" (list $policy)) }}
+{{- end }}
+
+{{- $developOnly := dict
+  "expression" "!('github-develop' in req.user.groups) || req.referenceType != 'tag' || req.tag == 'develop'"
+  "message" "develop builds may only push the develop tag" }}
+
+{{- range $publisher := .Values.publishers }}
+  {{- if not (regexMatch "^gewis/[a-z0-9._-]+$" (.repository | default "")) }}
+    {{- fail (printf "publisher %s: repository must be lowercase gewis/<repo>" (toJson $publisher)) }}
+  {{- end }}
+  {{- if not (regexMatch "^[A-Za-z0-9._-]+\\.ya?ml$" (.workflow | default "")) }}
+    {{- fail (printf "publisher %s: workflow must be a file name in .github/workflows" (toJson $publisher)) }}
+  {{- end }}
+  {{- if and .environment (not (regexMatch "^[A-Za-z0-9._-]+$" .environment)) }}
+    {{- fail (printf "publisher %s: environment may only contain letters, digits, '.', '_' and '-'" (toJson $publisher)) }}
+  {{- end }}
+  {{- if not .paths }}
+    {{- fail (printf "publisher %s: paths is empty" (toJson $publisher)) }}
+  {{- end }}
+
+  {{- $conditions := list $developOnly (dict
+    "expression" (printf "req.claims.workflow_ref == req.claims.repository + '/.github/workflows/%s@' + req.claims.ref" .workflow)
+    "message" (printf "only .github/workflows/%s of %s may publish here" .workflow .repository)) }}
+
+  {{- with .environment }}
+    {{- $conditions = append $conditions (dict
+      "expression" (printf "'environment' in req.claims && req.claims.environment == '%s'" .)
+      "message" (printf "only the %s environment may publish here" .)) }}
+  {{- end }}
+
+  {{- $policy := dict
+    "users" (list .repository)
+    "actions" (list "read" "create" "update")
+    "conditions" $conditions }}
+
+  {{- range $path := .paths }}
+    {{- if not (regexMatch "^[a-z0-9]+([._/-][a-z0-9]+)*$" .) }}
+      {{- fail (printf "publisher %s: path %q is not a lowercase image path" $publisher.repository .) }}
+    {{- end }}
+    {{- $entry := get $repositories . }}
+    {{- if not $entry }}
+      {{- $entry = dict "defaultPolicy" (list "read") "policies" (list) }}
+      {{- $app := regexReplaceAll "/.*" . "" }}
+      {{- with get $appPolicies $app }}
+        {{- if le (len $path) (len (printf "%s/**" $app)) }}
+          {{- fail (printf "publisher %s: path %q is not longer than %s/**, which zot would apply instead; name it <app>/<image> with an image name of 3+ characters" $publisher.repository $path $app) }}
+        {{- end }}
+        {{- $_ := set $entry "policies" (list .) }}
+      {{- end }}
+    {{- end }}
+    {{- $_ := set $entry "policies" (append $entry.policies $policy) }}
+    {{- $_ := set $repositories . $entry }}
+  {{- end }}
+{{- end }}
+
+{{- $lanReader := printf "lan-reader:%s" (required "lanReader.password must be set" .Values.lanReader.password) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-values
+  namespace: {{ .Release.Namespace }}
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
+data:
+  values.yaml: |
+    {{- dict "config" $config | toYaml | nindent 4 }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zot-htpasswd
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+  htpasswd: {{ htpasswd "lan-reader" .Values.lanReader.password | quote }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: zot-lan-reader
+  namespace: {{ .Release.Namespace }}
+spec:
+  headers:
+    customRequestHeaders:
+      Authorization: {{ printf "Basic %s" ($lanReader | b64enc) | quote }}

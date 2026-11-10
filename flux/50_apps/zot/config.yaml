@@ -1,0 +1,101 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zot-values
+  namespace: zot
+spec:
+  releaseName: zot-values
+  interval: 1h
+  chart:
+    spec:
+      chart: ./charts/zot-values
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  dependsOn:
+    - name: zot-app-access
+      namespace: kite
+  valuesFrom:
+    - kind: ConfigMap
+      name: zot-publishers
+      valuesKey: values.yaml
+    - kind: ConfigMap
+      name: zot-app-access
+      valuesKey: values.yaml
+    - kind: Secret
+      name: zot-lan-reader
+      valuesKey: values.yaml
+  values:
+    config:
+      distSpecVersion: "1.1.1"
+      storage:
+        rootDirectory: /var/lib/registry
+        gc: true
+        dedupe: true
+        remoteCache: false
+        storageDriver:
+          name: s3
+          regionendpoint: https://s3.gewis.nl
+          region: us-east-1
+          bucket: zot
+          forcepathstyle: true
+          secure: true
+          skipverify: false
+      http:
+        address: 0.0.0.0
+        port: "5000"
+        externalUrl: https://registry.gewis.nl
+        auth:
+          apikey: true
+          htpasswd:
+            path: /secrets/htpasswd/htpasswd
+          sessionKeysFile: /secrets/session/session-keys.json
+          secureSession: true
+          openid:
+            providers:
+              oidc:
+                name: GEWIS
+                issuer: https://auth.gewis.nl/realms/GEWISWG
+                credentialsFile: /secrets/oidc/credentials.json
+                scopes: [openid, profile, email]
+                claimMapping:
+                  username: preferred_username
+                  groups: groups
+          bearer:
+            realm: https://registry.gewis.nl/zot/auth/token
+            service: registry.gewis.nl
+            oidc:
+              - issuer: https://token.actions.githubusercontent.com
+                audiences: [https://registry.gewis.nl]
+                claimMapping:
+                  validations:
+                    - expression: "claims.repository_owner_id == '1815510'"
+                      message: only repositories of the GEWIS organisation may publish
+                    - expression: "claims.ref in ['refs/heads/main', 'refs/heads/master', 'refs/heads/develop'] || claims.ref.startsWith('refs/tags/v')"
+                      message: only main, master, develop and v* tags may publish
+                    - expression: "claims.event_name in ['push', 'release', 'workflow_dispatch']"
+                      message: only push, release and manual runs may publish
+                  username: "claims.repository.lowerAscii()"
+                  groups: "claims.ref == 'refs/heads/develop' ? ['github-develop'] : []"
+        accessControl:
+          repositories:
+            "**":
+              defaultPolicy: [read]
+          adminPolicy:
+            groups: ["CBC - Application Hosting Team (ADM)"]
+            actions: [read, create, update, delete]
+      extensions:
+        search:
+          enable: true
+        ui:
+          enable: true
+      log:
+        level: info

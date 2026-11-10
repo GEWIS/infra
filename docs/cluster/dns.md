@@ -5,7 +5,8 @@ writes to Cloudflare. It takes each hostname from the `Host(...)` matchers in a
 route's rules; a route without one, such as the outpost callback, publishes
 nothing. The chart grants the RBAC for Traefik's CRDs itself. Only the
 `traefik.io` API group is watched — the legacy `traefik.containo.us` group is off
-by default.
+by default. The `service` source is on too, but publishes only Services carrying
+`external-dns.alpha.kubernetes.io/hostname`, see the exception below.
 
 **`domainFilters` must name the Cloudflare zone**, not the subdomain in use. A
 zone matches only if it equals the filter or is a subdomain of it, so
@@ -34,6 +35,18 @@ The DNS target is the `external-dns.alpha.kubernetes.io/target` annotation on
 hostname, so records are CNAMEs onto the router, which owns the public address;
 Traefik's own address, `10.82.50.10`, is private and useless from outside. A new
 route that forgets the annotation gets no usable record.
+
+Routes on Traefik's LAN-only `internal` entrypoint are the exception: their
+names must resolve to that entrypoint's LAN address, `10.82.50.16`. The
+address is not copied into the routes. Traefik's `traefik-internal` Service
+carries `external-dns.alpha.kubernetes.io/hostname:
+internal.net.gewis.nl`, so the `service` source publishes that one name
+as a public A record at the address Cilium assigned, the one in its
+`lbipam.cilium.io/ips`. Each internal route then targets
+`internal.net.gewis.nl` and gets a CNAME onto it, as public routes get
+one onto router02. Only the LAN and NetBird can reach the address — see
+[the internal entrypoint](traefik.md#internal-only-routes-use-the-internal-entrypoint)
+and [Container registry](../registry/exposure.md#which-name-to-use).
 
 `--cloudflare-record-comment` tags every managed record; ownership itself is
 still the TXT, not the comment.

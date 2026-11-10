@@ -42,10 +42,11 @@ Forward auth for other apps uses clients in this realm, see
 ## OIDC clients
 
 Apps that do their own OIDC login get a client from `oidc_clients` in
-`terraform/50_keycloak-config/locals.tf`: `kite` and `grafana`. The map key names
-the client and its OpenBao path; `client_id` is what Keycloak calls it. Each
-client gets a `groups` claim with the user's AD group names, and its `client_id`
-and `client_secret` go to OpenBao at `keycloak/<namespace>/<key>`. The namespace
+`terraform/50_keycloak-config/locals.tf`: `kite`, `grafana`, and `zot` for the
+[container registry](../registry/login.md). The map key names the client and its
+OpenBao path; `client_id` is what Keycloak calls it. Each client gets a `groups`
+claim with the user's AD group names, and its `client_id` and `client_secret` go
+to OpenBao at `keycloak/<namespace>/<key>`. The namespace
 reads them through a `SecretStore` with the role `keycloak-<namespace>`, the
 same role the forward-auth clients use.
 

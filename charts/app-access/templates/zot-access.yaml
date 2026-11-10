@@ -1,0 +1,12 @@
+{{- if eq .Values.render "zotAccess" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-app-access
+  namespace: {{ .Release.Namespace }}
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
+data:
+  values.yaml: |
+    {{- dict "apps" .Values.apps | toYaml | nindent 4 }}
+{{- end }}

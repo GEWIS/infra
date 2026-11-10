@@ -9,6 +9,7 @@ cert-manager issues one certificate for every public hostname from the
 | `gewis.nl`, `*.gewis.nl` | this cluster's services, the apex and every service the old cluster publishes |
 | `*.test.gewis.nl`, `*.personal.gewis.nl` | test and personal sites |
 | `*.docker-registry.gewis.nl` | the per-committee registries on gewiscontainer, see [External proxy](external-proxy.md) |
+| `registry.net.gewis.nl` | the container registry's LAN name, which `*.gewis.nl` does not cover, see [Container registry](../registry/exposure.md#which-name-to-use) |
 | `gew.is`, `*.gew.is` | the short domain |
 
 It is one certificate: if any name fails to validate, none of them renew, and the

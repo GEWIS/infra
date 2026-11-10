@@ -14,5 +14,6 @@ spec:
     - "*.test.gewis.nl"
     - "*.personal.gewis.nl"
     - "*.docker-registry.gewis.nl"
+    - registry.net.gewis.nl
     - gew.is
     - "*.gew.is"
