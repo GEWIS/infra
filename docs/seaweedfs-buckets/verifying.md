@@ -40,11 +40,14 @@ echo probe | aws --endpoint-url https://s3.gewis.nl s3 cp - s3://loki/probe
 aws --endpoint-url https://s3.gewis.nl s3 rm s3://loki/probe
 
 echo probe | aws --endpoint-url https://s3.gewis.nl s3 cp - s3://mimir/probe   # must fail
+aws --endpoint-url https://s3.gewis.nl s3api put-bucket-tagging --bucket loki \
+  --tagging 'TagSet=[{Key=no_backup,Value=true}]'                            # must fail
 ```
 
-The last one must come back `AccessDenied`: the user policy
-`loki-read-write` grants `s3:*` on `arn:aws:s3:::loki` and `arn:aws:s3:::loki/*`
-only.
+The last two must come back `AccessDenied`: the user policy `loki-read-write`
+grants only object, list and multipart actions, on `arn:aws:s3:::loki` and
+`arn:aws:s3:::loki/*`. Should the tagging call ever succeed, it has set the tag
+`loki` already carries.
 
 ## The OpenBao boundary
 

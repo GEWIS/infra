@@ -59,10 +59,13 @@ own Project makes a Project-scoped grant effectively bucket-scoped.
 Setup:
 
 1. Create a Project, e.g. `tf-state`, and create the bucket inside it.
-2. Create an IAM group, e.g. `tofu-operators`.
+2. Create an IAM group for the operators; ours is `CBC-Infra`.
 3. Attach a policy granting `ObjectStorageFullAccess`, scoped to that Project
    only.
 4. Add each operator as a member and have them generate their own API key.
+   Add their `user_id` to the off-site backup's
+   [bucket policy](../seaweedfs-backup/scaleway.md#4-the-bucket-policy) too;
+   a principal there cannot be a group.
 
 Offboarding is `scw iam api-key delete <access-key>`, or removing them from the
 group, or locking the member. All take effect immediately.

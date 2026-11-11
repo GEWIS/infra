@@ -40,6 +40,57 @@ let
     '';
   };
 
+  # Read by node exporter's textfile collector; the backup unit writes its result here.
+  textfileDir = "/var/lib/prometheus-node-exporter-text";
+
+  backup = pkgs.writeShellApplication {
+    name = "seaweedfs-backup";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.curl
+      pkgs.gnugrep
+      pkgs.gnused
+      pkgs.rclone
+    ];
+    text = builtins.readFile ./seaweedfs-backup.sh;
+  };
+
+  # Runs as root after every backup run, successful or not (ExecStopPost).
+  backupMetrics = pkgs.writeShellApplication {
+    name = "seaweedfs-backup-metrics";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      now="$(date +%s)"
+      success=0
+      if [ "''${SERVICE_RESULT:-}" = success ]; then
+        success=1
+      fi
+
+      # Atomic: the collector only reads *.prom, never the .tmp file.
+      write() {
+        cat >"${textfileDir}/$1.tmp"
+        mv "${textfileDir}/$1.tmp" "${textfileDir}/$1"
+      }
+
+      write seaweedfs_backup_last_run.prom <<EOF
+      # HELP seaweedfs_backup_last_run_timestamp_seconds When the last off-site backup run ended.
+      # TYPE seaweedfs_backup_last_run_timestamp_seconds gauge
+      seaweedfs_backup_last_run_timestamp_seconds $now
+      # HELP seaweedfs_backup_last_run_success Whether the last off-site backup run succeeded.
+      # TYPE seaweedfs_backup_last_run_success gauge
+      seaweedfs_backup_last_run_success $success
+      EOF
+
+      if [ "$success" = 1 ]; then
+        write seaweedfs_backup_last_success.prom <<EOF
+      # HELP seaweedfs_backup_last_success_timestamp_seconds When the last successful off-site backup run ended.
+      # TYPE seaweedfs_backup_last_success_timestamp_seconds gauge
+      seaweedfs_backup_last_success_timestamp_seconds $now
+      EOF
+      fi
+    '';
+  };
+
   hardening = {
     NoNewPrivileges = true;
     PrivateDevices = true;
@@ -115,7 +166,60 @@ in
           RestartSec = 5;
         };
       };
+
+      # Off-site copy to Scaleway, self-contained on this host so it keeps running
+      # while the cluster is down. See docs/seaweedfs-backup/.
+      seaweedfs-backup = {
+        description = "Copy SeaweedFS buckets off-site to Scaleway";
+        after = [
+          "network-online.target"
+          "seaweedfs-admin.service"
+        ];
+        wants = [ "network-online.target" ];
+
+        environment = {
+          HOME = "/tmp";
+          DESTINATION = "gewis-s3-backup";
+          RCLONE_CONFIG_SEAWEEDFS_TYPE = "s3";
+          RCLONE_CONFIG_SEAWEEDFS_PROVIDER = "SeaweedFS";
+          RCLONE_CONFIG_SEAWEEDFS_ENDPOINT = "http://127.0.0.1:${toString s3Port}";
+          RCLONE_CONFIG_SEAWEEDFS_REGION = "us-east-1";
+          RCLONE_CONFIG_SCALEWAY_TYPE = "s3";
+          RCLONE_CONFIG_SCALEWAY_PROVIDER = "Scaleway";
+          RCLONE_CONFIG_SCALEWAY_REGION = "nl-ams";
+          RCLONE_CONFIG_SCALEWAY_ENDPOINT = "s3.nl-ams.scw.cloud";
+          RCLONE_CONFIG_SCALEWAY_STORAGE_CLASS = "STANDARD";
+          # The job key may not create buckets; the bucket exists already.
+          RCLONE_CONFIG_SCALEWAY_NO_CHECK_BUCKET = "true";
+          # For buckets tagged backup_encrypt. Both are rclone's defaults, pinned
+          # because changing either renames every object in an encrypted copy,
+          # exactly like changing the keys. See docs/seaweedfs-backup/encryption.md.
+          RCLONE_CRYPT_FILENAME_ENCRYPTION = "standard";
+          RCLONE_CRYPT_DIRECTORY_NAME_ENCRYPTION = "true";
+        };
+
+        serviceConfig = hardening // {
+          Type = "oneshot";
+          DynamicUser = true;
+          EnvironmentFile = config.sops.templates."seaweedfs-backup.env".path;
+          ExecStart = lib.getExe backup;
+          ExecStopPost = "+${lib.getExe backupMetrics}";
+          TimeoutStartSec = "3h";
+        };
+      };
     };
+
+    # After the 03:00 Postgres and MariaDB base backups. Persistent: a run missed
+    # while the host was off happens at the next boot.
+    timers.seaweedfs-backup = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "*-*-* 04:15:00 UTC";
+        Persistent = true;
+      };
+    };
+
+    tmpfiles.rules = [ "d ${textfileDir} 0755 root root -" ];
   };
 
   users.users.seaweedfs = {
@@ -128,6 +232,10 @@ in
     secrets = {
       seaweedfs-admin-access-key = { };
       seaweedfs-admin-secret-key = { };
+      scaleway-backup-access-key = { };
+      scaleway-backup-secret-key = { };
+      scaleway-backup-crypt-password = { };
+      scaleway-backup-crypt-salt = { };
     };
 
     templates."seaweedfs-admin.env" = {
@@ -139,7 +247,38 @@ in
         AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.seaweedfs-admin-secret-key}
       '';
     };
+
+    # The admin identity reads SeaweedFS: it already lives on this host, and root
+    # here can read every object anyway, so a separate read-only key buys nothing.
+    templates."seaweedfs-backup.env" = {
+      mode = "0400";
+      content = ''
+        RCLONE_CONFIG_SEAWEEDFS_ACCESS_KEY_ID=${config.sops.placeholder.seaweedfs-admin-access-key}
+        RCLONE_CONFIG_SEAWEEDFS_SECRET_ACCESS_KEY=${config.sops.placeholder.seaweedfs-admin-secret-key}
+        RCLONE_CONFIG_SCALEWAY_ACCESS_KEY_ID=${config.sops.placeholder.scaleway-backup-access-key}
+        RCLONE_CONFIG_SCALEWAY_SECRET_ACCESS_KEY=${config.sops.placeholder.scaleway-backup-secret-key}
+        SCALEWAY_CRYPT_PASSWORD=${config.sops.placeholder.scaleway-backup-crypt-password}
+        SCALEWAY_CRYPT_SALT=${config.sops.placeholder.scaleway-backup-crypt-salt}
+      '';
+    };
   };
+
+  # Scraped by the cluster's Alloy (job "s3-01"): host health plus the backup
+  # result. LAN only; Cilium masquerades pod egress to the node addresses.
+  services.prometheus.exporters.node = {
+    enable = true;
+    extraFlags = [ "--collector.textfile.directory=${textfileDir}" ];
+  };
+
+  # Not openFirewall + firewallFilter: that runs the filter through ip46tables,
+  # ip6tables rejects the IPv4 source, and firewall-start (sh -e) aborts before
+  # it hooks nixos-fw into INPUT, leaving every port open. nixos-fw is
+  # recreated on each start, so no stop command is needed.
+  networking.firewall.extraCommands = ''
+    iptables -w -A nixos-fw -p tcp -m tcp -s 10.82.50.0/24 \
+      --dport ${toString config.services.prometheus.exporters.node.port} \
+      -m comment --comment node-exporter -j nixos-fw-accept
+  '';
 
   networking.firewall.allowedTCPPorts = [ s3Port ];
 }

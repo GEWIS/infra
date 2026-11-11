@@ -15,7 +15,7 @@ locals {
       cpus          = 4
       memory_gib    = 8
       root_disk_gib = 40
-      data_disk_gib = 300
+      data_disk_gib = 1000
     }
   }
 }

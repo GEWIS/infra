@@ -13,7 +13,8 @@
   later is three more map entries.
 
 - **One copy of every object.** A single node, a single volume directory, no
-  replication. Nothing in these buckets is backed up by being here.
+  replication. Nothing in these buckets is backed up by being here; the
+  off-site copy is [SeaweedFS backup](../seaweedfs-backup/index.md).
 
 - **Bucket names never appear in Nix.** That keeps this root authoritative, but
   a bucket created by hand over the S3 API is invisible to OpenTofu.
