@@ -59,7 +59,7 @@ own Project makes a Project-scoped grant effectively bucket-scoped.
 Setup:
 
 1. Create a Project, e.g. `tf-state`, and create the bucket inside it.
-2. Create an IAM group, e.g. `tofu-operators`.
+2. Create an IAM group for the operators; ours is `CBC-Infra`.
 3. Attach a policy granting `ObjectStorageFullAccess`, scoped to that Project
    only.
 4. Add each operator as a member and have them generate their own API key.

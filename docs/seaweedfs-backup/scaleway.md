@@ -2,14 +2,14 @@
 
 ## 1. A Project of its own
 
-Create a Project `seaweedfs-backup` and note its ID. IAM permission sets stop at
+Create a Project `s3-backup` and note its ID. IAM permission sets stop at
 Project scope, so a Project holding only this bucket is what makes the job's
 grant effectively bucket-scoped, the same reasoning as `tf-state`.
 
-Add a rule to the `tofu-operators` policy granting `ObjectStorageFullAccess` on
-this Project, so operators can create the bucket below and restore from it. Once
-the [bucket policy](#4-the-bucket-policy) is in place, an operator also needs to
-be named in it.
+Add a rule to the policy of the operators' IAM group `CBC-Infra` granting
+`ObjectStorageFullAccess` on this Project, so operators can create the bucket
+below and restore from it. Once the [bucket policy](#4-the-bucket-policy) is in
+place, an operator also needs to be named in it.
 
 ## 2. The bucket
 
@@ -19,28 +19,33 @@ operator key; the `@<project id>` suffix overrides the key's preferred Project
 for this call, which otherwise decides where a new bucket lands:
 
 ```sh
-export AWS_ACCESS_KEY_ID="<your access key>@<seaweedfs-backup project id>"
+export AWS_ACCESS_KEY_ID="<your access key>@<s3-backup project id>"
 export AWS_SECRET_ACCESS_KEY="<your secret key>"
 export AWS_DEFAULT_REGION=nl-ams
 export AWS_ENDPOINT_URL=https://s3.nl-ams.scw.cloud
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
 
-aws s3api create-bucket --bucket gewis-seaweedfs-backup \
+aws s3api create-bucket --bucket gewis-s3-backup \
   --create-bucket-configuration LocationConstraint=nl-ams \
   --object-lock-enabled-for-bucket
 
-aws s3api put-object-lock-configuration --bucket gewis-seaweedfs-backup \
+aws s3api put-object-lock-configuration --bucket gewis-s3-backup \
   --object-lock-configuration '{"ObjectLockEnabled":"Enabled","Rule":{"DefaultRetention":{"Mode":"GOVERNANCE","Days":30}}}'
 
-aws s3api put-bucket-lifecycle-configuration --bucket gewis-seaweedfs-backup \
+aws s3api put-bucket-lifecycle-configuration --bucket gewis-s3-backup \
   --lifecycle-configuration '{"Rules":[{"ID":"expire-old-versions","Status":"Enabled","Filter":{"Prefix":""},"NoncurrentVersionExpiration":{"NoncurrentDays":30},"Expiration":{"ExpiredObjectDeleteMarker":true},"AbortIncompleteMultipartUpload":{"DaysAfterInitiation":7}}]}'
 
-aws s3api get-bucket-versioning --bucket gewis-seaweedfs-backup   # Status: Enabled
+aws s3api get-bucket-versioning --bucket gewis-s3-backup   # Status: Enabled
 ```
 
 `AWS_REQUEST_CHECKSUM_CALCULATION` is the same AWS SDK quirk as
 `skip_s3_checksum` in the backends: without it the CLI adds CRC32 trailers that
 non-AWS stores may reject.
+
+The console can create the bucket with Object Lock, show versioning and add
+the lifecycle rule, but it cannot set the default retention: that one needs
+`put-object-lock-configuration`. Without it Object Lock is on but locks
+nothing, since the job never sets retention per object.
 
 What the three settings do together:
 
@@ -57,20 +62,27 @@ So a file deleted from SeaweedFS stays restorable for 30 days, and Barman's own
 
 Compliance mode cannot be shortened or lifted by anyone, the Organization owner
 included. That would also block erasing a person's files from the backup before
-the 30 days are up, and enabling the lock is already irreversible. Governance
-stops the job key, which has no bypass rights.
+the 30 days are up, and enabling the lock is already irreversible.
 
-Whether anyone can bypass Governance on Scaleway is **unverified**: no IAM
-permission set, `ObjectStorageFullAccess` included, and no bucket-policy action
-lists `s3:BypassGovernanceRetention`, and Scaleway denies what it does not list.
-If nobody can, erasing a version early waits out its 30 days, as Compliance
-would; test `delete-object --version-id … --bypass-governance-retention` with
-an operator key on a throwaway object before relying on it.
+Governance stops the job key: the bucket policy grants it neither
+`s3:DeleteObjectVersion` nor bypass. An operator with `ObjectStorageFullAccess`
+can still remove a locked version on purpose, which was tested on this bucket
+before its bucket policy existed: a plain delete of a version is refused with
+*"Access Denied because object protected by object lock"*, and the same call
+with `--bypass-governance-retention` succeeds.
+
+```sh
+aws s3api delete-object --bucket gewis-s3-backup --key <key> \
+  --version-id <version> --bypass-governance-retention
+```
+
+Operators keep this under the bucket policy through its `s3:*` grant;
+[Verifying](verifying.md#the-job-key-cannot-touch-the-lock) checks it again.
 
 ## 3. The job's key
 
-Create an IAM application `seaweedfs-backup-job` with one policy, scoped to the
-`seaweedfs-backup` Project:
+Create an IAM application `backup-s3` with one policy, scoped to the
+`s3-backup` Project:
 
 - `ObjectStorageObjectsRead`
 - `ObjectStorageObjectsWrite`
@@ -88,7 +100,7 @@ These permission sets alone do not protect the lock: Scaleway puts
 the [bucket policy](#4-the-bucket-policy) does. Leaving out
 `ObjectStorageBucketsWrite` and `ObjectStorageFullAccess` still keeps
 versioning and the lifecycle rules out of the job's reach. Generate an
-API key for the application with `seaweedfs-backup` as its preferred Object
+API key for the application with `s3-backup` as its preferred Object
 Storage Project.
 
 Add it to the host's sops file, together with the keys of the
@@ -124,33 +136,33 @@ intersection of IAM and this policy, so it narrows the job to what
 cat >/tmp/backup-policy.json <<'EOF'
 {
   "Version": "2023-04-17",
-  "Id": "seaweedfs-backup",
+  "Id": "s3-backup",
   "Statement": [
     {
       "Sid": "Operators",
       "Effect": "Allow",
       "Principal": { "SCW": ["user_id:<operator user id>", "user_id:<operator user id>"] },
       "Action": "s3:*",
-      "Resource": ["gewis-seaweedfs-backup", "gewis-seaweedfs-backup/*"]
+      "Resource": ["gewis-s3-backup", "gewis-s3-backup/*"]
     },
     {
       "Sid": "Job list",
       "Effect": "Allow",
-      "Principal": { "SCW": "application_id:<seaweedfs-backup-job application id>" },
+      "Principal": { "SCW": "application_id:<backup-s3 application id>" },
       "Action": "s3:ListBucket",
-      "Resource": "gewis-seaweedfs-backup"
+      "Resource": "gewis-s3-backup"
     },
     {
       "Sid": "Job objects",
       "Effect": "Allow",
-      "Principal": { "SCW": "application_id:<seaweedfs-backup-job application id>" },
+      "Principal": { "SCW": "application_id:<backup-s3 application id>" },
       "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:AbortMultipartUpload"],
-      "Resource": "gewis-seaweedfs-backup/*"
+      "Resource": "gewis-s3-backup/*"
     }
   ]
 }
 EOF
-aws s3api put-bucket-policy --bucket gewis-seaweedfs-backup --policy file:///tmp/backup-policy.json
+aws s3api put-bucket-policy --bucket gewis-s3-backup --policy file:///tmp/backup-policy.json
 ```
 
 What the job no longer gets, although its IAM sets include it:
@@ -166,7 +178,7 @@ What the job no longer gets, although its IAM sets include it:
 
 **Operators are named one by one.** A principal is a `user_id` or an
 `application_id`, never a group, so the `Operators` statement repeats the
-members of `tofu-operators` by hand. A missing operator only lacks access to
+members of `CBC-Infra` by hand. A missing operator only lacks access to
 this bucket, and a removed one stays locked out by IAM, so drift fails closed.
 Look IDs up with `scw iam user list` and `scw iam application list`. Adding an
 operator is a new `user_id` here and the `put-bucket-policy` again, see
@@ -174,7 +186,7 @@ operator is a new `user_id` here and the `put-bucket-policy` again, see
 
 **Locking everyone out is possible:** a policy that names nobody, or names the
 wrong IDs, leaves only the Organization Owner, who can always put or delete the
-policy (`aws s3api delete-bucket-policy --bucket gewis-seaweedfs-backup`).
+policy (`aws s3api delete-bucket-policy --bucket gewis-s3-backup`).
 `s3:*` may not cover `PutBucketPolicy` for operators, since Scaleway lists no
 such action; if `put-bucket-policy` fails for an operator, the Owner has to run
 it. Both are unverified against Scaleway, as is the exact action set `rclone

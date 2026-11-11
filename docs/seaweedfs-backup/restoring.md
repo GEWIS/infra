@@ -1,7 +1,7 @@
 # Restoring
 
 Use your personal Scaleway key, which has `ObjectStorageFullAccess` on the
-`seaweedfs-backup` Project, and the SeaweedFS admin keys that
+`s3-backup` Project, and the SeaweedFS admin keys that
 `terraform/40_seaweedfs-buckets/.envrc` exports. From that directory:
 
 ```sh
@@ -9,7 +9,7 @@ export RCLONE_CONFIG_SCALEWAY_TYPE=s3
 export RCLONE_CONFIG_SCALEWAY_PROVIDER=Scaleway
 export RCLONE_CONFIG_SCALEWAY_REGION=nl-ams
 export RCLONE_CONFIG_SCALEWAY_ENDPOINT=s3.nl-ams.scw.cloud
-export RCLONE_CONFIG_SCALEWAY_ACCESS_KEY_ID="<your access key>@<seaweedfs-backup project id>"
+export RCLONE_CONFIG_SCALEWAY_ACCESS_KEY_ID="<your access key>@<s3-backup project id>"
 export RCLONE_CONFIG_SCALEWAY_SECRET_ACCESS_KEY="<your secret key>"
 
 export RCLONE_CONFIG_SEAWEEDFS_TYPE=s3
@@ -28,7 +28,7 @@ SeaweedFS.
 ## The latest copy
 
 ```sh
-rclone copy -v scaleway:gewis-seaweedfs-backup/<bucket> seaweedfs:<bucket>
+rclone copy -v scaleway:gewis-s3-backup/<bucket> seaweedfs:<bucket>
 ```
 
 `copy`, not `sync`: it never deletes on the SeaweedFS side.
@@ -44,14 +44,14 @@ copy in the admins' password manager:
 export RCLONE_CRYPT_PASSWORD="$(sops -d --extract '["scaleway-backup-crypt-password"]' ../../secrets/s3-01.yaml | rclone obscure -)"
 export RCLONE_CRYPT_PASSWORD2="$(sops -d --extract '["scaleway-backup-crypt-salt"]' ../../secrets/s3-01.yaml | rclone obscure -)"
 
-rclone copy -v ":crypt,remote='scaleway:gewis-seaweedfs-backup/<bucket>':" seaweedfs:<bucket>
+rclone copy -v ":crypt,remote='scaleway:gewis-s3-backup/<bucket>':" seaweedfs:<bucket>
 ```
 
 The file and directory name settings are rclone's defaults, which the job pins,
 so they need no flags here. Everything else on this page applies unchanged, on
 the underlying `scaleway` remote: `RCLONE_CONFIG_SCALEWAY_VERSION_AT` for
 [a past moment](#the-bucket-as-it-was-at-a-moment), and the
-[Glacier restore](#from-glacier) on `scaleway:gewis-seaweedfs-backup/<bucket>`,
+[Glacier restore](#from-glacier) on `scaleway:gewis-s3-backup/<bucket>`,
 which sees the encrypted names and restores all of them. A single file cannot
 be picked out by name there; restore the whole prefix.
 
@@ -62,8 +62,8 @@ bucket](storage-class.md)) cannot be copied back until every object is
 restored to `STANDARD`. Request that first, for long enough to finish the copy:
 
 ```sh
-rclone backend restore scaleway:gewis-seaweedfs-backup/nextcloud -o lifetime=7
-rclone backend restore-status scaleway:gewis-seaweedfs-backup/nextcloud
+rclone backend restore scaleway:gewis-s3-backup/nextcloud -o lifetime=7
+rclone backend restore-status scaleway:gewis-s3-backup/nextcloud
 ```
 
 A restore can take up to 24 hours to start per object. A multipart object
@@ -83,7 +83,7 @@ Scaleway remote to a point in time, which also makes it read-only:
 
 ```sh
 export RCLONE_CONFIG_SCALEWAY_VERSION_AT="2026-10-10 12:00:00"
-rclone copy -v scaleway:gewis-seaweedfs-backup/<bucket> seaweedfs:<bucket>
+rclone copy -v scaleway:gewis-s3-backup/<bucket> seaweedfs:<bucket>
 ```
 
 Set it on the `scaleway` remote only; the global `--s3-version-at` flag would
@@ -118,9 +118,9 @@ also make the SeaweedFS destination read-only.
 A copy is only proven by restoring it. Cheap checks first, then a real one:
 
 ```sh
-rclone check --one-way seaweedfs:kaneo scaleway:gewis-seaweedfs-backup/kaneo
-rclone copy scaleway:gewis-seaweedfs-backup/kaneo /tmp/restore-kaneo
-rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-seaweedfs-backup/mattermost':"
+rclone check --one-way seaweedfs:kaneo scaleway:gewis-s3-backup/kaneo
+rclone copy scaleway:gewis-s3-backup/kaneo /tmp/restore-kaneo
+rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-s3-backup/mattermost':"
 ```
 
 `cryptcheck` encrypts each source file with the nonce from its copy's 32-byte
@@ -130,5 +130,5 @@ is not in Glacier, such as `mattermost`.
 
 The real one is a throwaway CloudNativePG `Cluster` with `bootstrap.recovery`
 whose `ObjectStore` points straight at
-`s3://gewis-seaweedfs-backup/postgres/` on `https://s3.nl-ams.scw.cloud` — it
+`s3://gewis-s3-backup/postgres/` on `https://s3.nl-ams.scw.cloud` — it
 proves the off-site copy is a usable Barman archive without touching SeaweedFS.

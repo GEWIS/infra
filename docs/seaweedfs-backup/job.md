@@ -19,11 +19,11 @@ Per bucket SeaweedFS lists, it:
 
 ```sh
 rclone sync --fast-list --checksum --stats-one-line --stats 0 -v \
-  "seaweedfs:$bucket" "scaleway:gewis-seaweedfs-backup/$bucket"
+  "seaweedfs:$bucket" "scaleway:gewis-s3-backup/$bucket"
 ```
 
 With `backup_class` set, the destination is
-`scaleway,storage_class=<class>:gewis-seaweedfs-backup/$bucket` instead: an
+`scaleway,storage_class=<class>:gewis-s3-backup/$bucket` instead: an
 rclone connection string that overrides the class for that one sync. The log
 line then reads `syncing <bucket> as <class>`. See
 [Storage class per bucket](storage-class.md).

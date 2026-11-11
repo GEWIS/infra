@@ -41,16 +41,16 @@ the objects copied, or `There was nothing to transfer`; each opted-out one logs
 [Encrypted buckets](restoring.md#encrypted-buckets):
 
 ```sh
-rclone check --one-way seaweedfs:postgres scaleway:gewis-seaweedfs-backup/postgres
-rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-seaweedfs-backup/mattermost':"
-rclone lsf --format pT scaleway:gewis-seaweedfs-backup/nextcloud   # encrypted names, every line ends GLACIER
+rclone check --one-way seaweedfs:postgres scaleway:gewis-s3-backup/postgres
+rclone cryptcheck --one-way seaweedfs:mattermost ":crypt,remote='scaleway:gewis-s3-backup/mattermost':"
+rclone lsf --format pT scaleway:gewis-s3-backup/nextcloud   # encrypted names, every line ends GLACIER
 ```
 
 `rclone check` compares checksums from the listing and reads no object data.
 `cryptcheck` reads each copy's 32-byte header, so it cannot check a bucket that
 is both encrypted and in Glacier; for that one, compare
 `rclone size seaweedfs:nextcloud` with `rclone size
-":crypt,remote='scaleway:gewis-seaweedfs-backup/nextcloud':"`, which only lists.
+":crypt,remote='scaleway:gewis-s3-backup/nextcloud':"`, which only lists.
 
 ## The cluster sees it
 
@@ -76,10 +76,10 @@ export AWS_SECRET_ACCESS_KEY="$(sops -d --extract '["scaleway-backup-secret-key"
 export AWS_DEFAULT_REGION=nl-ams AWS_ENDPOINT_URL=https://s3.nl-ams.scw.cloud
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
 
-aws s3api put-object-lock-configuration --bucket gewis-seaweedfs-backup \
+aws s3api put-object-lock-configuration --bucket gewis-s3-backup \
   --object-lock-configuration '{"ObjectLockEnabled":"Enabled","Rule":{"DefaultRetention":{"Mode":"GOVERNANCE","Days":30}}}'
   # must fail: AccessDenied
-aws s3api list-object-versions --bucket gewis-seaweedfs-backup --max-items 1
+aws s3api list-object-versions --bucket gewis-s3-backup --max-items 1
   # must fail: AccessDenied (s3:ListBucketVersions is not granted)
 ```
 
@@ -91,9 +91,30 @@ name only `s3:ListBucket`, `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`
 and `s3:AbortMultipartUpload`:
 
 ```sh
-aws s3api get-bucket-policy --bucket gewis-seaweedfs-backup --query Policy --output text | jq .
+aws s3api get-bucket-policy --bucket gewis-s3-backup --query Policy --output text | jq .
 ```
 
 The key lives on s3-01, so these checks are what stand between a compromised
 s3-01 and the off-site history. If either command above succeeds, the
 [bucket policy](scaleway.md#4-the-bucket-policy) is missing or wrong.
+
+## Operators can still remove a locked version
+
+After the bucket policy is in place, with your own key, on a throwaway object
+under `_test/`, a prefix the job never touches:
+
+```sh
+echo probe > /tmp/probe.txt
+aws s3api put-object --bucket gewis-s3-backup --key _test/lock-probe --body /tmp/probe.txt
+V=$(aws s3api list-object-versions --bucket gewis-s3-backup --prefix _test/lock-probe \
+  --query 'Versions[0].VersionId' --output text)
+aws s3api delete-object --bucket gewis-s3-backup --key _test/lock-probe --version-id "$V"
+  # must fail: protected by object lock
+aws s3api delete-object --bucket gewis-s3-backup --key _test/lock-probe --version-id "$V" \
+  --bypass-governance-retention
+  # must succeed
+```
+
+If the bypass is refused, the policy's `Operators` statement does not reach
+`s3:BypassGovernanceRetention`, and erasing a version early has to wait out its
+30 days.

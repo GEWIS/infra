@@ -2,11 +2,11 @@
 
 SeaweedFS on [s3-01](../s3-01/seaweedfs.md) is one copy on one disk. Once a day,
 at 04:15 UTC, s3-01 itself copies every bucket that needs to survive losing it to
-the Scaleway bucket `gewis-seaweedfs-backup` in `nl-ams`, one prefix per source
+the Scaleway bucket `gewis-s3-backup` in `nl-ams`, one prefix per source
 bucket:
 
 ```
-s3://gewis-seaweedfs-backup/<bucket>/<key>
+s3://gewis-s3-backup/<bucket>/<key>
 ```
 
 | Piece | Where | Does |

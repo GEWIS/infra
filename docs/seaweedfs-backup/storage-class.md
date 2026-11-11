@@ -47,7 +47,7 @@ To move existing objects to Glacier, use your operator key with the remotes
 from [Restoring](restoring.md):
 
 ```sh
-rclone settier GLACIER scaleway:gewis-seaweedfs-backup/nextcloud
+rclone settier GLACIER scaleway:gewis-s3-backup/nextcloud
 ```
 
 That rewrites each object as a new version. The old `STANDARD` version becomes

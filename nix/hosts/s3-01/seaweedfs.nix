@@ -179,7 +179,7 @@ in
 
         environment = {
           HOME = "/tmp";
-          DESTINATION = "gewis-seaweedfs-backup";
+          DESTINATION = "gewis-s3-backup";
           RCLONE_CONFIG_SEAWEEDFS_TYPE = "s3";
           RCLONE_CONFIG_SEAWEEDFS_PROVIDER = "SeaweedFS";
           RCLONE_CONFIG_SEAWEEDFS_ENDPOINT = "http://127.0.0.1:${toString s3Port}";

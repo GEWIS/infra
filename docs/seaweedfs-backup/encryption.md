@@ -18,7 +18,7 @@ bucket's prefix:
 
 ```sh
 rclone sync --fast-list ... "seaweedfs:nextcloud" \
-  ":crypt,remote='scaleway,storage_class=GLACIER:gewis-seaweedfs-backup/nextcloud':"
+  ":crypt,remote='scaleway,storage_class=GLACIER:gewis-s3-backup/nextcloud':"
 ```
 
 | Visible in Scaleway | Encrypted |
@@ -79,7 +79,7 @@ before the next run remove the plain copy with your operator key and the
 remotes from [Restoring](restoring.md):
 
 ```sh
-rclone purge scaleway:gewis-seaweedfs-backup/nextcloud
+rclone purge scaleway:gewis-s3-backup/nextcloud
 ```
 
 That only places delete markers: the plain versions stay restorable for 30 days
