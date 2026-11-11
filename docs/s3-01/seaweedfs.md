@@ -30,10 +30,11 @@ listener 4.40 would otherwise open.
 
 **Volumes are 1 GiB, not the 30 GB default.** With `-volume.max=0` the number of
 volume slots is the free disk divided by the volume size, and every bucket is its
-own collection that grows **seven** volumes at once. At 30 GB a 300 GiB disk
-has ten slots: the filer's own collection takes seven and the first bucket three,
-and every other bucket fails with *"No writable volumes and no free volumes
-left"*, which S3 clients see as `InternalError`. At 1 GiB there are a few hundred
+own collection that grows **seven** volumes at once. At 30 GB even the
+1000 GiB disk has only about 35 slots: the filer's own collection takes seven
+and each bucket seven more, so from the fifth bucket on every bucket fails with
+*"No writable volumes and no free volumes left"*, which S3 clients see as
+`InternalError`. At 1 GiB there are about a thousand
 slots. `volume.list` in `weed shell` shows `free:` per disk.
 
 ## One unit, not four
@@ -131,7 +132,7 @@ already enforces a stored quota on its own every minute.
 ## Data and metadata
 
 Everything sits under `-dir=/var/lib/seaweedfs`, which is the whole second disk
-`/dev/xvdb` (xfs, ~300 GiB, `noatime`) — see [Disks](disks.md). Volume data and
+`/dev/xvdb` (xfs, 1000 GiB, `noatime`) — see [Disks](disks.md). Volume data and
 the master meta folder share it, and the filer uses its embedded **leveldb2**
 store under that meta folder, so there is no external metadata database to run
 or back up separately.
