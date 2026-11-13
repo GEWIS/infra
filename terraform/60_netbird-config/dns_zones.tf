@@ -1,5 +1,5 @@
 resource "netbird_dns_zone" "k8s-zone" {
-  name                 = "k8s-zone"
+  name                 = "k8s.gewis.nl"
   domain               = "k8s.gewis.nl"
   enabled              = true
   enable_search_domain = true
@@ -7,7 +7,7 @@ resource "netbird_dns_zone" "k8s-zone" {
 }
 
 resource "netbird_dns_zone" "gewis-zone" {
-  name                 = "gewis-zone"
+  name                 = "gewis.nl"
   domain               = "gewis.nl"
   enabled              = true
   enable_search_domain = false

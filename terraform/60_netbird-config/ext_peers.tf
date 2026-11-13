@@ -13,12 +13,12 @@ locals {
   pcgewis10 = "PCGEWIS10"
   room_pcs  = [local.pcgewis1, local.pcgewis2, local.pcgewis3, local.pcgewis4, local.pcgewis5, local.pcgewis6, local.pcgewis7, local.pcgewis8, local.pcgewis9, local.pcgewis10]
 
-  pcgewisa    = "pcgewisa"
-  pcgewisb    = "pcgewisb"
-  pcgewisc    = "pcgewisc"
-  pcgewisd    = "pcgewisd"
+  pcgewisa    = "PCGEWISA"
+  pcgewisb    = "PCGEWISB"
+  pcgewisc    = "PCGEWISC"
+  pcgewisd    = "PCGEWISD"
   pcgewishok  = "PCGEWISHOK"
-  pcgewisinfo = "pcgewisinfo"
+  pcgewisinfo = "PCGEWISINFO"
   service_pcs = [local.pcgewisa, local.pcgewisb, local.pcgewisc, local.pcgewisd, local.pcgewishok, local.pcgewisinfo]
 
   gewisdc02          = "GEWISDC02"
@@ -51,7 +51,7 @@ locals {
     local.gewissecurity2,
     local.gewisvdesktop,
     local.gewisweb,
-    local.s3-01
+    # local.s3-01
   ])
 
   peer_ids = { for name, peer in data.netbird_peer.peers : name => peer.id }
