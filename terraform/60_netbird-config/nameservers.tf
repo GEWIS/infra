@@ -15,7 +15,7 @@ resource "netbird_nameserver_group" "tue" {
 resource "netbird_nameserver_group" "gewis" {
   name        = "GEWIS DNS"
   description = "The selfhosted CoreDNS server in the K8s cluster."
-  groups      = [netbird_group.proxy_hosts.id]
+  groups      = [data.netbird_group.all.id]
   domains     = ["net.gewis.nl"]
   nameservers = [{
     ip   = "10.82.50.11"
