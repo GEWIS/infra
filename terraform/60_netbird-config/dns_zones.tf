@@ -42,7 +42,7 @@ resource "netbird_dns_record" "gewisdc02" {
   zone_id = netbird_dns_zone.gewis-zone.id
   name    = "gewisdc02.gewis.nl"
   type    = "A"
-  content = "10.64.123.42"
+  content = data.netbird_peer.peers[local.gewisdc02].ip
   ttl     = 300
 }
 
@@ -50,7 +50,7 @@ resource "netbird_dns_record" "gewisdc02-gewiswg" {
   zone_id = netbird_dns_zone.gewis-zone.id
   name    = "gewisdc02.gewiswg.gewis.nl"
   type    = "A"
-  content = "10.64.123.42"
+  content = data.netbird_peer.peers[local.gewisdc02].ip
   ttl     = 300
 }
 
@@ -58,7 +58,7 @@ resource "netbird_dns_record" "gewisdc03" {
   zone_id = netbird_dns_zone.gewis-zone.id
   name    = "gewisdc03.gewis.nl"
   type    = "A"
-  content = "10.64.226.22"
+  content = data.netbird_peer.peers[local.gewisdc03].ip
   ttl     = 300
 }
 
@@ -66,7 +66,7 @@ resource "netbird_dns_record" "gewisdc03-gewiswg" {
   zone_id = netbird_dns_zone.gewis-zone.id
   name    = "gewisdc03.gewiswg.gewis.nl"
   type    = "A"
-  content = "10.64.226.22"
+  content = data.netbird_peer.peers[local.gewisdc03].ip
   ttl     = 300
 }
 
