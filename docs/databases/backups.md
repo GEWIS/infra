@@ -67,9 +67,10 @@ can read it directly, and the `mariadb` copy holds the same `base/` and
 `binlog/` layout; what that means for point-in-time recovery is in
 [Point-in-time recovery off-site](../seaweedfs-backup/pitr.md).
 
-A backup is only proven by a restore: recover into a throwaway `Cluster` with
-`bootstrap.recovery` and an `externalClusters` entry pointing at the same
-`ObjectStore` through the plugin.
+A backup is only proven by a restore: recover into a throwaway `Cluster`, as in
+[Postgres from Scaleway](../seaweedfs-backup/restoring.md#postgres-from-scaleway).
+The same steps work against the SeaweedFS archive, with that `ObjectStore`'s
+endpoint and bucket.
 
 ## MariaDB: physical backups and binlog archiving
 

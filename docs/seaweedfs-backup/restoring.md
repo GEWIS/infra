@@ -110,12 +110,181 @@ also make the SeaweedFS destination read-only.
    `systemctl unmask --runtime seaweedfs-backup.timer` and
    `systemctl start seaweedfs-backup.timer`. The Glacier buckets are the slow
    part: start their restore first.
-4. For Postgres, recover as in [Backups](../databases/backups.md); a cluster
-   restored from this archive must archive under a new `serverName`.
+4. For Postgres, recover as in
+   [Postgres from Scaleway](#postgres-from-scaleway); a cluster restored from
+   this archive must archive under a new `serverName`.
+
+## Postgres from Scaleway
+
+A new CloudNativePG `Cluster` recovers the whole `postgres` cluster, every
+database, from `s3://gewis-s3-backup/postgres/`. It reads the archive directly;
+nothing in SeaweedFS is involved. The steps below build a throwaway cluster in
+its own namespace, for a drill or to pull data out of. Replacing a lost
+production cluster uses the same `bootstrap.recovery` and `externalClusters` in
+place of `initdb` in `flux/40_services/postgres/cluster.yaml`, plus a new
+`serverName` for its own archiving, see
+[Postgres](../databases/postgres.md).
+
+**1. Pick the target.** Without `recoveryTarget` the cluster recovers to the end
+of the WAL in the copy. To match another bucket's copy, or to go back to before
+a mistake, set `targetTime`, no later than the copy's newest WAL — see
+[Point-in-time recovery off-site](pitr.md#what-scaleway-holds). A target past it
+fails with *"recovery ended before configured recovery target was reached"*.
+
+**2. Size and image.** The volume needs room for every database plus the WAL
+being replayed; twice their size is safe. The image must have the major version
+that wrote the archive. While production still runs:
+
+```sh
+kubectl -n postgres exec postgres-1 -c postgres -- psql -Atc \
+  "select pg_size_pretty(sum(pg_database_size(datname))) from pg_database"
+kubectl -n postgres get cluster postgres -o jsonpath='{.status.image}{"\n"}'
+```
+
+Longhorn refuses a volume that no node has room to schedule, even when the
+nodes' disks are mostly empty: `kubectl -n longhorn-system get nodes.longhorn.io`
+shows `storageScheduled` against `storageMaximum` per disk.
+
+**3. Credentials.** With the `scaleway` remote from the top of this page
+exported, put your key into a Secret without it reaching the command line or
+the shell history. `printf` is a shell builtin, and `%@*` drops the Project
+suffix, which only matters for creating buckets:
+
+```sh
+kubectl create namespace restore
+kubectl -n restore create secret generic scaleway-restore --from-env-file=<(
+  printf 'ACCESS_KEY_ID=%s\nSECRET_ACCESS_KEY=%s\nREGION=nl-ams\n' \
+    "${RCLONE_CONFIG_SCALEWAY_ACCESS_KEY_ID%@*}" "$RCLONE_CONFIG_SCALEWAY_SECRET_ACCESS_KEY")
+kubectl -n restore get secret scaleway-restore -o json \
+  | jq -r '.data | to_entries[] | "\(.key) \(.value | @base64d | length)"'   # no length 0
+```
+
+**4. The cluster.** Through the NetBird proxy `kubectl apply` needs
+`--validate=false` ([App access](../cluster/app-access.md#kubectl-over-netbird)),
+so read the objects back afterwards:
+
+```sh
+kubectl apply --validate=false -f - <<'EOF'
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata: { name: scaleway-postgres, namespace: restore }
+spec:
+  configuration:
+    destinationPath: s3://gewis-s3-backup/postgres/
+    endpointURL: https://s3.nl-ams.scw.cloud
+    s3Credentials:
+      accessKeyId:     { name: scaleway-restore, key: ACCESS_KEY_ID }
+      secretAccessKey: { name: scaleway-restore, key: SECRET_ACCESS_KEY }
+      region:          { name: scaleway-restore, key: REGION }
+    wal: { compression: gzip }
+  instanceSidecarConfiguration:
+    env:
+      - { name: AWS_REQUEST_CHECKSUM_CALCULATION,  value: when_required }
+      - { name: AWS_RESPONSE_CHECKSUM_VALIDATION, value: when_required }
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata: { name: restore, namespace: restore }
+spec:
+  instances: 1
+  imageName: <image from step 2>
+  storage: { storageClass: longhorn-single, size: <size from step 2> }
+  bootstrap:
+    recovery:
+      source: origin
+      recoveryTarget:                      # omit to recover to the end of the copy
+        targetTime: "<YYYY-MM-DD HH:MM:SS+00>"
+  externalClusters:
+    - name: origin
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: scaleway-postgres
+          serverName: postgres
+EOF
+kubectl -n restore get cluster restore -o jsonpath='{.spec.bootstrap.recovery}{"\n"}'
+kubectl -n restore get cluster restore -w        # until "Cluster in healthy state"
+```
+
+The cluster has no `plugins` entry with `isWALArchiver`, so it never writes to
+Scaleway. Recovery runs in a job pod, `restore-1-full-recovery-<suffix>`:
+
+```sh
+kubectl -n restore get pods
+kubectl -n restore logs <that pod> -c full-recovery | grep -oE '"message":"[^"]*recovery[^"]*'
+kubectl -n restore logs <that pod> -c plugin-barman-cloud | grep '"level":"error"'
+```
+
+*"Unable to locate credentials"* from the plugin means an empty key in the
+Secret. After fixing a failed recovery, delete the `Cluster` and apply it again
+rather than waiting for the job's retries.
+
+**5. Where it landed.** No Postgres function reports it once the cluster has
+started, so read the newest row of a table the apps write often, which should
+be just before the target:
+
+```sh
+kubectl -n restore exec restore-1 -c postgres -- psql -d <database> -Atc "<query>"
+```
+
+**6. Clean up** the same day; the namespace holds a copy of every database and
+your key:
+
+```sh
+kubectl delete namespace restore
+kubectl get pv | grep restore        # nothing left
+```
+
+## An app: files and database at one moment
+
+An app that keeps files in a bucket and their index in Postgres comes back
+consistent only if both are taken at the same moment. Mattermost is the example
+here; Nextcloud has the same shape plus the [Glacier](#from-glacier) step.
+
+1. **Find the run.** On s3-01, the moment the run listed the app's bucket:
+
+   ```sh
+   journalctl -u seaweedfs-backup --since <day> -o short-iso-precise | grep -E 'syncing (mattermost|postgres)'
+   ```
+
+   Every file the app referenced at that moment is in the copy.
+2. **Recover Postgres** as [above](#postgres-from-scaleway), with `targetTime`
+   no later than that moment *and* no later than the copy's newest WAL, which
+   ends up to 5 minutes before `syncing postgres`.
+3. **The files** from the same run. For the newest run nothing is needed; for an
+   older one, set `RCLONE_CONFIG_SCALEWAY_VERSION_AT` to just after its
+   `syncing <bucket>` line, see
+   [the bucket as it was at a moment](#the-bucket-as-it-was-at-a-moment).
+   Restoring means `rclone copy` through crypt into SeaweedFS, as in
+   [Encrypted buckets](#encrypted-buckets); a drill copies only a sample to
+   local disk, since `cryptcheck` already covers the content.
+4. **Check they agree.** Every file the database references must be in the
+   copy. For Mattermost the references are in `fileinfo`:
+
+   ```sh
+   MM=":crypt,remote='scaleway:gewis-s3-backup/mattermost':"
+   kubectl -n restore exec restore-1 -c postgres -- psql -d mattermost -Atc "
+     select path from fileinfo where deleteat = 0
+     union select thumbnailpath from fileinfo where deleteat = 0 and thumbnailpath <> ''
+     union select previewpath   from fileinfo where deleteat = 0 and previewpath   <> ''" \
+     | sort -u > /tmp/restore-db.txt
+   rclone lsf -R --files-only --fast-list "$MM" | sort > /tmp/restore-files.txt
+   comm -23 /tmp/restore-db.txt /tmp/restore-files.txt | wc -l   # referenced but missing: must be 0
+   ```
+
+   A missing file created before the target is a gap in the backup; one created
+   after it means the target was too late. Files in the copy that nothing
+   references are normal.
+
+   For Mattermost, the newest `jobs.createat` shows where the database landed
+   (step 5 above); posts may be days older on a quiet instance.
+5. **Clean up** the namespace as above, and delete local copies:
+   `rm -f /tmp/restore-db.txt /tmp/restore-files.txt`, plus any sample. They
+   hold people's files and file names.
 
 ## A restore drill
 
-A copy is only proven by restoring it. Cheap checks first, then a real one:
+A copy is only proven by restoring it. Cheap checks first:
 
 ```sh
 rclone check --one-way seaweedfs:kaneo scaleway:gewis-s3-backup/kaneo
@@ -128,7 +297,6 @@ header and compares the result, so it proves both the copy and the keys while
 downloading only the headers. That is still a read, so it needs a bucket that
 is not in Glacier, such as `mattermost`.
 
-The real one is a throwaway CloudNativePG `Cluster` with `bootstrap.recovery`
-whose `ObjectStore` points straight at
-`s3://gewis-s3-backup/postgres/` on `https://s3.nl-ams.scw.cloud` — it
-proves the off-site copy is a usable Barman archive without touching SeaweedFS.
+The real drill is [An app: files and database at one moment](#an-app-files-and-database-at-one-moment)
+against a throwaway namespace: it proves the Postgres archive recovers off-site
+and that the files it points at are in the copy.
