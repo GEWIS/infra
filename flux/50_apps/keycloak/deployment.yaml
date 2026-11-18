@@ -29,7 +29,7 @@ spec:
             - --log=console,file,syslog
           env:
             - name: JAVA_OPTS_APPEND
-              value: -Djgroups.dns.query=allkeycloaks
+              value: -Djgroups.dns.query=allkeycloaks -XX:UseAVX=2
             - name: KC_DB
               value: mariadb
             - name: KC_DB_POOL_INITIAL_SIZE
