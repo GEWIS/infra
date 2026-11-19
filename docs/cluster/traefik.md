@@ -155,7 +155,8 @@ each in an `ingressroute.yaml`. Routes to hosts outside the cluster live in
 `flux/50_apps/external-proxy/`, see [External proxy](external-proxy.md); S3 is the
 exception, see [S3](s3.md). `web`
 (`:80`) only redirects to HTTPS. The `traefik` IngressClass is the cluster
-default, so a plain `Ingress` also lands here.
+default, so a plain `Ingress` also lands here. The one published that way is
+the chart-owned Ingress of [Sealed Secrets](sealed-secrets.md).
 
 TLS comes from the default TLS store: `wildcard-cbc-gewis-nl-tls` in the
 `traefik` namespace, issued by its own [`Certificate`](certificates.md). A route

@@ -123,6 +123,7 @@ nav:
       - DNS: cluster/dns.md
       - Internal resolver: cluster/resolver.md
       - kube-system Corefile: cluster/kube-system-corefile.md
+      - Sealed Secrets: cluster/sealed-secrets.md
       - OpenBao: cluster/openbao.md
       - NetBird: cluster/netbird.md
       - External proxy: cluster/external-proxy.md

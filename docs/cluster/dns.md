@@ -1,11 +1,13 @@
 # DNS
 
 external-dns watches Traefik's `IngressRoute`s (the `traefik-proxy` source) and
-writes to Cloudflare. It takes each hostname from the `Host(...)` matchers in a
-route's rules; a route without one, such as the outpost callback, publishes
-nothing. The chart grants the RBAC for Traefik's CRDs itself. Only the
+plain `Ingress`es (the `ingress` source), and writes to Cloudflare. It takes each
+hostname from the `Host(...)` matchers in a route's rules, or from an Ingress's
+`host` fields; a route without one, such as the outpost callback, publishes
+nothing. The chart grants the RBAC for both sources itself. Only the
 `traefik.io` API group is watched — the legacy `traefik.containo.us` group is off
-by default.
+by default. The `ingress` source exists for charts that ship their own Ingress,
+such as [Sealed Secrets](sealed-secrets.md).
 
 **`domainFilters` must name the Cloudflare zone**, not the subdomain in use. A
 zone matches only if it equals the filter or is a subdomain of it, so
@@ -30,7 +32,7 @@ cheap in comparison — it is deletable by hand, and its ownership TXT says whic
 cluster wrote it.
 
 The DNS target is the `external-dns.alpha.kubernetes.io/target` annotation on
-**each `IngressRoute`**, set to `router02.net.gewis.nl`. The target is a
+**each `IngressRoute` and `Ingress`**, set to `router02.net.gewis.nl`. The target is a
 hostname, so records are CNAMEs onto the router, which owns the public address;
 Traefik's own address, `10.82.50.10`, is private and useless from outside. A new
 route that forgets the annotation gets no usable record.

@@ -16,13 +16,12 @@ the system that owns the client, so nobody has to see it.
 `$__file{}`. The admin login comes straight from `grafana-auth` through the
 chart's `admin.existingSecret`, so that Secret is not mounted.
 
-Sealing is offline — the pinned key pair lives in `secrets/sealed-secrets.yaml`,
-so no cluster access is needed to produce the ciphertext:
+Seal `grafana-auth` with the public certificate, see
+[Sealed Secrets](../cluster/sealed-secrets.md):
 
 ```sh
-sops -d --extract '["tls_crt"]' secrets/sealed-secrets.yaml > /tmp/sealing.crt
-kubeseal --cert /tmp/sealing.crt --format yaml < /tmp/grafana-auth.yaml \
-  > flux/50_apps/observability/grafana/auth-sealed-secret.yaml
+kubeseal --cert https://sealed-secrets.gewis.nl/v1/cert.pem --format yaml \
+  < /tmp/grafana-auth.yaml > flux/50_apps/observability/grafana/auth-sealed-secret.yaml
 ```
 
 Write the plaintext input under `/tmp`, never in the working tree.

@@ -26,3 +26,10 @@ spec:
       prometheus.io/scrape: "true"
       prometheus.io/port: "8081"
     keyrenewperiod: "0"
+    ingress:
+      enabled: true
+      hostname: sealed-secrets.gewis.nl
+      path: /v1/cert.pem
+      pathType: Exact
+      annotations:
+        external-dns.alpha.kubernetes.io/target: router02.net.gewis.nl
