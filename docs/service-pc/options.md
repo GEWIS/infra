@@ -126,7 +126,12 @@ things:
   and by `workspace`/`monitor`, but GNOME disables an extension that does not
   declare support for the running shell version. Check with `gnome-extensions
   list --enabled` in the session, and look for `JS ERROR` in the shell's own
-  log: `sudo journalctl -b _COMM=gnome-shell`.
+  log: `sudo journalctl -b _COMM=gnome-shell`. GNOME Shell's other way of
+  switching every extension off, setting `disable-user-extensions` after a
+  crash in its first minute, is locked out: the module pins that key to
+  `false` in the system dconf database. Without the lock the setting would
+  persist in the session user's home on `/persist`, and every later boot would
+  come up in the overview with nothing placed.
 - *`no window with wm_class 'firefox-<name>' … saw: …`* — the extension
   answered, but nothing it listed matched. The `saw:` list is the set of
   classes Mutter actually reports; if Firefox is in there under another name,

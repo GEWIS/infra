@@ -158,6 +158,19 @@ in
     # keyboard depends on.
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
+    # gnome-shell turns every extension off for good when it fails within a
+    # minute of starting: org.gnome.Shell-disable-extensions.service sets
+    # disable-user-extensions in the user's dconf, which /persist carries
+    # across boots. Without no-overview and window-calls the session sits in
+    # the overview and nothing is placed, so the key is locked off here; the
+    # lock also outranks a value already written to the user database.
+    programs.dconf.profiles.user.databases = [
+      {
+        settings."org/gnome/shell".disable-user-extensions = false;
+        locks = [ "/org/gnome/shell/disable-user-extensions" ];
+      }
+    ];
+
     services.desktopManager.gnome = {
       enable = true;
 
