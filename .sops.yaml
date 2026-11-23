@@ -1,7 +1,7 @@
 keys:
   admins: &admins
     - &admin_jan ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKxoQSxfYqf9ITN8Fhckk8WbY4dwtBAXOhC9jxihJvq
-    - &admin_lars ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDNEUz9gdN7GD8a1BNijKPl+3/CwYr+n36G4FjvqqVTt
+    - &admin_lars age1qpve0aczuvhwqyc5z9n7z3dsyevm2w80yy5yyjvsd34kjm00hfcsam2dzp
     - &admin_luuk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHnm7ME9L/KuEGbSbzPJ4uVgsNl579UCCtXAIlWNYq7x
     - &admin_ruben ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCa+5whrcPG6CADGU4PcTO+X15TwoDaEg9K/GCskGlM
     - &admin_victor age1zr2rw7z4p2gpt58gkhz6kx3nuvyhz76lgl334kcr56sc26czwstq4xhsh0
