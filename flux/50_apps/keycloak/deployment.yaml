@@ -15,10 +15,36 @@ spec:
       labels:
         io.kompose.service: keycloak
     spec:
+      priorityClassName: critical-apps
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.6.4
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 500m
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 30
+            failureThreshold: 5
           args:
             - start
             - --log-level=INFO,org.keycloak.events:DEBUG
@@ -29,7 +55,7 @@ spec:
             - --log=console,file,syslog
           env:
             - name: JAVA_OPTS_APPEND
-              value: -Djgroups.dns.query=allkeycloaks -XX:UseAVX=2
+              value: -Djgroups.dns.query=allkeycloaks -XX:UseAVX=2 -Xms512m -Xmx2g
             - name: KC_DB
               value: mariadb
             - name: KC_DB_POOL_INITIAL_SIZE

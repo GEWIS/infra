@@ -19,6 +19,17 @@ resealing it.
 | Kerberos config | PVC `kerberos` (5Mi) |
 | File logs | PVC `logs` (100Mi) |
 
+The pod is protected from node memory pressure: it runs with a Guaranteed
+quality of service (4 GiB memory requested and limited, 2 GiB JVM heap pinned
+inside that limit), the `critical-apps` PriorityClass
+(`flux/30_config/scheduling/priority-classes.yaml`) so the scheduler preempts
+lower-priority pods instead of queueing behind them, and
+startup/readiness/liveness probes on the management port `9000`. The probes
+keep Traefik from routing to a half-initialized instance, which matters because
+a cold boot (the `kc build` phase included) takes several minutes. The 4 GiB
+request does not fit talos-01 anymore, so the pod lands on talos-02 or
+talos-03.
+
 **Only one instance may run against `auth_prod`.** The Deployment uses
 `strategy: Recreate` and one replica. Do not start a second copy, not even
 briefly in another namespace.

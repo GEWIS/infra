@@ -1,0 +1,11 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: critical-apps
+value: 1000000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: >-
+  For apps that must keep running when nodes run out of memory. Pods with this
+  class get scheduled first and preempt lower-priority pods instead of being
+  evicted themselves.
