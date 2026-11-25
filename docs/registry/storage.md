@@ -10,12 +10,12 @@ Longhorn PVC `zot-pvc-zot-0` (2Gi, default class), with `remoteCache: false`:
 
 | File | Holds |
 | --- | --- |
-| `meta.db` | repository metadata for search and the UI, users' API keys and preferences |
+| `meta.db` | repository metadata for search and the UI, users' groups and preferences |
 | `cache.db` | the dedupe index: which stored blob a digest points at |
 
 **The PVC is not a cache.** With `dedupe` on, a blob pushed twice is stored once
 and the second copy is a placeholder resolved through `cache.db`, so losing the
-volume loses more than API keys. It is on the default class, so the weekly
+volume loses images, not just metadata. It is on the default class, so the weekly
 [Longhorn backup](../databases/longhorn.md) covers it.
 
 zot runs as a single-replica StatefulSet (`persistence: true`): an upgrade stops

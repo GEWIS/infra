@@ -2,7 +2,7 @@
 
 zot grants nothing anonymously: every request must come from a logged-in
 identity. The public name passes everything to zot, apart from the guards in
-[Sessions and keys](sessions.md), and the LAN name logs every request in as the
+[Sessions](sessions.md), and the LAN name logs every request in as the
 read-only user `lan-reader`, see [LAN login](lan-login.md). Both names resolve
 through public DNS.
 
@@ -14,7 +14,7 @@ flowchart LR
 
 | Name | Public DNS | Entrypoint | Route in `flux/50_apps/zot/ingressroute.yaml` | Serves |
 | --- | --- | --- | --- | --- |
-| `registry.gewis.nl` | CNAME onto router02 | `websecure`, `10.82.50.10` | `zot` | without an `Authorization` header: everything, the UI included; with one: everything but `/zot/auth/apikey`, without sessions |
+| `registry.gewis.nl` | CNAME onto router02 | `websecure`, `10.82.50.10` | `zot` | without an `Authorization` header: everything, the UI included; with one: everything, without sessions |
 | `registry.net.gewis.nl` | CNAME onto `internal.net.gewis.nl`, A `10.82.50.16` | `internal`, `10.82.50.16` | `zot-lan` | `GET` and `HEAD` under `/v2/`, as `lan-reader`, without sessions |
 
 The `internal` entrypoint and its LoadBalancer Service `traefik-internal` come
@@ -27,8 +27,8 @@ reach `.16`.
 
 | For | Name |
 | --- | --- |
-| pushes, `docker login`, CI | `registry.gewis.nl` |
-| the UI, the Keycloak login, API keys | `https://registry.gewis.nl` |
+| CI pushes | `registry.gewis.nl` |
+| the UI and its Keycloak login | `https://registry.gewis.nl` |
 | `image:` in workloads | `registry.net.gewis.nl` |
 
 Both names serve the same images. Workloads must use the LAN name: nodes have
@@ -48,5 +48,6 @@ one label only.
 Both entrypoints serve the default Let's Encrypt certificate, so containerd
 needs no extra CA and workloads need no `imagePullSecrets`.
 
-On `registry.gewis.nl`, `/v2/` answers `401` with a Bearer challenge, so
-`docker pull` there needs a `docker login` first.
+On `registry.gewis.nl`, `/v2/` answers `401` with a Bearer challenge that only
+GitHub Actions tokens pass, see [Publishing](publishing.md). People pull from
+`registry.net.gewis.nl`, which needs the LAN or NetBird.

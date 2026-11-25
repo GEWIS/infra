@@ -10,7 +10,7 @@ needs no login, `docker pull` included.
 `lan-reader` is an ordinary logged-in user and can only `read`. The route also
 admits only `GET` and `HEAD` under `/v2/`, so pushes and the UI work on
 `registry.gewis.nl` only, and it passes through `zot-no-session`, see
-[Sessions and keys](sessions.md).
+[Sessions](sessions.md).
 
 | Piece | Where |
 | --- | --- |
@@ -26,5 +26,5 @@ mounted Secret, and LAN pulls get `401` in between.
 
 The password sits in the Middleware and the `zot-values` Helm release,
 readable by cluster admins, and it also works on `registry.gewis.nl`: it reads
-every image from anywhere, and pushes nothing. No session or key can be made
-with it, see [Sessions and keys](sessions.md).
+every image from anywhere, and pushes nothing. No session can be made
+with it, see [Sessions](sessions.md).

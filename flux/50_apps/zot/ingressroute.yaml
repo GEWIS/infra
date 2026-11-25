@@ -33,7 +33,6 @@ spec:
       match: >-
         Host(`registry.gewis.nl`)
         && HeaderRegexp(`Authorization`, `.*`)
-        && !PathPrefix(`/zot/auth/apikey`)
       middlewares:
         - name: zot-no-session
       services:

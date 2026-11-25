@@ -54,7 +54,8 @@ spec:
         port: "5000"
         externalUrl: https://registry.gewis.nl
         auth:
-          apikey: true
+          # Off: a key keeps its owner's groups after they lose access. See docs/registry/login.md.
+          apikey: false
           htpasswd:
             path: /secrets/htpasswd/htpasswd
           sessionKeysFile: /secrets/session/session-keys.json

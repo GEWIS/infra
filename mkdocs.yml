@@ -160,7 +160,7 @@ nav:
       - Two names: registry/exposure.md
       - LAN login: registry/lan-login.md
       - Login: registry/login.md
-      - Sessions and keys: registry/sessions.md
+      - Sessions: registry/sessions.md
       - Publishing: registry/publishing.md
       - The config: registry/config.md
       - Storage: registry/storage.md

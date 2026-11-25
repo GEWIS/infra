@@ -2,7 +2,7 @@
 
 [zot](https://zotregistry.dev) at `https://registry.gewis.nl`, which serves
 only logged-in identities: GitHub Actions push with their own OIDC token, and
-people log in through Keycloak for the UI and API keys. On the LAN,
+people log in through Keycloak for the UI. On the LAN,
 `registry.net.gewis.nl` logs every pull in as a read-only user, so nodes need
 no credentials.
 
