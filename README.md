@@ -1,6 +1,15 @@
 # CBC infra
 
-NixOS host configurations for GEWIS CBC, plus the OpenTofu that provisions them.
+NixOS, OpenTofu and Kubernetes configuration for the digital infrastructure of GEWIS. Managed and build by the CBC.
+
+## Context and usages
+This repo is the beating heart of the CBC. This is open for everybody to learn from. Contribution are welcome from outside the CBC, but usually consulting with CBC is preferred.
+
+### Deployment on the Kubernetes
+If you want to deploy on the Kubernetes cluster. You are able to do so by following the instructions on the [k8s-apps repository](https://github.com/GEWIS/k8s-apps). 
+
+### Getting a domain name under *.gewis.nl // Getting access to a database // Getting an email address
+Please contact the CBC via cbc@gewis.nl, we are happy to help.
 
 ## Hosts
 
