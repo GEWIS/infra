@@ -84,6 +84,11 @@ locals {
       namespace     = "observability"
       redirect_uris = ["https://grafana.gewis.nl/login/generic_oauth"]
     }
+    zot = {
+      client_id     = "zot"
+      namespace     = "zot"
+      redirect_uris = ["https://registry.gewis.nl/zot/auth/callback/oidc"]
+    }
   }
 
   client_read_policies = merge(

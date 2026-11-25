@@ -25,7 +25,7 @@ locals {
     kaneo      = { namespace = "kaneo-prod" }
     nextcloud  = { namespace = "nextcloud-prod", backup_class = "GLACIER", backup_encrypt = true }
     mattermost = { namespace = "mattermost-prod", backup_encrypt = true }
-    zot        = { namespace = "zot-prod", no_backup = true }
+    zot        = { namespace = "zot", no_backup = true }
   }
 
   # The one place each default lives; the tags and the output read these.

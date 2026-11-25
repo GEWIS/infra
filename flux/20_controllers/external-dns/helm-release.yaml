@@ -29,6 +29,7 @@ spec:
     sources:
       - traefik-proxy
       - ingress
+      - service
     domainFilters:
       - gewis.nl
     policy: upsert-only

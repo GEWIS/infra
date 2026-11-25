@@ -1,0 +1,5 @@
+apiVersion: v2
+name: zot-values
+description: zot's values with push rights from app-access and the trusted publishers, and the lan-reader login for the LAN-only route
+type: application
+version: 0.1.0
