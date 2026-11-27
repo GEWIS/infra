@@ -2,6 +2,7 @@ locals {
   cluster_name     = "gewis"
   cluster_endpoint = "https://kube.gewis.nl:6443"
   talos_version    = "v1.13.8"
+  kubernetes_version = "1.36.7"
   schematic_id     = "58eedd04d458e2c900727f5a3af74a3ef6453b9902b23decb590c0007388187a"
   install_image    = "factory.talos.dev/installer/${local.schematic_id}:${local.talos_version}"
 
@@ -139,6 +140,7 @@ ephemeral "talos_machine_configuration" "controlplane" {
   machine_type     = "controlplane"
   machine_secrets  = local.machine_secrets
   talos_version    = local.talos_version
+  kubernetes_version = local.kubernetes_version
   docs             = false
   examples         = false
   config_patches = [
